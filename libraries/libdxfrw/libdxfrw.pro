@@ -19,8 +19,6 @@ TARGET = $$DLL_NAME
 GENERATED_DIR = ../../generated/lib/libdxfrw
 # Use common project definitions.
 include(../../common.pri)
-QMAKE_CXXFLAGS_DEBUG += -std=c++11
-QMAKE_CXXFLAGS += -std=c++11
 
 # svg support
 QT -= svg
@@ -35,11 +33,18 @@ SOURCES += \
     src/drw_classes.cpp \
     src/drw_entities.cpp \
     src/drw_objects.cpp \
+    src/drw_datastorage.cpp \
+    src/drw_acis.cpp \
     src/intern/drw_textcodec.cpp \
     src/intern/dxfreader.cpp \
     src/intern/dxfwriter.cpp \
+    src/intern/dwg_dxf_output_transaction.cpp \
+    src/intern/dwgwriterlayoutvalidation.cpp \
     src/intern/dwgreader.cpp \
+    src/intern/dwgreaderR1_40.cpp \
+    src/intern/dwgreaderR11.cpp \
     src/intern/dwgbuffer.cpp \
+    src/intern/dwgobjectframe.cpp \
     src/intern/drw_dbg.cpp \
     src/intern/dwgreader21.cpp \
     src/intern/dwgreader18.cpp \
@@ -47,7 +52,16 @@ SOURCES += \
     src/intern/dwgutil.cpp \
     src/intern/rscodec.cpp \
     src/intern/dwgreader27.cpp \
-    src/intern/dwgreader24.cpp
+    src/intern/dwgreader24.cpp \
+    src/intern/dwgreader32.cpp \
+    src/intern/proxygraphicdecoder.cpp \
+    src/intern/dwgbufferw.cpp \
+    src/intern/dwgwriter15.cpp \
+    src/intern/dwgwriter18.cpp \
+    src/intern/dwgwriter21.cpp \
+    src/intern/dwgwriter24.cpp \
+    src/intern/dwgwriter27.cpp \
+    src/intern/dwgwriter32.cpp
 
 HEADERS += \
     src/libdxfrw.h \
@@ -58,11 +72,20 @@ HEADERS += \
     src/drw_classes.h \
     src/drw_entities.h \
     src/drw_objects.h \
+    src/drw_datastorage.h \
+    src/drw_acis.h \
     src/intern/drw_textcodec.h \
     src/intern/dxfreader.h \
+    src/intern/dxfparserlimits.h \
     src/intern/dxfwriter.h \
+    src/intern/dwg_dxf_output_transaction.h \
+    src/intern/dwgwriterlayoutvalidation.h \
     src/intern/dwgreader.h \
+    src/intern/dwgreaderR1_40.h \
+    src/intern/dwgreaderR11.h \
     src/intern/dwgbuffer.h \
+    src/intern/dwgobjectframe.h \
+    src/intern/dwgsafety.h \
     src/intern/drw_cptables.h \
     src/intern/drw_cptable950.h \
     src/intern/drw_cptable949.h \
@@ -75,5 +98,15 @@ HEADERS += \
     src/intern/dwgutil.h \
     src/intern/rscodec.h \
     src/intern/dwgreader27.h \
-    src/intern/dwgreader24.h
-
+    src/intern/dwgreader24.h \
+    src/intern/dwgreader32.h \
+    src/intern/proxygraphicdecoder.h \
+    src/intern/drw_reserve.h \
+    src/intern/dwgbufferw.h \
+    src/intern/dwgwriter.h \
+    src/intern/dwgwriter15.h \
+    src/intern/dwgwriter18.h \
+    src/intern/dwgwriter21.h \
+    src/intern/dwgwriter24.h \
+    src/intern/dwgwriter27.h \
+    src/intern/dwgwriter32.h

@@ -1,0 +1,469 @@
+/****************************************************************************
+**
+** This file is part of the LibreCAD project, a 2D CAD program
+**
+** Copyright (C) 2026 LibreCAD (librecad.org)
+** Copyright (C) 2026 Dongxu Li (github.com/dxli)
+**
+** This program is free software; you can redistribute it and/or
+** modify it under the terms of the GNU General Public License
+** as published by the Free Software Foundation; either version 2
+** of the License, or (at your option) any later version.
+**
+** This program is distributed in the hope that it will be useful,
+** but WITHOUT ANY WARRANTY; without even the implied warranty of
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+** GNU General Public License for more details.
+**
+**********************************************************************/
+
+/**
+ * MLINE entity tests — covers DRW_MLine + DRW_MLineStyle field round-trip
+ * via in-memory DXF write+read, and the LibreCAD-side decomposition that
+ * fans MLINE out into N parallel polylines on import.
+ */
+
+#include <catch2/catch_approx.hpp>
+#include <catch2/catch_test_macros.hpp>
+
+#include <algorithm>
+#include <filesystem>
+#include <fstream>
+#include <sstream>
+#include <string>
+#include <vector>
+
+#include "drw_entities.h"
+#include "drw_objects.h"
+#include "libdwgr.h"
+#include "libdxfrw.h"
+
+using Catch::Approx;
+
+namespace {
+
+// Stub satisfying every DRW_Interface pure virtual; tests override only
+// what they need. Pattern lifted from entity_metadata_tests.cpp.
+class StubInterface : public DRW_Interface {
+public:
+  void addHeader(const DRW_Header *) override {}
+  void addLType(const DRW_LType &) override {}
+  void addLayer(const DRW_Layer &) override {}
+  void addDimStyle(const DRW_Dimstyle &) override {}
+  void addVport(const DRW_Vport &) override {}
+  void addTextStyle(const DRW_Textstyle &) override {}
+  void addAppId(const DRW_AppId &) override {}
+  void addBlock(const DRW_Block &) override {}
+  void setBlock(const int) override {}
+  void endBlock() override {}
+  void addPoint(const DRW_Point &) override {}
+  void addLine(const DRW_Line &) override {}
+  void addRay(const DRW_Ray &) override {}
+  void addXline(const DRW_Xline &) override {}
+  void addArc(const DRW_Arc &) override {}
+  void addCircle(const DRW_Circle &) override {}
+  void addEllipse(const DRW_Ellipse &) override {}
+  void addLWPolyline(const DRW_LWPolyline &) override {}
+  void addPolyline(const DRW_Polyline &) override {}
+  void addSpline(const DRW_Spline *) override {}
+  void addKnot(const DRW_Entity &) override {}
+  void addInsert(const DRW_Insert &) override {}
+  void addTrace(const DRW_Trace &) override {}
+  void add3dFace(const DRW_3Dface &) override {}
+  void addSolid(const DRW_Solid &) override {}
+  void addMText(const DRW_MText &) override {}
+  void addText(const DRW_Text &) override {}
+  void addDimAlign(const DRW_DimAligned *) override {}
+  void addDimLinear(const DRW_DimLinear *) override {}
+  void addDimRadial(const DRW_DimRadial *) override {}
+  void addDimDiametric(const DRW_DimDiametric *) override {}
+  void addDimAngular(const DRW_DimAngular *) override {}
+  void addDimAngular3P(const DRW_DimAngular3p *) override {}
+  void addDimArc(const DRW_DimArc *) override {}
+  void addDimOrdinate(const DRW_DimOrdinate *) override {}
+  void addLeader(const DRW_Leader *) override {}
+  void addHatch(const DRW_Hatch *) override {}
+  void addViewport(const DRW_Viewport &) override {}
+  void addImage(const DRW_Image *) override {}
+  void addWipeout(const DRW_Wipeout *) override {}
+  void addMLeader(const DRW_MLeader *) override {}
+  void addMLeaderStyle(const DRW_MLeaderStyle *) override {}
+  void linkImage(const DRW_ImageDef *) override {}
+  void addComment(const char *) override {}
+  void addPlotSettings(const DRW_PlotSettings *) override {}
+  void writeHeader(DRW_Header &) override {}
+  void writeBlocks() override {}
+  void writeBlockRecords() override {}
+  void writeEntities() override {}
+  void writeLTypes() override {}
+  void writeLayers() override {}
+  void writeTextstyles() override {}
+  void writeVports() override {}
+  void writeDimstyles() override {}
+  void writeObjects() override {}
+  void writeAppId() override {}
+};
+
+class MLineCapture : public StubInterface {
+public:
+  int m_callCount = 0;
+  DRW_MLine m_captured;
+  void addMLine(const DRW_MLine *d) override {
+    if (d && m_callCount == 0)
+      m_captured = *d;
+    ++m_callCount;
+  }
+};
+
+class MLineEmitter : public StubInterface {
+public:
+  DRW_MLine m_line;
+  dxfRW *m_rw = nullptr;
+  void writeEntities() override { m_rw->writeMLine(&m_line); }
+};
+
+class MLineDwgEmitter : public StubInterface {
+public:
+  dwgRW *m_rw = nullptr;
+  std::vector<DRW_MLineStyle> m_styles;
+  std::vector<DRW_MLine> m_lines;
+
+  void writeEntities() override {
+    DRW_MLineStyle style;
+    style.name = "WALLSTYLE";
+    style.description = "two-line wall";
+    style.flags = 1;
+    style.fillColor = 3;
+    style.startAngle = 1.0471975512;
+    style.endAngle = 2.0943951024;
+    DRW_MLineElement left;
+    left.offset = 0.5;
+    left.color = 1;
+    left.linetypeIndex = -1;
+    left.linetype = "BYLAYER";
+    DRW_MLineElement right;
+    right.offset = -0.5;
+    right.color = 2;
+    right.linetypeIndex = -1;
+    right.linetype = "BYLAYER";
+    style.elements.push_back(left);
+    style.elements.push_back(right);
+    m_rw->writeMLineStyle(&style);
+
+    DRW_MLine line;
+    line.styleName = "WALLSTYLE";
+    line.scale = 2.0;
+    line.justification = 1;
+    line.openClosed = 1;
+    line.numLines = 2;
+    line.numVerts = 2;
+    line.basePoint = DRW_Coord(0.0, 0.0, 0.0);
+    line.layer = "0";
+    for (int i = 0; i < 2; ++i) {
+      DRW_MLineVertex v;
+      v.position = DRW_Coord(static_cast<double>(i) * 10.0, 0.0, 0.0);
+      v.vertexDir = DRW_Coord(1.0, 0.0, 0.0);
+      v.miterDir = DRW_Coord(0.0, 1.0, 0.0);
+      v.segParms.resize(2);
+      v.segParms[0].push_back(0.0);
+      v.segParms[1].push_back(0.0);
+      v.areaFillParms.resize(2);
+      line.vertlist.push_back(v);
+    }
+    m_rw->writeMLine(&line);
+  }
+
+  void addMLineStyle(const DRW_MLineStyle &style) override {
+    if (style.name == "WALLSTYLE")
+      m_styles.push_back(style);
+  }
+
+  void addMLine(const DRW_MLine *line) override {
+    if (line)
+      m_lines.push_back(*line);
+  }
+};
+
+bool tryReadDxf(const std::string &dxf, MLineCapture &capture,
+                const char *name) {
+  const auto path = std::filesystem::temp_directory_path() / name;
+  std::filesystem::remove(path);
+  {
+    std::ofstream out(path);
+    out << dxf;
+  }
+  dxfRW reader(path.string().c_str());
+  const bool result = reader.read(&capture, /*ext=*/true);
+  std::filesystem::remove(path);
+  return result;
+}
+
+} // namespace
+
+TEST_CASE("DRW_MLine: default field values", "[mline]") {
+  DRW_MLine m;
+  CHECK(m.scale == 1.0);
+  CHECK(m.justification == 0);
+  CHECK(m.openClosed == 1);
+  CHECK(m.numLines == 0);
+  CHECK(m.numVerts == 0);
+  CHECK(m.styleHandle == 0u);
+  CHECK(m.vertlist.empty());
+}
+
+TEST_CASE("DRW_MLineStyle: default field values", "[mline]") {
+  DRW_MLineStyle s;
+  CHECK(s.elements.empty());
+  CHECK(s.fillColor == 256);
+  CHECK(s.flags == 0);
+  CHECK(s.startAngle == 0.0);
+  CHECK(s.endAngle == 0.0);
+}
+
+TEST_CASE("DRW_MLine: vertex container holds segParms per element", "[mline]") {
+  DRW_MLineVertex v;
+  v.position = DRW_Coord(1.0, 2.0, 0.0);
+  v.miterDir = DRW_Coord(0.0, 1.0, 0.0);
+  v.segParms.resize(2);
+  v.segParms[0].push_back(0.0);
+  v.segParms[1].push_back(0.0);
+  v.areaFillParms.resize(2);
+
+  CHECK(v.segParms.size() == 2);
+  CHECK(v.segParms[0].size() == 1);
+  CHECK(v.segParms[1].size() == 1);
+  CHECK(v.areaFillParms.size() == 2);
+  CHECK(v.areaFillParms[0].empty());
+}
+
+TEST_CASE("DRW_MLine: round-trip through dxfRW write+read",
+          "[mline][dxf_roundtrip]") {
+  const auto path =
+      std::filesystem::temp_directory_path() / "librecad_mline_roundtrip.dxf";
+  std::filesystem::remove(path);
+
+  MLineEmitter emitter;
+  emitter.m_line.styleName = "STANDARD";
+  emitter.m_line.scale = 2.5;
+  emitter.m_line.justification = 1;
+  emitter.m_line.openClosed = 1;
+  emitter.m_line.numLines = 2;
+  emitter.m_line.numVerts = 3;
+  emitter.m_line.basePoint = DRW_Coord(0.0, 0.0, 0.0);
+  emitter.m_line.layer = "0";
+  for (int i = 0; i < 3; ++i) {
+    DRW_MLineVertex v;
+    v.position = DRW_Coord(static_cast<double>(i), 0.0, 0.0);
+    v.vertexDir = DRW_Coord(1.0, 0.0, 0.0);
+    v.miterDir = DRW_Coord(0.0, 1.0, 0.0);
+    v.segParms.resize(2);
+    v.segParms[0].push_back(0.0);
+    v.segParms[1].push_back(0.0);
+    v.areaFillParms.resize(2);
+    emitter.m_line.vertlist.push_back(v);
+  }
+
+  {
+    dxfRW w(path.string().c_str());
+    emitter.m_rw = &w;
+    REQUIRE(w.write(&emitter, DRW::AC1021, false));
+  }
+
+  MLineCapture capture;
+  {
+    dxfRW r(path.string().c_str());
+    REQUIRE(r.read(&capture, /*ext=*/true));
+  }
+
+  REQUIRE(capture.m_callCount == 1);
+  CHECK(capture.m_captured.styleName == "STANDARD");
+  CHECK(capture.m_captured.scale == 2.5);
+  CHECK(capture.m_captured.justification == 1);
+  CHECK(capture.m_captured.numLines == 2);
+  CHECK(capture.m_captured.vertlist.size() == 3);
+  if (capture.m_captured.vertlist.size() >= 3) {
+    CHECK(capture.m_captured.vertlist[0].position.x == 0.0);
+    CHECK(capture.m_captured.vertlist[1].position.x == 1.0);
+    CHECK(capture.m_captured.vertlist[2].position.x == 2.0);
+  }
+
+  std::filesystem::remove(path);
+}
+
+TEST_CASE("DXF MLINE write emits expected codes", "[mline][dxf_roundtrip]") {
+  const auto path =
+      std::filesystem::temp_directory_path() / "librecad_mline_codes.dxf";
+  std::filesystem::remove(path);
+
+  MLineEmitter emitter;
+  emitter.m_line.styleName = "STANDARD";
+  emitter.m_line.scale = 1.0;
+  emitter.m_line.justification = 0;
+  emitter.m_line.numLines = 2;
+  emitter.m_line.numVerts = 2;
+  emitter.m_line.layer = "0";
+  for (int i = 0; i < 2; ++i) {
+    DRW_MLineVertex v;
+    v.position = DRW_Coord(static_cast<double>(i), 0.0, 0.0);
+    v.miterDir = DRW_Coord(0.0, 1.0, 0.0);
+    v.segParms.resize(2);
+    v.areaFillParms.resize(2);
+    emitter.m_line.vertlist.push_back(v);
+  }
+
+  {
+    dxfRW w(path.string().c_str());
+    emitter.m_rw = &w;
+    REQUIRE(w.write(&emitter, DRW::AC1021, false));
+  }
+
+  std::ifstream in(path);
+  std::stringstream buf;
+  buf << in.rdbuf();
+  const std::string content = buf.str();
+  CHECK(content.find("\nMLINE\n") != std::string::npos);
+  CHECK(content.find("AcDbMline") != std::string::npos);
+  CHECK(content.find("STANDARD") != std::string::npos);
+
+  in.close();
+  std::filesystem::remove(path);
+}
+
+TEST_CASE("DXF MLINE rejects invalid structural counts",
+          "[dxf][mline][malformed]") {
+  const std::string prefix =
+      "0\nSECTION\n2\nENTITIES\n"
+      "0\nMLINE\n5\n10\n8\n0\n"
+      "100\nAcDbEntity\n100\nAcDbMline\n"
+      "2\nSTANDARD\n40\n1\n70\n0\n71\n1\n";
+  const std::string suffix = "0\nENDSEC\n0\nEOF\n";
+
+  SECTION("negative vertex count") {
+    MLineCapture capture;
+    CHECK_FALSE(tryReadDxf(prefix + "72\n-1\n73\n0\n" + suffix,
+                           capture, "lc_mline_negative_vertex_count.dxf"));
+    CHECK(capture.m_callCount == 0);
+  }
+
+  SECTION("oversized line count") {
+    MLineCapture capture;
+    CHECK_FALSE(tryReadDxf(prefix + "72\n0\n73\n257\n" + suffix,
+                           capture, "lc_mline_oversized_line_count.dxf"));
+    CHECK(capture.m_callCount == 0);
+  }
+
+  SECTION("oversized parameter count") {
+    MLineCapture capture;
+    const std::string body =
+        "72\n1\n73\n1\n"
+        "10\n0\n20\n0\n30\n0\n"
+        "11\n0\n21\n0\n31\n0\n"
+        "12\n1\n22\n0\n32\n0\n"
+        "13\n0\n23\n1\n33\n0\n"
+        "74\n5001\n";
+    CHECK_FALSE(tryReadDxf(prefix + body + suffix, capture,
+                           "lc_mline_oversized_parameter_count.dxf"));
+    CHECK(capture.m_callCount == 0);
+  }
+
+  SECTION("extra parameter without a declared section") {
+    MLineCapture capture;
+    const std::string body =
+        "72\n1\n73\n1\n"
+        "11\n0\n21\n0\n31\n0\n41\n1\n";
+    CHECK_FALSE(tryReadDxf(prefix + body + suffix, capture,
+                           "lc_mline_unframed_parameter.dxf"));
+    CHECK(capture.m_callCount == 0);
+  }
+
+  SECTION("justification outside the RC domain") {
+    MLineCapture capture;
+    std::string malformed = prefix;
+    const std::size_t field = malformed.find("70\n0\n");
+    REQUIRE(field != std::string::npos);
+    malformed.replace(field, std::string("70\n0\n").size(), "70\n3\n");
+    CHECK_FALSE(tryReadDxf(malformed + "72\n0\n73\n0\n" + suffix,
+                           capture, "lc_mline_invalid_justification.dxf"));
+    CHECK(capture.m_callCount == 0);
+  }
+}
+
+TEST_CASE("DWG MLINESTYLE object resolves MLINE style handle",
+          "[mline][dwg-write][mlinestyle]") {
+  struct VersionCase {
+    DRW::Version version;
+    const char *suffix;
+  };
+  const VersionCase cases[] = {
+      {DRW::AC1015, "mline_style_r2000.dwg"},
+      {DRW::AC1018, "mline_style_r2004.dwg"},
+      {DRW::AC1024, "mline_style_r2010.dwg"},
+      {DRW::AC1027, "mline_style_r2013.dwg"},
+      {DRW::AC1032, "mline_style_r2018.dwg"},
+  };
+
+  for (const auto &item : cases) {
+    const auto path = std::filesystem::temp_directory_path() / item.suffix;
+    std::filesystem::remove(path);
+
+    {
+      MLineDwgEmitter emitter;
+      dwgRW writer(path.string().c_str());
+      emitter.m_rw = &writer;
+      REQUIRE(writer.write(&emitter, item.version, false));
+    }
+
+    MLineDwgEmitter capture;
+    {
+      dwgRW reader(path.string().c_str());
+      REQUIRE(reader.read(&capture, /*ext=*/true));
+      REQUIRE(reader.getVersion() == item.version);
+      REQUIRE(reader.getError() == DRW::BAD_NONE);
+    }
+
+    REQUIRE(capture.m_styles.size() == 1u);
+    const DRW_MLineStyle &style = capture.m_styles.front();
+    CHECK(style.name == "WALLSTYLE");
+    CHECK(style.description == "two-line wall");
+    CHECK(style.flags == 1);
+    CHECK(style.fillColor == 3);
+    CHECK(style.startAngle == Approx(1.0471975512));
+    CHECK(style.endAngle == Approx(2.0943951024));
+    REQUIRE(style.elements.size() == 2u);
+    CHECK(style.elements[0].offset == Approx(0.5));
+    CHECK(style.elements[0].color == 1);
+    CHECK(style.elements[1].offset == Approx(-0.5));
+    CHECK(style.elements[1].color == 2);
+
+    REQUIRE(capture.m_lines.size() == 1u);
+    const DRW_MLine &line = capture.m_lines.front();
+    CHECK(line.styleHandle == style.handle);
+    CHECK(line.scale == Approx(2.0));
+    CHECK(line.justification == 1);
+    CHECK(line.numLines == 2);
+    REQUIRE(line.vertlist.size() == 2u);
+    CHECK(line.vertlist[0].position.x == Approx(0.0));
+    CHECK(line.vertlist[1].position.x == Approx(10.0));
+
+    std::filesystem::remove(path);
+  }
+}
+
+// Smoke probe: hidden by [.] tag, runs against ~/doc/dwg3/Multiline.dwg
+// if present. Confirms the MLINE entity reaches addMLine.
+TEST_CASE("DWG smoke: Multiline.dwg delivers >= 1 MLINE entity",
+          "[.dwg_mline_probe]") {
+  const char *home = getenv("HOME");
+  if (!home) {
+    SKIP("HOME not set");
+  }
+  const std::string path = std::string(home) + "/doc/dwg3/Multiline.dwg";
+  if (!std::filesystem::is_regular_file(path)) {
+    SKIP("~/doc/dwg3/Multiline.dwg not found");
+  }
+  MLineCapture capture;
+  dwgR reader(path.c_str());
+  bool ok = reader.read(&capture, /*ext=*/true);
+  CHECK(ok);
+  CHECK(capture.m_callCount >= 1);
+}

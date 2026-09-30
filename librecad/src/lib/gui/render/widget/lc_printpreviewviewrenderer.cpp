@@ -1,0 +1,310 @@
+/*******************************************************************************
+ *
+ This file is part of the LibreCAD project, a 2D CAD program
+
+ Copyright (C) 2025 LibreCAD.org
+ Copyright (C) 2025 sand1024
+
+ This program is free software; you can redistribute it and/or
+ modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 2
+ of the License, or (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ ******************************************************************************/
+
+#include "lc_printpreviewviewrenderer.h"
+
+#include "lc_graphicviewport.h"
+#include "rs_graphic.h"
+#include "rs_math.h"
+#include "rs_painter.h"
+#include "rs_units.h"
+
+#define DEBUG_PRINT_PREVIEW_POINTS_NO
+
+namespace{
+    // fixme - move to nicer settings
+    const auto PRINT_PREVIEW_BORDER_AND_SHADOW_COLOR = RS_Color(64, 64, 64);
+    const auto PRINT_PREVIEW_BACKGROUND_COLOR = RS_Color(200, 200, 200);
+    const auto PRINT_PREVIEW_PAPER_COLOR = RS_Color(180, 180, 180);
+    const auto PRINT_PREVIEW_PRINT_AREA_COLOR = RS_Color(255, 255, 255);
+}
+
+LC_PrintPreviewViewRenderer::LC_PrintPreviewViewRenderer(LC_GraphicViewport *viewport, QPaintDevice* paintDevice)
+   :LC_WidgetViewPortRenderer(viewport, paintDevice) {
+}
+
+void LC_PrintPreviewViewRenderer::doRender() {
+    if (m_graphic != nullptr){
+        m_paperScale = m_graphic->getPlotSettings()->getPaperScale();
+    }
+    else{
+        m_paperScale = 1.0;
+    }
+    LC_WidgetViewPortRenderer::doRender();
+}
+
+void LC_PrintPreviewViewRenderer::doDrawLayerBackground(RS_Painter *painter) {
+    drawPaper(painter);
+}
+
+/**
+ * Draws the paper border (for print previews).
+ * This function can ONLY be called from within a paintEvent because it will
+ * use the painter
+ *
+ * @see drawIt()
+ */
+void LC_PrintPreviewViewRenderer::drawPaper(RS_Painter *painter) {
+   if (m_paperScale < 1.0e-6) {
+        return;
+    }
+// draw paper:
+    RS_Vector pinsbase = m_graphic->getPaperInsertionBase();
+    const LC_PlotSettings* ps = m_graphic->getPlotSettings();
+    const RS_Vector printAreaSize = ps->getPrintAreaSize();
+
+    const double paperFactorX = painter->toGuiDX(1.0) / m_paperScale;
+    const double paperFactorY = painter->toGuiDY(1.0) / m_paperScale;
+
+    // PR 11 — pull margins from the active LayoutRecord when one is set,
+    // otherwise fall back to the document singleton via activeLayoutMargins().
+    // Returned values are millimeters; convert to graphic units for the
+    // pixel-mapping arithmetic below.
+    const auto previewMm = m_graphic->activeLayoutMargins();
+    const RS2::Unit previewUnit = m_graphic->getUnit();
+    int marginLeft = (int) (RS_Units::convert(previewMm[0], RS2::Millimeter, previewUnit) * paperFactorX);
+    int marginTop = (int) (RS_Units::convert(previewMm[1], RS2::Millimeter, previewUnit) * paperFactorY);
+    int marginRight = (int) (RS_Units::convert(previewMm[2], RS2::Millimeter, previewUnit) * paperFactorX);
+    int marginBottom = (int) (RS_Units::convert(previewMm[3], RS2::Millimeter, previewUnit) * paperFactorY);
+
+    const RS_Vector &wcsLeftBottomCorner = (RS_Vector(0, 0) - pinsbase) / m_paperScale;
+    const RS_Vector &wcsTopBottomCorner = (printAreaSize - pinsbase) / m_paperScale;
+
+    double v1x, v1y, v2x, v2y;
+    painter->toGui(wcsLeftBottomCorner, v1x, v1y);
+    painter->toGui(wcsTopBottomCorner, v2x, v2y);
+
+    const int numX = ps->getPagesNumHoriz();
+    const int numY = ps->getPagesNumVert();
+
+    const int viewWidth = m_viewport->getWidth();
+    const int viewHeight = m_viewport->getHeight();
+
+// --- below we're graphic-agnostic
+    const int printAreaW = static_cast<int>(v2x - v1x);
+    const int printAreaH = static_cast<int>(v2y - v1y);
+
+    const int paperX1 = static_cast<int>(v1x);
+    const int paperY1 = static_cast<int>(v1y);
+// Don't show margins between neighbor pages.
+    const int paperW = printAreaW + marginLeft + marginRight;
+    const int paperH = printAreaH - marginTop - marginBottom;
+
+    painter->setPen(RS_Color(Qt::gray));
+
+// gray background:
+    painter->fillRect(0, 0, viewWidth, viewHeight,PRINT_PREVIEW_BACKGROUND_COLOR);
+
+// shadow:
+    painter->fillRect(paperX1 + 6, paperY1 + 6, paperW, paperH,PRINT_PREVIEW_BORDER_AND_SHADOW_COLOR);
+
+// border:
+    painter->fillRect(paperX1, paperY1, paperW, paperH,PRINT_PREVIEW_BORDER_AND_SHADOW_COLOR);
+
+// paper:
+    painter->fillRect(paperX1 + 1, paperY1 - 1, paperW - 2, paperH + 2,PRINT_PREVIEW_PAPER_COLOR);
+
+// print area:
+    painter->fillRect(paperX1 + 1 + marginLeft, paperY1 - 1 - marginBottom,
+                      printAreaW - 2, printAreaH + 2,
+                      PRINT_PREVIEW_PRINT_AREA_COLOR);
+
+// don't paint boundaries if zoom is to small
+    if (qMin(std::abs(printAreaW / numX), std::abs(printAreaH / numY)) > 2) {
+// boundaries between pages:
+        for (int pX = 1; pX < numX; pX++) {
+            const double offset = static_cast<double>(printAreaW) * pX / numX;
+            painter->fillRect(paperX1 + marginLeft + offset, paperY1,
+                              1, paperH,
+                              PRINT_PREVIEW_BORDER_AND_SHADOW_COLOR);
+        }
+        for (int pY = 1; pY < numY; pY++) {
+            const double offset = static_cast<double>(printAreaH) * pY / numY;
+            painter->fillRect(paperX1, paperY1 - marginBottom + offset,
+                              paperW, 1,
+                              PRINT_PREVIEW_BORDER_AND_SHADOW_COLOR);
+        }
+    }
+
+
+#ifdef DEBUG_PRINT_PREVIEW_POINTS
+    // drawing zero
+    const RS_Vector &zero = RS_Vector(0, 0);
+    RS_Vector zeroGui = toGui(RS_Vector(zero) / scale);
+    painter->fillRect(zeroGui.x - 5, zeroGui.y - 5, 10, 10,
+                      RS_Color(255, 0, 0));
+
+    // paper base point
+    RS_Vector pinsBaseGui = toGui(-RS_Vector(pinsbase) / scale);
+
+    painter->fillRect(pinsBaseGui.x - 5, pinsBaseGui.y - 5, 10, 10,
+                      RS_Color(0, 255, 0));
+
+    // ui point
+    painter->fillRect(0, 0, 10, 10,
+                      RS_Color(0, 0, 255));
+#endif
+}
+
+void LC_PrintPreviewViewRenderer::renderEntity(RS_Painter *painter, RS_Entity *e) {
+    // fixme - sand - ucs - is it really necessary for print preview??????
+    // check for selected entity drawing
+    if (/*!e->isContainer() && */e->getFlag(RS2::FlagSelected) != painter->shouldDrawSelected()) {
+        return;
+    }
+#ifdef DEBUG_RENDERING
+    isVisibleTimer.start();
+#endif
+    // entity is not visible:
+    const bool visible = e->isVisible();
+#ifdef DEBUG_RENDERING
+    isVisibleTime += isVisibleTimer.nsecsElapsed();
+#endif
+    if (!visible) {
+        return;
+    }
+
+#ifdef DEBUG_RENDERING
+    isConstructionTimer.start();
+#endif
+    const bool constructionEntity = e->isConstruction();
+#ifdef DEBUG_RENDERING
+    isConstructionTime += isConstructionTimer.nsecsElapsed();
+#endif
+
+    if (!e->isPrint() || constructionEntity) {
+        return;
+    }
+
+    if (isOutsideOfBoundingClipRect(e, constructionEntity)) {
+        return;
+    }
+
+    // set pen (color):
+    setPenForPrintingEntity(painter, e);
+    justDrawEntity(painter, e);
+}
+
+void LC_PrintPreviewViewRenderer::setPenForPrintingEntity(RS_Painter *painter, RS_Entity *e) {
+#ifdef DEBUG_RENDERING
+    setPenTimer.start();
+#endif
+    // Getting pen from entity (or layer)
+    RS_Pen pen = e->getPenResolved();
+
+    double patternOffset = painter->currentDashOffset();
+    if (m_lastPaintEntityPen.isSameAs(pen, patternOffset, m_lastPaintedPattern)) {
+        return;
+    }
+    m_lastPaintEntityPen.updateBy(pen);
+    m_lastPaintEntityPen.setDashOffset(patternOffset);
+    // Avoid negative widths
+    double width = pen.getWidth();
+//    int w = std::max(static_cast<int>(pen.getWidth()), 0);
+
+// - Scale pen width.
+// - By default pen width is not scaled on print and print preview.
+//   This is the standard (AutoCAD like) behaviour.
+// bug# 3437941
+// ------------------------------------------------------------
+
+    if (pen.isFullyOpaque()) {
+        if (width >0) {
+            double wf = 1.0; // Width factor.
+
+            if (m_paperScale > RS_TOLERANCE) {
+                if (m_scaleLineWidth) {
+                    wf = m_defaultWidthFactor;
+                } else {
+                    wf = 1.0 / m_paperScale;
+                }
+            }
+            double screenWidth = painter->toGuiDX(width * m_unitFactor100 * wf);
+
+            /*// prevent drawing with 1-width which is slow:
+            if (RS_Math::round(pen.getScreenWidth()) == 1) {
+                pen.setScreenWidth(0.0);
+            }*/
+            // fixme - not sure about this check. However, without it, lines will stay transparent and then disappear on zooming out.
+            //  Probably some other threshold value (instead 1) should be used?
+            if (screenWidth < 1){
+                screenWidth = 0.0;
+            }
+            pen.setScreenWidth(screenWidth);
+        }
+        else{
+            pen.setScreenWidth(0.0);
+        }
+    }
+    else{
+        // fixme - if we'll support transparency, add necessary processing there
+        if (RS_Math::round(pen.getScreenWidth()) == 1) {
+            pen.setScreenWidth(0.0);
+        }
+    }
+
+    RS_Color penColor = pen.getColor();
+    if (penColor.isEqualIgnoringFlags(PRINT_PREVIEW_PRINT_AREA_COLOR) ||
+        (penColor.toIntColor() == RS_Color::Black && penColor.colorDistance(PRINT_PREVIEW_PRINT_AREA_COLOR) < RS_Color::MinColorDistance)) {
+        pen.setColor(m_colorForeground);
+    }
+
+    if (pen.getLineType() != RS2::SolidLine){
+        pen.setDashOffset(patternOffset * m_defaultWidthFactor);
+    }
+
+    if (e->getFlag(RS2::FlagTransparent) ) {
+        pen.setColor(m_colorBackground);
+    }
+
+    m_lastPaintedPattern = pen.getLineType() != RS2::SolidLine;
+    painter->setPen(pen);
+#ifdef DEBUG_RENDERING
+    setPenTime += setPenTimer.nsecsElapsed();
+#endif
+}
+
+void LC_PrintPreviewViewRenderer::setupPainter(RS_Painter *painter)  {
+    LC_WidgetViewPortRenderer::setupPainter(painter);
+    painter->setDrawingMode(m_drawingMode);
+
+    // disable rendering minimums for printing, let's printer decide
+    painter->setMinCircleDrawingRadius(0);
+    painter->setMinArcDrawingRadius(0);
+    painter->setMinLineDrawingLen(0);
+    painter->setMinEllipseMajorRadius(0);
+    painter->setMinEllipseMinorRadius(0);
+    painter->setPenCapStyle(Qt::RoundCap);
+    painter->setPenJoinStyle(Qt::RoundJoin);
+    painter->setMinRenderableTextHeightInPx(0);
+
+    painter->setRenderArcsInterpolate(true);
+    painter->setRenderArcsInterpolationAngleFixed(true);
+    painter->setRenderArcsInterpolationAngleValue(M_PI/36); // 5 degrees
+   // fixme - sand - paperspace - disabling UCS for print - for now, restore later
+    painter->disableUCS();
+}
+
+void LC_PrintPreviewViewRenderer::setDrawingMode(const RS2::DrawingMode mode){
+    m_drawingMode = mode;
+    m_viewport->notifyChanged();
+}

@@ -33,23 +33,22 @@ class LC_Sample : public QObject, QC_PluginInterface
 class lc_Sampledlg : public QDialog
 {
     Q_OBJECT
-
 public:
     explicit lc_Sampledlg(QWidget *parent = 0);
-    ~lc_Sampledlg();
+    ~lc_Sampledlg() override;
 
 public slots:
 //    void processAction(QStringList *commandList);
-    void processAction(Document_Interface *doc);
+    void processAction(Document_Interface *doc) const;
     void checkAccept();
 
 protected:
-    void closeEvent(QCloseEvent *event);
+    void closeEvent(QCloseEvent *event) override;
 
 private:
     void readSettings();
-    void writeSettings();
-    bool failGUI(QString *msg);
+    void writeSettings() const;
+    bool failGUI(QString *msg) const;
 
 private:
     QString errmsg;
@@ -59,4 +58,4 @@ private:
     QLineEdit *endyedit;
 };
 
-#endif // SAMPLE_H
+#endif

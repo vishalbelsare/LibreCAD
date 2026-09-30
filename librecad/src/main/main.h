@@ -27,11 +27,12 @@
 #ifndef MAIN_H
 #define MAIN_H
 
-#include<QStringList>
 
 #define STR(x)   #x
 #define XSTR(x)  STR(x)
+#include <QStringList>
 
+class QMainWindow;
 /**
  * @brief handleArgs
  * @param argc cli argument counter from main()
@@ -40,5 +41,13 @@
  * @return
  */
 QStringList handleArgs(int argc, char** argv, const QList<int>& argClean);
+
+/**
+ * @brief LCReleaseLabel return a label for the current release based on LC_VERSION in src.pro
+ * @return "Release Candidate" - if LC_VERSION contains rc;
+ *         "BETA" - if LC_VERSION contains beta
+ *         "ALPHA" - if LC_VERSION contains alpha
+ */
+QString LCReleaseLabel();
 
 #endif

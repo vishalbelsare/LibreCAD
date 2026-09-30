@@ -27,11 +27,11 @@
 #ifndef QC_ACTIONGETSELECT_H
 #define QC_ACTIONGETSELECT_H
 
-#include "rs_previewactioninterface.h"
-#include "rs_modification.h"
+#include "rs_actioninterface.h"
 
-class Plug_Entity;
 class Doc_plugin_interface;
+class Plug_Entity;
+class QString;
 
 
 /**
@@ -40,8 +40,20 @@ class Doc_plugin_interface;
  * @author  Rallaz
  */
 class QC_ActionGetSelect : public RS_ActionInterface {
-	Q_OBJECT
+    Q_OBJECT
 public:
+    QC_ActionGetSelect(LC_ActionContext* actionContext );
+    QC_ActionGetSelect(RS2::EntityType typeToSelect,LC_ActionContext* actionContext);
+    ~QC_ActionGetSelect() override;
+    void init(int status) override;
+    void mouseReleaseEvent(QMouseEvent* e) override;
+    void keyPressEvent(QKeyEvent* e) override;
+    void setMessage(QString msg) const;
+    bool isCompleted() const{return m_completed;}
+    bool wasCanceled() const{return m_canceled;}
+    void getSelected(QList<Plug_Entity *> *se, Doc_plugin_interface* d) const;
+    void unselectEntities() const;
+protected:
     /**
      * Action States.
      */
@@ -49,27 +61,12 @@ public:
         Select
     };
 
-public:
-    QC_ActionGetSelect(RS_EntityContainer& container,
-                        RS_GraphicView& graphicView);
-	~QC_ActionGetSelect();
-
-    virtual void init(int status=0);
-	
-    virtual void mouseReleaseEvent(QMouseEvent* e);
-    virtual void keyPressEvent(QKeyEvent* e);
-	
-    virtual void updateMouseButtonHints();
-    virtual void updateMouseCursor();
-
-    void setMessage(QString msg);
-	bool isCompleted() const{return completed;}
-	void getSelected(QList<Plug_Entity *> *se, Doc_plugin_interface* d) const;
-
+    RS2::CursorType doGetMouseCursor(int status) override;
+    void updateActionPrompt() override;
 private:
-    bool completed;
-	QString message;
-
+    bool m_completed = false;
+    bool m_canceled = false;
+    std::unique_ptr<QString> m_message;
+    RS2::EntityType m_entityTypeToSelect = RS2::EntityType::EntityUnknown;
 };
-
 #endif

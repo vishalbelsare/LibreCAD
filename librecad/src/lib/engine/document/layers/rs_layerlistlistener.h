@@ -1,0 +1,108 @@
+/****************************************************************************
+**
+** This file is part of the LibreCAD project, a 2D CAD program
+**
+** Copyright (C) 2015 A. Stebich (librecad@mail.lordofbikes.de)
+** Copyright (C) 2010 R. van Twisk (librecad@rvt.dds.nl)
+** Copyright (C) 2001-2003 RibbonSoft. All rights reserved.
+**
+**
+** This file may be distributed and/or modified under the terms of the
+** GNU General Public License version 2 as published by the Free Software 
+** Foundation and appearing in the file gpl-2.0.txt included in the
+** packaging of this file.
+**
+** This program is distributed in the hope that it will be useful,
+** but WITHOUT ANY WARRANTY; without even the implied warranty of
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+** GNU General Public License for more details.
+** 
+** You should have received a copy of the GNU General Public License
+** along with this program; if not, write to the Free Software
+** Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+**
+** This copyright notice MUST APPEAR in all copies of the script!  
+**
+**********************************************************************/
+
+
+#ifndef RS_LAYERLISTLISTENER_H
+#define RS_LAYERLISTLISTENER_H
+
+#include "lc_trackedlistener.h"
+
+class RS_Layer;
+
+/**
+ * This class is an interface for classes that are interested in
+ * knowing about changes in the layer list. 
+ */
+class RS_LayerListListener : public LC_TrackedListener<RS_LayerListListener> {
+public:
+    virtual ~RS_LayerListListener() = default;
+
+    /**
+     * Called when the active layer changes.
+     */
+    virtual void layerActivated(RS_Layer*) {layerListModified(true);}
+
+    /**
+     * Called when a new layer is added to the list.
+     */
+    virtual void layerAdded(RS_Layer*) {layerListModified(true);}
+
+    /**
+     * Called when a layer is removed from the list.
+     */
+    virtual void layerRemoved(RS_Layer*) {layerListModified(true);}
+
+    /**
+     * Called when a layer's attributes are modified.
+     */
+    virtual void layerEdited(RS_Layer*) {layerListModified(true);}
+
+    /**
+     * Called when a layer's visibility is toggled.
+     */
+    virtual void layerToggled(RS_Layer*) {layerListModified(true);}
+
+    /**
+     * Called when a layer's lock attribute is toggled.
+     */
+    virtual void layerToggledLock(RS_Layer*) {layerListModified(true);}
+
+    /**
+     * Called when a layer's printing attribute is toggled.
+     */
+    virtual void layerToggledPrint(RS_Layer*) {layerListModified(true);}
+
+    /**
+     * Called when a layer's construction attribute is toggled.
+     */
+    virtual void layerToggledConstruction(RS_Layer*) {layerListModified(true);}
+
+    /**
+     * Called when every layer was removed from the list (RS_LayerList::clear(), which loading a
+     * file begins with), after the list was emptied and before the layers are deleted. A
+     * listener that keeps layers, or rows for them, must drop them here: they are freed next.
+     */
+    virtual void layerListCleared() {layerListModified(true);}
+
+    /**
+     * Called once, from the destructor of the list (its drawing is being destroyed), after the list
+     * was emptied and this listener was unregistered from it (the listeners not told yet are still
+     * listed, and unregister themselves if a callback deletes them), and before the layers are deleted. The list and its drawing are partly destroyed: forget them (drop the
+     * pointer to the list, to the drawing, and any row or pointer for a layer) and do not read them,
+     * or list yourself with the list again. Nothing is forwarded to layerListModified(): a listener
+     * that keeps nothing needs no override. (A listener that is destroyed while listed needs nothing:
+     * see LC_TrackedListener.)
+     */
+    virtual void layerListDestroyed() {}
+
+    /**
+     * Called when layer list is modified.
+     */
+    virtual void layerListModified(bool) {}
+};
+
+#endif

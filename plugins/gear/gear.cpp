@@ -37,24 +37,15 @@ PluginCapabilities LC_Gear::getCapabilities() const
 {
     PluginCapabilities pluginCapabilities;
     pluginCapabilities.menuEntryPoints
-            << PluginMenuLocation("plugins_menu", tr("Gear plugin"));
+    // Menu name, Plugin name, Plugin ToolTip (short manual for user)
+        << PluginMenuLocation("plugins_menu", tr("Gear plugin"),
+            tr("Select point for center of gear and press left mouse button.\nThen fill in the fields and press 'Accept' button."));
     return pluginCapabilities;
 }
 
-LC_Gear::LC_Gear()
+void LC_Gear::execComm([[maybe_unused]] Document_Interface *doc,
+                        QWidget *parent, [[maybe_unused]] QString cmd)
 {
-}
-
-LC_Gear::~LC_Gear()
-{
-}
-
-void LC_Gear::execComm(Document_Interface *doc,
-                        QWidget *parent, QString cmd)
-{
-    Q_UNUSED(doc);
-    Q_UNUSED(cmd);
-
     QPointF center;
     if (!doc->getPoint(&center, QString("select center"))) {
         return;
@@ -199,9 +190,9 @@ struct evolute {
 
     evolute(int n_t, double add, double ded, double p_ang);
 
-    QPointF evo0(const double phi); /* evolute for tooth face */
-    QPointF evo1(const double phi); /* evolute for tooth carving (interference) */
-    double aux(const double phi); /* auxiliary function */
+    QPointF evo0(const double phi) const; /* evolute for tooth face */
+    QPointF evo1(const double phi) const; /* evolute for tooth carving (interference) */
+    double aux(const double phi) const; /* auxiliary function */
     double find_common_phi_evo1(const double eps = default_eps); 
 
     const int n_teeth;
@@ -224,10 +215,10 @@ evolute::evolute(int n_t, double add, double ded, double p_ang):
     dedendum(ded),
     c_modulus(2.0/n_teeth), 
     p_angle(p_ang),
-    cos_p_angle(cos(p_ang)),
+    cos_p_angle(std::cos(p_ang)),
     cos2_p_angle(cos_p_angle * cos_p_angle),
     angle_0(p_angle - tan(p_angle)),
-    cos_angle_0(cos(angle_0)),
+    cos_angle_0(std::cos(angle_0)),
     sin_angle_0(sin(angle_0)),
     dedendum_radius(1.0 - c_modulus * dedendum),
     addendum_radius(1.0 + c_modulus * addendum),
@@ -237,15 +228,14 @@ evolute::evolute(int n_t, double add, double ded, double p_ang):
     phi_at_addendum(radius2arg(addendum_radius / cos_p_angle)),
     alpha(1.0 - dedendum_radius),
     angle_1(-alpha * tan(p_angle)),
-    cos_angle_1(cos(angle_1)),
+    cos_angle_1(std::cos(angle_1)),
     sin_angle_1(sin(angle_1))
 {
 }
 
 /* this evolute calculates points for an argument phi for the
  * curve that defines de active face of the tooth.  */
-QPointF evolute::evo0(const double phi)
-{
+QPointF evolute::evo0(const double phi) const {
     double x = cos_p_angle * re_evolute(phi),
            y = cos_p_angle * im_evolute(phi);
     return QPointF(cos_angle_0 * x - sin_angle_0 * y,
@@ -255,8 +245,7 @@ QPointF evolute::evo0(const double phi)
 /* this evolute calculates points for an argument phi for the
  * curve that defines the carved neck of the tooth in case of
  * interference. */
-QPointF evolute::evo1(const double phi)
-{
+QPointF evolute::evo1(const double phi) const {
     double x = re_evolute(phi, alpha);
     double y = im_evolute(phi, alpha);
     return QPointF(cos_angle_1 * x - sin_angle_1 * y,
@@ -268,8 +257,7 @@ QPointF evolute::evo1(const double phi)
  * function to derive the phi angle of the secondary evolute at which
  * it crosses the primary.   This is the common point for both evolutes
  */
-double evolute::aux(const double phi)
-{
+double evolute::aux(const double phi) const {
     const double mod = mod_evolute(phi, alpha);
     const double arg = arg_evolute(phi, alpha);
 
@@ -310,12 +298,8 @@ double evolute::find_common_phi_evo1(const double eps)
     return x;
 } /* find_common_phi_evo1 */
 
-void lc_Geardlg::processAction(Document_Interface *doc, const QString& cmd, QPointF& center)
+void lc_Geardlg::processAction([[maybe_unused]] Document_Interface *doc, [[maybe_unused]] const QString& cmd, [[maybe_unused]] QPointF& center)
 {
-    Q_UNUSED(doc);
-    Q_UNUSED(cmd);
-    Q_UNUSED(center);
-
     std::vector<Plug_VertexData> polyline;
     std::vector<QPointF> first_tooth;
     QTransform rotate_and_disp;
@@ -415,16 +399,16 @@ void lc_Geardlg::processAction(Document_Interface *doc, const QString& cmd, QPoi
      */
     const double axis_angle_x_2 = M_PI / ev.n_teeth;
     const double axis_angle = axis_angle_x_2 / 2.0;
-    const double cos_axis_angle_x_2 = cos(axis_angle_x_2);
-    const double sin_axis_angle_x_2 = sin(axis_angle_x_2);
+    const double cos_axis_angle_x_2 = std::cos(axis_angle_x_2);
+    const double sin_axis_angle_x_2 = std::sin(axis_angle_x_2);
 
     /* remember size, as we don't want to duplicate next point */
     const double n_to_mirror = first_tooth.size();
 
     if (drawBothSidesOfToothBox->isChecked()) {
         /* symmetry axis point (at top of tooth) */
-        QPointF mirror_point(scale_factor * ev.addendum_radius * cos(axis_angle),
-                             scale_factor * ev.addendum_radius * sin(axis_angle));
+        QPointF mirror_point(scale_factor * ev.addendum_radius * std::cos(axis_angle),
+                             scale_factor * ev.addendum_radius * std::sin(axis_angle));
         first_tooth.push_back(mirror_point);
         polyline.push_back(Plug_VertexData(rotate_and_disp.map(mirror_point), 0.0));
 
@@ -440,8 +424,8 @@ void lc_Geardlg::processAction(Document_Interface *doc, const QString& cmd, QPoi
 
         if (drawAllTeethBox->isChecked()) {
             /* symmetry axis point (at interteeth) */
-            QPointF mirror_point2(scale_factor * ev.dedendum_radius * cos(axis_angle + axis_angle_x_2),
-                                  scale_factor * ev.dedendum_radius * sin(axis_angle + axis_angle_x_2));
+            QPointF mirror_point2(scale_factor * ev.dedendum_radius * std::cos(axis_angle + axis_angle_x_2),
+                                  scale_factor * ev.dedendum_radius * std::sin(axis_angle + axis_angle_x_2));
             first_tooth.push_back(mirror_point2);
             polyline.push_back(Plug_VertexData(rotate_and_disp.map(mirror_point2), 0.0));
 
@@ -449,8 +433,8 @@ void lc_Geardlg::processAction(Document_Interface *doc, const QString& cmd, QPoi
             for (int i = 1; i < ev.n_teeth; i++) {
 
                 const double angle = M_PI * ev.c_modulus * i;
-                const double cos_angle = cos(angle);
-                const double sin_angle = sin(angle);
+                const double cos_angle = std::cos(angle);
+                const double sin_angle = std::sin(angle);
 
                 for (std::vector<QPointF>::iterator it = first_tooth.begin();
                         it != first_tooth.end(); ++it)
@@ -503,8 +487,8 @@ void lc_Geardlg::processAction(Document_Interface *doc, const QString& cmd, QPoi
 
     if (drawPressureLineBox->isChecked() || drawPressureLimitBox->isChecked()) {
         LAYER("action_lines");
-        QPointF p1(scale_factor * cos(ev.p_angle + rotation) * ev.cos_p_angle,
-                   scale_factor * sin(ev.p_angle + rotation) * ev.cos_p_angle),
+        QPointF p1(scale_factor * std::cos(ev.p_angle + rotation) * ev.cos_p_angle,
+                   scale_factor * std::sin(ev.p_angle + rotation) * ev.cos_p_angle),
                 p2(scale_factor * cos(rotation),
                    scale_factor * sin(rotation));
         p1 += center; p2 += center;
@@ -525,9 +509,7 @@ void lc_Geardlg::checkAccept()
     accept();
 }
 
-lc_Geardlg::~lc_Geardlg()
-{
-}
+lc_Geardlg::~lc_Geardlg() = default;
 
 void lc_Geardlg::closeEvent(QCloseEvent *event)
 {

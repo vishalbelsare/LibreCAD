@@ -22,116 +22,130 @@
 **
 ******************************************************************************/
 
-#include <QtCore>
-
-#include "rs.h"
-#include "rs_graphic.h"
-#include "rs_painterqt.h"
-#include "lc_printing.h"
-#include "rs_staticgraphicview.h"
+#include <cstdlib>
 
 #include "pdf_print_loop.h"
 
+#include <QPrinter>
+#include <QtCore>
 
-static bool openDocAndSetGraphic(RS_Document**, RS_Graphic**, QString&);
-static void touchGraphic(RS_Graphic*, PdfPrintParams&);
-static void setupPrinterAndPaper(RS_Graphic*, QPrinter&, PdfPrintParams&);
-static void drawPage(RS_Graphic*, QPrinter&, RS_PainterQt&);
+#include "console_command_utils.h"
+#include "lc_graphicviewport.h"
+#include "lc_printing.h"
+#include "lc_printviewportrenderer.h"
+#include "rs.h"
+#include "rs_graphic.h"
+#include "rs_painter.h"
+#include "rs_units.h"
 
+static bool openDocAndSetGraphic(RS_Document**, RS_Graphic**, const QString&);
+static void touchGraphic(RS_Graphic*, const PdfPrintParams&);
+static void setupPrinterAndPaper(const RS_Graphic*, QPrinter&, PdfPrintParams&);
+static void drawGraphic(RS_Graphic *graphic, QPrinter &printer, RS_Painter &painter);
+static void reportWriteFailure(const QString& outFile);
 
-void PdfPrintLoop::run()
-{
-    if (params.outFile.isEmpty()) {
-        for (auto f : params.dxfFiles) {
-            printOneDxfToOnePdf(f);
+void PdfPrintLoop::run(){
+    int failed = 0;
+    if (m_params.outFile.isEmpty()) {
+        for (auto &&f : m_params.inputFiles) {
+            if (!printOneFileToOnePdf(f))
+                ++failed;
         }
     } else {
-        printManyDxfToOnePdf();
+        failed = printManyFilesToOnePdf();
     }
-
-    emit finished();
+    emit finished(failed == 0 ? EXIT_SUCCESS : EXIT_FAILURE);
 }
 
 
-void PdfPrintLoop::printOneDxfToOnePdf(QString& dxfFile) {
+bool PdfPrintLoop::printOneFileToOnePdf(const QString& inputFile) {
 
     // Main code logic and flow for this method is originally stolen from
     // QC_ApplicationWindow::slotFilePrint(bool printPDF) method.
     // But finally it was split in to smaller parts.
 
-    QFileInfo dxfFileInfo(dxfFile);
-    params.outFile =
-        (params.outDir.isEmpty() ? dxfFileInfo.path() : params.outDir)
-        + "/" + dxfFileInfo.completeBaseName() + ".pdf";
+    QFileInfo inputFileInfo(inputFile);
+    m_params.outFile =
+        (m_params.outDir.isEmpty() ? inputFileInfo.path() : m_params.outDir)
+        + "/" + inputFileInfo.completeBaseName() + ".pdf";
 
-    RS_Document *doc;
-    RS_Graphic *graphic;
+    RS_Document *doc = nullptr;
+    RS_Graphic *graphic = nullptr;
 
-    if (!openDocAndSetGraphic(&doc, &graphic, dxfFile))
-        return;
+    if (!openDocAndSetGraphic(&doc, &graphic, inputFile))
+        return false;
 
-    qDebug() << "Printing" << dxfFile << "to" << params.outFile << ">>>>";
+    qDebug() << "Printing" << inputFile << "to" << m_params.outFile << ">>>>";
 
-    touchGraphic(graphic, params);
+    touchGraphic(graphic, m_params);
 
     QPrinter printer(QPrinter::HighResolution);
 
-    setupPrinterAndPaper(graphic, printer, params);
+    setupPrinterAndPaper(graphic, printer, m_params);
 
-    RS_PainterQt painter(&printer);
+    // The printer opens the output file when painting begins. That is the only
+    // write failure Qt reports: its PDF engine ignores errors once the file is open.
+    RS_Painter painter(&printer);
+    if (!painter.isActive()) {
+        reportWriteFailure(m_params.outFile);
+        delete doc;
+        return false;
+    }
 
-    if (params.monochrome)
+    if (m_params.monochrome) {
         painter.setDrawingMode(RS2::ModeBW);
+    }
 
-    drawPage(graphic, printer, painter);
+    drawGraphic(graphic, printer, painter);
 
     painter.end();
 
-    qDebug() << "Printing" << dxfFile << "to" << params.outFile << "DONE";
+    qDebug() << "Printing" << inputFile << "to" << m_params.outFile << "DONE";
 
     delete doc;
+    return true;
 }
 
 
-void PdfPrintLoop::printManyDxfToOnePdf() {
-
-    struct DxfPage {
+int PdfPrintLoop::printManyFilesToOnePdf() {
+    struct PrintContentItem {
         RS_Document* doc;
         RS_Graphic* graphic;
-        QString dxfFile;
-        QPrinter::PageSize paperSize;
+        QString inputFile;
+        QPageSize::PageSizeId paperSize;
     };
 
-    if (!params.outDir.isEmpty()) {
-        QFileInfo outFileInfo(params.outFile);
-        params.outFile = params.outDir + "/" + outFileInfo.fileName();
+    if (!m_params.outDir.isEmpty()) {
+        const QFileInfo outFileInfo(m_params.outFile);
+        m_params.outFile = m_params.outDir + "/" + outFileInfo.fileName();
     }
 
-    QVector<DxfPage> pages;
+    QVector<PrintContentItem> contentItems;
     int nrPages = 0;
+    int failed = 0;
 
-    // FIXME: Should probably open and print all dxf files in one 'for' loop.
+    // FIXME: Should probably open and print all input files in one 'for' loop.
     // Tried but failed to do this. It looks like some 'chicken and egg'
     // situation for the QPrinter and RS_PainterQt. Therefore, first open
-    // all dxf files and apply required actions. Then run another 'for'
+    // all input files and apply required actions. Then run another 'for'
     // loop for actual printing.
-    for (auto dxfFile : params.dxfFiles) {
-
-        DxfPage page;
-
-        page.dxfFile = dxfFile;
-
-        if (!openDocAndSetGraphic(&page.doc, &page.graphic, dxfFile))
+    for (auto inputFile : m_params.inputFiles) {
+        PrintContentItem page;
+        page.inputFile = inputFile;
+        if (!openDocAndSetGraphic(&page.doc, &page.graphic, inputFile)) {
+            ++failed;
             continue;
+        }
 
-        qDebug() << "Opened" << dxfFile;
+        qDebug() << "Opened" << inputFile;
 
-        touchGraphic(page.graphic, params);
-
-        pages.append(page);
-
+        touchGraphic(page.graphic, m_params);
+        contentItems.append(page);
         nrPages++;
     }
+
+    if (contentItems.isEmpty())
+        return failed == 0 ? m_params.inputFiles.size() : failed;
 
     QPrinter printer(QPrinter::HighResolution);
 
@@ -139,162 +153,183 @@ void PdfPrintLoop::printManyDxfToOnePdf() {
         // FIXME: Is it possible to set up printer and paper for every
         // opened dxf file and tie them with painter? For now just using
         // data extracted from the first opened dxf file for all pages.
-        setupPrinterAndPaper(pages.at(0).graphic, printer, params);
+        setupPrinterAndPaper(contentItems.at(0).graphic, printer, m_params);
     }
 
-    RS_PainterQt painter(&printer);
+    // The printer opens the output file when painting begins.
+    RS_Painter painter(&printer);
+    if (!painter.isActive()) {
+        reportWriteFailure(m_params.outFile);
+        for (const auto &item : contentItems) {
+            delete item.doc;
+        }
+        return failed + static_cast<int>(contentItems.size());
+    }
 
-    if (params.monochrome)
+    if (m_params.monochrome) {
         painter.setDrawingMode(RS2::ModeBW);
+    }
 
     // And now it's time to actually print all previously opened dxf files.
-    for (auto page : pages) {
+    for (const auto &item : contentItems) {
         nrPages--;
 
-        qDebug() << "Printing" << page.dxfFile
-                 << "to" << params.outFile << ">>>>";
+        qDebug() << "Printing" << item.inputFile
+                 << "to" << m_params.outFile << ">>>>";
 
-        drawPage(page.graphic, printer, painter);
+        drawGraphic(item.graphic, printer, painter);
 
-        qDebug() << "Printing" << page.dxfFile
-                 << "to" << params.outFile << "DONE";
+        qDebug() << "Printing" << item.inputFile
+                 << "to" << m_params.outFile << "DONE";
 
-        delete page.doc;
+        delete item.doc;
 
-        if (nrPages > 0)
+        if (nrPages > 0) {
             printer.newPage();
+        }
     }
 
     painter.end();
+    return failed;
 }
 
+static void reportWriteFailure(const QString& outFile){
+    qCritical("ERROR: failed to write '%s'", qPrintable(outFile));
+}
 
 static bool openDocAndSetGraphic(RS_Document** doc, RS_Graphic** graphic,
-    QString& dxfFile)
-{
-    *doc = new RS_Graphic();
-
-    if (!(*doc)->open(dxfFile, RS2::FormatUnknown)) {
-        qDebug() << "ERROR: Failed to open document" << dxfFile;
+    const QString& dxfFile){
+    auto* newGraphic = new RS_Graphic();
+    *doc = newGraphic;
+    // LC_Console::importGraphic() reports on stderr. Importing through the
+    // document storage opens a message box no console command can close.
+    if (!LC_Console::importGraphic(*newGraphic, dxfFile)) {
         delete *doc;
+        *doc = nullptr;
         return false;
     }
 
-    *graphic = (*doc)->getGraphic();
-    if (*graphic == nullptr) {
-        qDebug() << "ERROR: No graphic in" << dxfFile;
-        delete *doc;
-        return false;
-    }
-
+    *graphic = newGraphic;
     return true;
 }
 
-
-static void touchGraphic(RS_Graphic* graphic, PdfPrintParams& params)
-{
+static void touchGraphic(RS_Graphic* graphic, const PdfPrintParams& params){
     graphic->calculateBorders();
-    graphic->setMargins(params.margins.left, params.margins.top,
+    LC_PlotSettings* ps = graphic->getPlotSettings();
+    ps->setMarginsInMm(params.margins.left, params.margins.top,
                         params.margins.right, params.margins.bottom);
-    graphic->setPagesNum(params.pagesH, params.pagesV);
+    ps->setPagesNum(params.pagesH, params.pagesV);
 
-    if (params.scale > 0.0)
-        graphic->setPaperScale(params.scale);
+    if (params.scale > 0.0) {
+        ps->setPaperScale(params.scale);
+    }
 
-    if (params.pageSize != RS_Vector(0.0, 0.0))
-        graphic->setPaperSize(params.pageSize);
+    if (params.pageSize != RS_Vector(0.0, 0.0)) {
+        ps->setPaperSize(params.pageSize);
+    }
 
-    if (params.fitToPage)
+    if (params.fitToPage) {
         graphic->fitToPage(); // fit and center
-    else if (params.centerOnPage)
+    }
+    else if (params.centerOnPage) {
         graphic->centerToPage();
+    }
 }
 
-
-static void setupPrinterAndPaper(RS_Graphic* graphic, QPrinter& printer,
-    PdfPrintParams& params)
-{
+static void setupPrinterAndPaper(const RS_Graphic* graphic, QPrinter& printer,
+    PdfPrintParams& params){
     bool landscape = false;
+    const LC_PlotSettings* ps = graphic->getPlotSettings();
+    const RS2::PaperFormat pf = ps->getPaperFormat(&landscape);
+    const QPageSize::PageSizeId paperSizeName = LC_Printing::rsToQtPaperFormat(pf);
 
-    RS2::PaperFormat pf = graphic->getPaperFormat(&landscape);
-    QPrinter::PageSize paperSize = LC_Printing::rsToQtPaperFormat(pf);
+    RS_Vector paperSize = ps->getPaperSize();
+    QMarginsF paperMargins{ps->getMarginLeftMm(),
+                           ps->getMarginRightMm(),
+                           ps->getMarginTopMm(),
+                           ps->getMarginBottomMm()};
 
-    if (paperSize == QPrinter::Custom){
-        RS_Vector r = graphic->getPaperSize();
-        RS_Vector&& s = RS_Units::convert(r, graphic->getUnit(),
-            RS2::Millimeter);
-        if (landscape)
-            s = s.flipXY();
-        printer.setPaperSize(QSizeF(s.x,s.y), QPrinter::Millimeter);
-    } else {
-        printer.setPaperSize(paperSize);
-    }
-
-    if (landscape) {
-        printer.setOrientation(QPrinter::Landscape);
-    } else {
-        printer.setOrientation(QPrinter::Portrait);
-    }
+    LC_Printing::setupPageLayout(printer, landscape, paperSizeName, paperSize, graphic->getUnit(), paperMargins);
 
     printer.setOutputFileName(params.outFile);
     printer.setOutputFormat(QPrinter::PdfFormat);
     printer.setResolution(params.resolution);
     printer.setFullPage(true);
 
-    if (params.grayscale)
+    if (params.grayscale) {
         printer.setColorMode(QPrinter::GrayScale);
-    else
+    }
+    else {
         printer.setColorMode(QPrinter::Color);
+    }
 }
 
+// fixme - sand - printing - refactor to separate class?
+static void drawGraphic(RS_Graphic* graphic, QPrinter& printer,
+                        RS_Painter& painter){
+    const double printerWidth = printer.width();
+    const double printerHeight = printer.height();
+    const double printerFx = printerWidth / printer.widthMM();
+    const double printerFy = printerHeight / printer.heightMM();
 
-static void drawPage(RS_Graphic* graphic, QPrinter& printer,
-    RS_PainterQt& painter)
-{
-    double printerFx = (double)printer.width() / printer.widthMM();
-    double printerFy = (double)printer.height() / printer.heightMM();
+    const LC_PlotSettings* ps = graphic->getPlotSettings();
 
-    double marginLeft = graphic->getMarginLeft();
-    double marginTop = graphic-> getMarginTop();
-    double marginRight = graphic->getMarginRight();
-    double marginBottom = graphic->getMarginBottom();
+    const double marginLeft = ps->getMarginLeftMm();
+    const double marginTop = ps->getMarginTopMm();
+    const double marginRight = ps->getMarginRightMm();
+    const double marginBottom = ps->getMarginBottomMm();
 
     painter.setClipRect(marginLeft * printerFx, marginTop * printerFy,
                         printer.width() - (marginLeft + marginRight) * printerFx,
                         printer.height() - (marginTop + marginBottom) * printerFy);
 
-    RS_StaticGraphicView gv(printer.width(), printer.height(), &painter);
-    gv.setPrinting(true);
-    gv.setBorders(0,0,0,0);
+    LC_GraphicViewport viewport;
+    viewport.setDocument(graphic);
+    viewport.setSize(printer.width(), printer.height());
+    viewport.setBorders(0,0,0,0);
 
-    double fx = printerFx * RS_Units::getFactorToMM(graphic->getUnit());
-    double fy = printerFy * RS_Units::getFactorToMM(graphic->getUnit());
+    LC_PrintViewportRenderer renderer(&viewport, &painter);
+    viewport.loadSettings();
+    renderer.loadSettings();
 
-    double f = (fx + fy) / 2.0;
+    const RS2::Unit unit = graphic->getUnit();
+    const double fx = printerFx * RS_Units::getFactorToMM(unit);
+    const double fy = printerFy * RS_Units::getFactorToMM(unit);
 
-    double scale = graphic->getPaperScale();
+    const double f = (fx + fy) / 2.0;
 
-    gv.setOffset((int)(graphic->getPaperInsertionBase().x * f),
-                 (int)(graphic->getPaperInsertionBase().y * f));
-    gv.setFactor(f*scale);
-    gv.setContainer(graphic);
+    const double paperScale = ps->getPaperScale();
+    renderer.setPaperScale(paperScale);
 
-    double baseX = graphic->getPaperInsertionBase().x;
-    double baseY = graphic->getPaperInsertionBase().y;
-    int numX = graphic->getPagesNumHoriz();
-    int numY = graphic->getPagesNumVert();
-    RS_Vector printArea = graphic->getPrintAreaSize(false);
+    const double paperInsertionX = graphic->getPaperInsertionBase().x;
+    const double paperInsertionY = graphic->getPaperInsertionBase().y;
+
+    const double factor = f * paperScale;
+    viewport.justSetOffsetAndFactor(static_cast<int>(paperInsertionX * f),
+                                    static_cast<int>(paperInsertionY * f),
+                                    factor);
+
+    const double baseX = paperInsertionX;
+    const double baseY = paperInsertionY;
+    const int numX = ps->getPagesNumHoriz();
+    const int numY = ps->getPagesNumVert();
+    const RS_Vector printArea = ps->getPrintAreaSize(false);
 
     for (int pY = 0; pY < numY; pY++) {
-        double offsetY = printArea.y * pY;
+        const double offsetY = printArea.y * pY;
         for (int pX = 0; pX < numX; pX++) {
-            double offsetX = printArea.x * pX;
+            const double offsetX = printArea.x * pX;
             // First page is created automatically.
             // Extra pages must be created manually.
-            if (pX > 0 || pY > 0) printer.newPage();
-            gv.setOffset((int)((baseX - offsetX) * f),
-                         (int)((baseY - offsetY) * f));
-            gv.drawEntity(&painter, graphic );
+            if (pX > 0 || pY > 0) {
+                printer.newPage();
+            }
+
+            viewport.justSetOffsetAndFactor(static_cast<int>((baseX - offsetX) * f),
+                                            static_cast<int>((baseY - offsetY) * f),
+                                            factor);
+            painter.setViewPort(&viewport);  // update offset
+            renderer.render();
         }
     }
 }

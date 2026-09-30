@@ -1,0 +1,195 @@
+/*******************************************************************************
+ *
+ This file is part of the LibreCAD project, a 2D CAD program
+
+ Copyright (C) 2025 LibreCAD.org
+ Copyright (C) 2025 sand1024
+
+ This program is free software; you can redistribute it and/or
+ modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 2
+ of the License, or (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ ******************************************************************************/
+
+#include "lc_dimstyleslist.h"
+
+#include <QMap>
+
+#include "lc_dimstyle.h"
+
+LC_DimStylesList::LC_DimStylesList() {
+    m_fallbackDimStyleFromVars = std::make_unique<LC_DimStyle>();
+    m_fallbackDimStyleFromVars->setFromVars(true);
+}
+
+LC_DimStylesList::~LC_DimStylesList() {
+    qDeleteAll(m_stylesList);
+}
+
+LC_DimStyle *LC_DimStylesList::findByName(const QString &name) const {
+    // fixme - sand - merge - again, normalization and copy-paste :(.
+
+    // NFC-normalize both sides (chokepoint for findByBaseNameAndType /
+    // resolveByBaseName too) so a style round-tripped through a toolchain
+    // emitting decomposed (NFD) Unicode still matches a composed (NFC)
+    // lookup. The '$' NAME_SEPARATOR is ASCII, so suffix parsing is
+    // unaffected. Mirrors RS_BlockList::find / LC_TextStyleList::find.
+    const QString k = name.normalized(QString::NormalizationForm_C);
+    for (auto v: m_stylesList){
+        if (v->getName().normalized(QString::NormalizationForm_C)
+                .compare(k, Qt::CaseInsensitive) == 0){
+            return v;
+        }
+    }
+    return nullptr;
+}
+
+LC_DimStyle *LC_DimStylesList::findByBaseNameAndType(const QString &name, const RS2::EntityType dimType) const {
+    if (dimType == RS2::EntityUnknown) {
+        return findByName(name);
+    }
+    const QString nameSuffix = LC_DimStyle::getDimStyleNameSuffixForType(dimType);
+    QString nameToFind = name + nameSuffix;
+    const auto result = findByName(nameToFind);
+    if (result == nullptr) {
+        if (dimType == RS2::EntityDimAligned) {
+            // fall back to style for linear
+            nameToFind = LC_DimStyle::getStyleNameForBaseAndType(name, RS2::EntityDimLinear);
+            return findByName(nameToFind);
+        }
+        if (dimType == RS2::EntityTolerance) {
+            // fall back to style for linear
+            nameToFind = LC_DimStyle::getStyleNameForBaseAndType(name, RS2::EntityDimLeader);
+            return findByName(nameToFind);
+        }
+    }
+    return nullptr;
+}
+
+
+LC_DimStyle* LC_DimStylesList::resolveByBaseName(const QString& name, const RS2::EntityType dimType) const {
+    const QString nameSuffix = LC_DimStyle::getDimStyleNameSuffixForType(dimType);
+    if (nameSuffix.isEmpty()) {
+        return findByName(name);
+    }
+
+    QString nameForType = name + nameSuffix;
+    LC_DimStyle* res = findByName(nameForType);
+    if (res == nullptr) {
+        if (dimType == RS2::EntityDimAligned) {
+            // fall back to style for linear
+            nameForType = LC_DimStyle::getStyleNameForBaseAndType(name, RS2::EntityDimLinear);
+            res = findByName(nameForType);
+            if (res != nullptr) {
+                return res;
+            }
+        }
+        else if (dimType == RS2::EntityTolerance) {
+            // fall back to style for leader
+            nameForType = LC_DimStyle::getStyleNameForBaseAndType(name, RS2::EntityDimLeader);
+            res = findByName(nameForType);
+            if (res != nullptr) {
+                return res;
+            }
+        }
+        return findByName(name);
+    }
+    return res;
+}
+
+LC_DimStyle* LC_DimStylesList::resolveByName(const QString& name, const RS2::EntityType dimType) const {
+    // first, try to resolve style by its exact name. AutoCAD stores complete style name for type in DIMENSION
+    if (name.contains(LC_DimStyle::NAME_SEPARATOR)) {
+        LC_DimStyle* res = nullptr;
+        res = findByName(name);
+        if (res != nullptr) {
+            return res;
+        }
+        // try to resolve name by base name
+        QString baseName;
+        RS2::EntityType type;
+        LC_DimStyle::parseStyleName(name, baseName, type);
+        return resolveByBaseName(baseName, dimType);
+    }
+    return resolveByBaseName(name, dimType);
+}
+
+
+void LC_DimStylesList::addDimStyle(LC_DimStyle *style) {
+    // fixme - sand - dims - check for duplicated name?
+    m_stylesList.append(style);
+    setModified(true);
+}
+
+void LC_DimStylesList::deleteDimStyle([[maybe_unused]]QString &name) {
+    // fixme - sand - is it actually needed?
+   setModified(true);
+}
+
+void LC_DimStylesList::clear() {
+    m_stylesList.clear();
+    setModified(true);
+}
+
+void LC_DimStylesList::mergeStyles() {
+
+    QMap<QString, LC_DimStyle*> baseStyles;
+    QList<LC_DimStyle*> entityTypeStyles;
+    for (const auto ds : std::as_const(m_stylesList)) {
+        QString baseName;
+        RS2::EntityType entityType;
+        LC_DimStyle::parseStyleName(ds->getName(), baseName, entityType);
+        if (entityType == RS2::EntityUnknown) {
+            baseStyles[baseName] = ds;
+        }
+        else {
+            entityTypeStyles.append(ds);
+        }
+    }
+
+    // A named base style itself may leave fields unset: some DXF writers only store
+    // a DIMSTYLE table entry's fields that differ from the drawing's own $DIM*
+    // header values, instead of repeating every field the way AutoCAD's own writer
+    // does. Fill those gaps from the header-derived fallback style before
+    // propagating the (now complete) base down to its type-specific variants below.
+    if (m_fallbackDimStyleFromVars != nullptr) {
+        for (const auto baseStyle : std::as_const(baseStyles)) {
+            if (baseStyle != m_fallbackDimStyleFromVars.get()) {
+                const auto savedCheckMode = baseStyle->getModifyCheckMode();
+                baseStyle->mergeWith(m_fallbackDimStyleFromVars.get(), LC_DimStyle::ModificationAware::UNSET, savedCheckMode);
+            }
+        }
+    }
+
+    for (const auto typeSpecificStyle: entityTypeStyles) {
+        QString baseName;
+        RS2::EntityType entityType;
+        LC_DimStyle::parseStyleName(typeSpecificStyle->getName(), baseName, entityType);
+
+        if (baseStyles.contains(baseName)) {
+            const auto baseStyle = baseStyles[baseName];
+            const auto savedCheckMode = typeSpecificStyle->getModifyCheckMode();
+
+            // merge type-specific and basic style, so the type-specific style for all explicitly modified properties
+            // will store own explicit values, and for properties that are not changed - their values will be set from the base style.
+            typeSpecificStyle->mergeWith(baseStyle, LC_DimStyle::ModificationAware::UNSET, savedCheckMode);
+        }
+    }
+}
+
+void LC_DimStylesList::replaceStyles(const QList<LC_DimStyle*>& list) {
+    qDeleteAll(m_stylesList);
+    m_stylesList.clear();
+    m_stylesList.append(list);
+    mergeStyles();
+    setModified(true);
+}

@@ -25,21 +25,20 @@
 **********************************************************************/
 
 #include<cstdlib>
-#include "rs_filterdxfrw.h"
+#include<cstring>
+#include<QRegularExpression>
+#include<QStringDecoder>
+
+#include "lc_colornumbers.h"
 #include "rs_filterdxf1.h"
 
 #include "rs_arc.h"
 #include "rs_circle.h"
-#include "rs_ellipse.h"
 #include "rs_line.h"
-#include "rs_font.h"
 #include "rs_information.h"
-#include "rs_utility.h"
-#include "rs_system.h"
 #include "rs_dimlinear.h"
 #include "rs_dimaligned.h"
 #include "rs_dimangular.h"
-#include "rs_dimdiametric.h"
 #include "rs_dimradial.h"
 #include "rs_layer.h"
 #include "rs_leader.h"
@@ -55,7 +54,7 @@ RS_FilterDXF1::RS_FilterDXF1()
 		:RS_FilterInterface()
 		, graphic(nullptr)
 {
-	RS_DEBUG->print("Setting up DXF 1 filter...");
+	LC_LOG << "Setting up DXF 1 filter...";
 }
 
 /**
@@ -67,7 +66,7 @@ RS_FilterDXF1::RS_FilterDXF1()
  * taken to be stored in a file.
  */
 bool RS_FilterDXF1::fileImport(RS_Graphic& g, const QString& file, RS2::FormatType /*type*/) {
-    RS_DEBUG->print("DXF1 Filter: importing file '%s'...", file.toLatin1().data());
+    LC_LOG << "DXF1 Filter: importing file '" << file << "'...";
 
 	this->graphic = &g;
 
@@ -88,8 +87,7 @@ bool RS_FilterDXF1::fileImport(RS_Graphic& g, const QString& file, RS2::FormatTy
 
 bool RS_FilterDXF1::fileExport(RS_Graphic& /*g*/, const QString& /*file*/,
 	RS2::FormatType /*type*/) {
-	RS_DEBUG->print(RS_Debug::D_WARNING,
-					"Exporting of QCad 1.x file not implemented");
+	LC_LOG(RS_Debug::D_WARNING) << "Exporting of QCad 1.x file not implemented";
 	return false;
 }
 
@@ -97,7 +95,7 @@ bool RS_FilterDXF1::fileExport(RS_Graphic& /*g*/, const QString& /*file*/,
  * Reads a dxf1 file from buffer.
  */
 bool RS_FilterDXF1::readFromBuffer() {
-    RS_DEBUG->print( "\nDXF: Read from buffer" );
+    LC_LOG << "\nDXF: Read from buffer";
 
     bool      ret;                    // returned value
     QString   dxfLine;                // A line in the dxf file
@@ -125,27 +123,22 @@ bool RS_FilterDXF1::readFromBuffer() {
 
     //graphic->addLayer(DEF_DEFAULTLAYER);
 
-    //RS_DEBUG->print( "\nDefault layer added" );
-
     // Loaded graphics without unit information: load as unit less:
     //graphic->setUnit( None );
 
-    RS_DEBUG->print( "\nUnit set" );
+    LC_LOG << "\nUnit set";
 
     resetBufP();
 
     if(fBuf) {
 
-        RS_DEBUG->print( "\nBuffer OK" );
-        RS_DEBUG->print( "\nBuffer: " );
-        RS_DEBUG->print( fBuf );
+        LC_LOG << "\nBuffer OK\n\nBuffer: \n" << fBuf;
 
         do {
             dxfLine=getBufLine();
             pen = RS_Pen(RS_Color(RS2::FlagByLayer), RS2::WidthByLayer, RS2::LineByLayer);
 
-            RS_DEBUG->print( "\ndxfLine: " );
-            RS_DEBUG->print( dxfLine.toLatin1().data() );
+            LC_LOG << "\ndxfLine: \n" << dxfLine;
 
             // $-Setting in the header of DXF found
             // RVT_PORT changed all occurenses of if (dxfline && ....) to if (dxfline.size() ......)
@@ -566,14 +559,14 @@ bool RS_FilterDXF1::readFromBuffer() {
                                 case  6:  // style
                                     //if(currentLayer)
                                     //currentLayer->setStyle( graphic->nameToStyle(dxfLine) );
-                                    pen.setLineType(RS_FilterDXFRW::nameToLineType(dxfLine));
+                                    pen.setLineTypeName(dxfLine);
                                     break;
                                 case 39:  // Thickness
                                     //if(currentLayer) currentLayer->setWidth(dxfLine.toInt());
                                     pen.setWidth(numberToWidth(dxfLine.toInt()));
                                     break;
                                 case 62:  // Color
-                                    pen.setColor(RS_FilterDXFRW::numberToColor(dxfLine.toInt()));
+                                    pen.setColor(LC_ColorNumbers::numberToColor(dxfLine.toInt()));
                                     //if(currentLayer) {
                                     //	currentLayer->setColor( graphic->numberToColor(dxfLine.toInt(), !oldColorNumbers));
                                     //}
@@ -605,7 +598,7 @@ bool RS_FilterDXF1::readFromBuffer() {
                             if(dxfLine.size()) {
                                 switch(code) {
                                 case  6:  // style
-                                    pen.setLineType(RS_FilterDXFRW::nameToLineType(dxfLine));
+                                    pen.setLineTypeName(dxfLine);
                                     break;
                                 case  8:  // Layer
                                     //if(dxfLine!=lastLayer) {
@@ -617,18 +610,18 @@ bool RS_FilterDXF1::readFromBuffer() {
                                     //}
                                     break;
                                 case 10:  // X1
-                                    dxfLine.replace( QRegExp(","), "." );
+                                    dxfLine.replace( QRegularExpression(","), "." );
                                     vx1 = dxfLine.toDouble();
                                     break;
                                 case 20:  // Y1
-                                    dxfLine.replace( QRegExp(","), "." );
+                                    dxfLine.replace( QRegularExpression(","), "." );
                                     vy1 = dxfLine.toDouble();
                                     break;
                                 case 39:  // Thickness
                                     pen.setWidth(numberToWidth(dxfLine.toInt()));
                                     break;
                                 case 62:  // Color
-                                    pen.setColor(RS_FilterDXFRW::numberToColor(dxfLine.toInt()));
+                                    pen.setColor(LC_ColorNumbers::numberToColor(dxfLine.toInt()));
                                     break;
                                 default:
                                     break;
@@ -657,7 +650,7 @@ bool RS_FilterDXF1::readFromBuffer() {
                             if(dxfLine.size()) {
                                 switch(code) {
                                 case  6:  // style
-                                    pen.setLineType(RS_FilterDXFRW::nameToLineType(dxfLine));
+                                    pen.setLineTypeName(dxfLine);
                                     break;
                                 case  8:  // Layer
                                     //if(dxfLine!=lastLayer) {
@@ -669,26 +662,26 @@ bool RS_FilterDXF1::readFromBuffer() {
                                     //}
                                     break;
                                 case 10:  // X1
-                                    dxfLine.replace( QRegExp(","), "." );
+                                    dxfLine.replace( QRegularExpression(","), "." );
                                     vx1 = dxfLine.toDouble();
                                     break;
                                 case 20:  // Y1
-                                    dxfLine.replace( QRegExp(","), "." );
+                                    dxfLine.replace( QRegularExpression(","), "." );
                                     vy1 = dxfLine.toDouble();
                                     break;
                                 case 11:  // X2
-                                    dxfLine.replace( QRegExp(","), "." );
+                                    dxfLine.replace( QRegularExpression(","), "." );
                                     vx2 = dxfLine.toDouble();
                                     break;
                                 case 21:  // Y2
-                                    dxfLine.replace( QRegExp(","), "." );
+                                    dxfLine.replace( QRegularExpression(","), "." );
                                     vy2 = dxfLine.toDouble();
                                     break;
                                 case 39:  // Thickness
                                     pen.setWidth(numberToWidth(dxfLine.toInt()));
                                     break;
                                 case 62:  // Color
-                                    pen.setColor(RS_FilterDXFRW::numberToColor(dxfLine.toInt()));
+                                    pen.setColor(LC_ColorNumbers::numberToColor(dxfLine.toInt()));
                                     break;
                                 default:
                                     break;
@@ -719,7 +712,7 @@ bool RS_FilterDXF1::readFromBuffer() {
                             if(dxfLine.size()) {
                                 switch(code) {
                                 case  6:  // style
-                                    pen.setLineType(RS_FilterDXFRW::nameToLineType(dxfLine));
+                                    pen.setLineTypeName(dxfLine);
                                     break;
                                 case  8:  // Layer
                                     //if(dxfLine!=lastLayer) {
@@ -731,30 +724,30 @@ bool RS_FilterDXF1::readFromBuffer() {
                                     //}
                                     break;
                                 case 10:  // Centre X
-                                    dxfLine.replace( QRegExp(","), "." );
+                                    dxfLine.replace( QRegularExpression(","), "." );
                                     vcx = dxfLine.toDouble();
                                     break;
                                 case 20:  // Centre Y
-                                    dxfLine.replace( QRegExp(","), "." );
+                                    dxfLine.replace( QRegularExpression(","), "." );
                                     vcy = dxfLine.toDouble();
                                     break;
                                 case 40:  // Radius
-                                    dxfLine.replace( QRegExp(","), "." );
+                                    dxfLine.replace( QRegularExpression(","), "." );
                                     vcr = dxfLine.toDouble();
                                     break;
                                 case 50:  // Start Angle
-                                    dxfLine.replace( QRegExp(","), "." );
+                                    dxfLine.replace( QRegularExpression(","), "." );
                                     va1 = RS_Math::correctAngle(dxfLine.toDouble()/ARAD);
                                     break;
                                 case 51:  // End Angle
-                                    dxfLine.replace( QRegExp(","), "." );
+                                    dxfLine.replace( QRegularExpression(","), "." );
                                     va2 = RS_Math::correctAngle(dxfLine.toDouble()/ARAD);
                                     break;
                                 case 39:  // Thickness
                                     pen.setWidth(numberToWidth(dxfLine.toInt()));
                                     break;
                                 case 62:  // Color
-                                    pen.setColor(RS_FilterDXFRW::numberToColor(dxfLine.toInt()));
+                                    pen.setColor(LC_ColorNumbers::numberToColor(dxfLine.toInt()));
                                     break;
                                 default:
                                     break;
@@ -784,7 +777,7 @@ bool RS_FilterDXF1::readFromBuffer() {
                             if(dxfLine.size()) {
                                 switch(code) {
                                 case  6:  // style
-                                    pen.setLineType(RS_FilterDXFRW::nameToLineType(dxfLine));
+                                    pen.setLineTypeName(dxfLine);
                                     break;
                                 case  8:  // Layer
                                     //if(dxfLine!=lastLayer) {
@@ -796,22 +789,22 @@ bool RS_FilterDXF1::readFromBuffer() {
                                     //}
                                     break;
                                 case 10:  // Centre X
-                                    dxfLine.replace( QRegExp(","), "." );
+                                    dxfLine.replace( QRegularExpression(","), "." );
                                     vcx = dxfLine.toDouble();
                                     break;
                                 case 20:  // Centre Y
-                                    dxfLine.replace( QRegExp(","), "." );
+                                    dxfLine.replace( QRegularExpression(","), "." );
                                     vcy = dxfLine.toDouble();
                                     break;
                                 case 40:  // Radius
-                                    dxfLine.replace( QRegExp(","), "." );
+                                    dxfLine.replace( QRegularExpression(","), "." );
                                     vcr = dxfLine.toDouble();
                                     break;
                                 case 39:  // Thickness
                                     pen.setWidth(numberToWidth(dxfLine.toInt()));
                                     break;
                                 case 62:  // Color
-                                    pen.setColor(RS_FilterDXFRW::numberToColor(dxfLine.toInt()));
+                                    pen.setColor(LC_ColorNumbers::numberToColor(dxfLine.toInt()));
                                     break;
                                 default:
                                     break;
@@ -928,7 +921,7 @@ bool RS_FilterDXF1::readFromBuffer() {
                                     break;
 
                                 case  6:  // style
-                                    pen.setLineType(RS_FilterDXFRW::nameToLineType(dxfLine));
+                                    pen.setLineTypeName(dxfLine);
                                     break;
 
                                 case  7:  
@@ -1005,15 +998,15 @@ bool RS_FilterDXF1::readFromBuffer() {
                                     break;
 
                                 case 10:  // X1
-                                    dxfLine.replace( QRegExp(","), "." );
+                                    dxfLine.replace( QRegularExpression(","), "." );
                                     vx1 = dxfLine.toDouble();
                                     break;
                                 case 20:  // Y1
-                                    dxfLine.replace( QRegExp(","), "." );
+                                    dxfLine.replace( QRegularExpression(","), "." );
                                     vy1 = dxfLine.toDouble();
                                     break;
                                 case 40:  // height
-                                    dxfLine.replace( QRegExp(","), "." );
+                                    dxfLine.replace( QRegularExpression(","), "." );
                                     vheight = dxfLine.toDouble();
                                     /*if(!codeSeven) {
                                         vletterspace = vheight*0.2;
@@ -1021,7 +1014,7 @@ bool RS_FilterDXF1::readFromBuffer() {
                                 }*/
                                     break;
                                 case 50:  // angle
-                                    dxfLine.replace( QRegExp(","), "." );
+                                    dxfLine.replace( QRegularExpression(","), "." );
                                     vtextAng = dxfLine.toDouble() / ARAD;
                                     break;
                                 case 72:  {// alignment
@@ -1040,7 +1033,7 @@ bool RS_FilterDXF1::readFromBuffer() {
                                     pen.setWidth(numberToWidth(dxfLine.toInt()));
                                     break;
                                 case 62:  // Color
-                                    pen.setColor(RS_FilterDXFRW::numberToColor(dxfLine.toInt()));
+                                    pen.setColor(LC_ColorNumbers::numberToColor(dxfLine.toInt()));
                                     break;
                                 default:
                                     break;
@@ -1099,12 +1092,12 @@ bool RS_FilterDXF1::readFromBuffer() {
                                     if(dimText==" " || dimText==";;")
                                         dimText="";
 
-                                    //else dimText.replace(QRegExp("%%c"), "¯");
+                                    //else dimText.replace(QRegularExpression("%%c"), "¯");
                                     else
                                         strDecodeDxfString(dimText);
                                     break;
                                 case  6:  // style
-                                    pen.setLineType(RS_FilterDXFRW::nameToLineType(dxfLine));
+                                    pen.setLineTypeName(dxfLine);
                                     break;
                                 case  8:  // Layer
                                     //if(dxfLine!=lastLayer) {
@@ -1116,51 +1109,51 @@ bool RS_FilterDXF1::readFromBuffer() {
                                     //}
                                     break;
                                 case 10:  // line position x
-                                    dxfLine.replace( QRegExp(","), "." );
+                                    dxfLine.replace( QRegularExpression(","), "." );
                                     v10 = dxfLine.toDouble();
                                     break;
                                 case 20:  // line position y
-                                    dxfLine.replace( QRegExp(","), "." );
+                                    dxfLine.replace( QRegularExpression(","), "." );
                                     v20 = dxfLine.toDouble();
                                     break;
                                 case 13:  // X1
-                                    dxfLine.replace( QRegExp(","), "." );
+                                    dxfLine.replace( QRegularExpression(","), "." );
                                     v13 = dxfLine.toDouble();
                                     break;
                                 case 23:  // Y1
-                                    dxfLine.replace( QRegExp(","), "." );
+                                    dxfLine.replace( QRegularExpression(","), "." );
                                     v23 = dxfLine.toDouble();
                                     break;
                                 case 14:  // X2
-                                    dxfLine.replace( QRegExp(","), "." );
+                                    dxfLine.replace( QRegularExpression(","), "." );
                                     v14 = dxfLine.toDouble();
                                     break;
                                 case 24:  // Y2
-                                    dxfLine.replace( QRegExp(","), "." );
+                                    dxfLine.replace( QRegularExpression(","), "." );
                                     v24 = dxfLine.toDouble();
                                     break;
                                 case 15:  // X3
-                                    dxfLine.replace( QRegExp(","), "." );
+                                    dxfLine.replace( QRegularExpression(","), "." );
                                     v15 = dxfLine.toDouble();
                                     break;
                                 case 25:  // Y3
-                                    dxfLine.replace( QRegExp(","), "." );
+                                    dxfLine.replace( QRegularExpression(","), "." );
                                     v25 = dxfLine.toDouble();
                                     break;
                                 case 16:  // X4
-                                    dxfLine.replace( QRegExp(","), "." );
+                                    dxfLine.replace( QRegularExpression(","), "." );
                                     v16 = dxfLine.toDouble();
                                     break;
                                 case 26:  // Y4
-                                    dxfLine.replace( QRegExp(","), "." );
+                                    dxfLine.replace( QRegularExpression(","), "." );
                                     v26 = dxfLine.toDouble();
                                     break;
                                 case 40:
-                                    dxfLine.replace( QRegExp(","), "." );
+                                    dxfLine.replace( QRegularExpression(","), "." );
                                     v40 = dxfLine.toDouble();
                                     break;
                                 case 50:
-                                    dxfLine.replace( QRegExp(","), "." );
+                                    dxfLine.replace( QRegularExpression(","), "." );
                                     v50 = dxfLine.toDouble();
                                     break;
                                 case 70:  // Typ
@@ -1170,7 +1163,7 @@ bool RS_FilterDXF1::readFromBuffer() {
                                     pen.setWidth(numberToWidth(dxfLine.toInt()));
                                     break;
                                 case 62:  // Color
-                                    pen.setColor(RS_FilterDXFRW::numberToColor(dxfLine.toInt()));
+                                    pen.setColor(LC_ColorNumbers::numberToColor(dxfLine.toInt()));
                                     break;
 
                                 default:
@@ -1182,13 +1175,18 @@ bool RS_FilterDXF1::readFromBuffer() {
 					
                     //double dist;
 
+                    bool customTextLocation = false;
+
                     // Remove Bit values:
                     if(typ>=128) {
                         typ-=128;   // Location of Text
+                        customTextLocation = true;
 					}
                     if(typ>= 64) {
                         typ-= 64;   // Ordinate
 					}
+
+
 
                     switch(typ) {
                         // Horiz. / vert.:
@@ -1205,7 +1203,10 @@ bool RS_FilterDXF1::readFromBuffer() {
                                         1.0,
                                         dimText,
                                         "ISO-25",
-                                        0.0
+                                        0.0,
+                                        0.0,
+                                        customTextLocation,
+                                        nullptr, false, false
                                     ),
                                     RS_DimLinearData(
                                         RS_Vector(v13, v23),
@@ -1241,7 +1242,10 @@ bool RS_FilterDXF1::readFromBuffer() {
                                         1.0,
                                         dimText,
                                         "ISO-25",
-                                        0.0
+                                        0.0,
+                                        0.0,
+                                        customTextLocation,
+                                        nullptr, false, false
                                     ),
                                     RS_DimAlignedData(
                                         RS_Vector(v13, v23),
@@ -1304,7 +1308,10 @@ bool RS_FilterDXF1::readFromBuffer() {
                                             1.0,
                                             dimText,
                                             "ISO-25",
-                                            0.0
+                                            0.0,
+                                            0.0,
+                                            customTextLocation,
+                                            nullptr, false, false
                                         ),
                                         RS_DimAngularData(
                                             RS_Vector(v13, v23),
@@ -1346,7 +1353,10 @@ bool RS_FilterDXF1::readFromBuffer() {
                                         1.0,
                                         dimText,
                                         "ISO-25",
-                                        0.0
+                                        0.0,
+                                        0.0,
+                                        customTextLocation,
+                                        nullptr, false, false
                                     ),
                                     RS_DimRadialData(
                                         RS_Vector(v10, v20) + v2,
@@ -1395,7 +1405,7 @@ bool RS_FilterDXF1::readFromBuffer() {
                             d->update();
                             graphic->addEntity(d);
 							*/
-							RS_LeaderData data(true);
+							RS_LeaderData data(true, "");
 							RS_Leader* d = 
 								new RS_Leader(graphic, data);
 							d->addVertex(RS_Vector(v14, v24));
@@ -1447,19 +1457,19 @@ bool RS_FilterDXF1::readFromBuffer() {
                                   //}
                                   break;
                                 case 10:  // Start point/center of boundary line/arc
-                                  dxfLine.replace( QRegExp(","), "." );
+                                  dxfLine.replace( QRegularExpression(","), "." );
                                   v10=dxfLine.toDouble();
                                   break;
                                 case 20:  // Start point/center of boundary line/arc
-                                  dxfLine.replace( QRegExp(","), "." );
+                                  dxfLine.replace( QRegularExpression(","), "." );
                                   v20=dxfLine.toDouble();
                                   break;
                                 case 11:  // End point of boundary line
-                                  dxfLine.replace( QRegExp(","), "." );
+                                  dxfLine.replace( QRegularExpression(","), "." );
                                   v11=dxfLine.toDouble();
                                   break;
                                 case 21:  // End point of boundary line
-                                  dxfLine.replace( QRegExp(","), "." );
+                                  dxfLine.replace( QRegularExpression(","), "." );
                                   v21=dxfLine.toDouble();
                                   if(nextObjectTyp==T_LINE) {
                                     int elnu=graphic->addLine(v10, v20, v11, v21, currentLayerNum, add);
@@ -1467,15 +1477,15 @@ bool RS_FilterDXF1::readFromBuffer() {
                                   }
                                   break;
                                 case 40:  // Radius of boundary entity
-                                  dxfLine.replace( QRegExp(","), "." );
+                                  dxfLine.replace( QRegularExpression(","), "." );
                                   v40=dxfLine.toDouble();
                                   break;
                                 case 50:  // Start angle
-                                  dxfLine.replace( QRegExp(","), "." );
+                                  dxfLine.replace( QRegularExpression(","), "." );
                                   v50=dxfLine.toDouble();
                                   break;
                                 case 51:  // End angle
-                                  dxfLine.replace( QRegExp(","), "." );
+                                  dxfLine.replace( QRegularExpression(","), "." );
                                   v51=dxfLine.toDouble();
                                   break;
                                 case 73:  // Counterclockwise?
@@ -1494,7 +1504,7 @@ bool RS_FilterDXF1::readFromBuffer() {
                                   }
                                   break;
                                 case 41:  // Scale
-                                  dxfLine.replace( QRegExp(","), "." );
+                                  dxfLine.replace( QRegularExpression(","), "." );
                                   patternScale=dxfLine.toDouble();
                                   break;
                                 case 52:  // Angle
@@ -1663,7 +1673,29 @@ QString RS_FilterDXF1::getBufLine() {
     while (fBufP < (int)fSize && fBuf[fBufP++] != '\0')
         ;
 
-    str = QString::fromLocal8Bit(ret).simplified();
+    // DXF1 (R12) predates `$DWGCODEPAGE` — the file carries no codepage
+    // header. Prefer UTF-8 when the bytes parse cleanly; only fall back to
+    // the system locale codec when the bytes are not valid UTF-8 (which is
+    // the case for genuinely legacy DXF1 written on a non-UTF-8 system).
+    {
+        const QByteArray raw(ret);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+        auto utf8 = QStringDecoder(QStringDecoder::Utf8,
+                                   QStringDecoder::Flag::Stateless);
+        QString decoded = utf8(raw);
+        if (!utf8.hasError()) {
+            str = decoded.simplified();
+        } else {
+            str = QString::fromLocal8Bit(ret).simplified();
+        }
+#else
+        str = QString::fromUtf8(raw);
+        if (str.contains(QChar::ReplacementCharacter)) {
+            str = QString::fromLocal8Bit(ret);
+        }
+        str = str.simplified();
+#endif
+    }
 
     if (str.isNull()) {
         return "";
@@ -1709,10 +1741,10 @@ char* RS_FilterDXF1::getBufLineCh() {
 
 // Copy buffer from a given string:
 //
-void RS_FilterDXF1::copyBufFrom(const char* _buf) {
+void RS_FilterDXF1::copyBufFrom(const char* _buf, int length) {
     if(_buf) {
-        fBuf = new char[strlen(_buf)+16];
-        strcpy(fBuf, _buf);
+        fBuf = new char[strnlen(_buf, length-1)+16];
+        strncpy(fBuf, _buf, length);
     }
 }
 
@@ -1861,10 +1893,10 @@ bool RS_FilterDXF1::readFileInBuffer(int _bNum) {
 void RS_FilterDXF1::strDecodeDxfString(QString& str) {
     if (str.isEmpty())
         return;
-    str.replace(QRegExp("%%c"), QChar(0xF8)); // Diameter
-    str.replace(QRegExp("%%d"), QChar(0xB0)); // Degree
-    str.replace(QRegExp("%%p"), QChar(0xB1)); // Plus/minus
-    str.replace(QRegExp("\\\\[pP]"), QChar('\n'));
+    str.replace(QRegularExpression("%%c"), QChar(0xF8)); // Diameter
+    str.replace(QRegularExpression("%%d"), QChar(0xB0)); // Degree
+    str.replace(QRegularExpression("%%p"), QChar(0xB1)); // Plus/minus
+    str.replace(QRegularExpression("\\\\[pP]"), QChar('\n'));
 }
 
 
@@ -1953,8 +1985,6 @@ RS2::LineWidth RS_FilterDXF1::numberToWidth(int num) {
     return (RS2::LineWidth)num;
 }
 
-
-
 /**
  * Converts a RS2::LineWidth into an int width.
  */
@@ -1975,17 +2005,3 @@ int RS_FilterDXF1::widthToNumber(RS2::LineWidth width) {
     }
     return (int)width;
 }
-
-
-// EOF
-
-
-
-
-
-
-
-
-
-
-

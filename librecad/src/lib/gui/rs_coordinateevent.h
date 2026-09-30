@@ -24,31 +24,48 @@
 **
 **********************************************************************/
 
-
 #ifndef RS_COORDINATEEVENT_H
 #define RS_COORDINATEEVENT_H
 
+#include <rs_vector.h>
 
 /**
  * Coordinate Events.
  */
 class RS_CoordinateEvent {
 public:
-	/**
-	 * @param pos coordinate
-	 * @param abs true: absolute coordinate, false: relative coordinate
-	 */
-    RS_CoordinateEvent(const RS_Vector& pos): pos(pos) {}
- 
     /**
-	 * @return the position of the event in real graphic measures.
-	 */
-    RS_Vector getCoordinate() {
-        return pos;
+     * @param pos coordinate
+     * @param zero
+     * @param relzero
+     */
+    explicit RS_CoordinateEvent(const RS_Vector& pos, const bool zero = false, const bool relzero = false)
+        : m_wcsPos(pos), m_forZero{zero}, m_forRelZero{relzero} {
     }
- 
+
+    /**
+  * @return the position of the event in real graphic measures.
+  */
+    RS_Vector getCoordinate() const {
+        return m_wcsPos;
+    }
+
+    bool isZero() const {
+        return m_forZero;
+    }
+
+    bool isRelZero() const {
+        return m_forRelZero;
+    }
+
+    bool isValid() const {
+        return m_wcsPos.valid;
+    }
+
 protected:
-    RS_Vector pos;
+    RS_Vector m_wcsPos;
+    bool m_forZero = false;
+    bool m_forRelZero = false;
 };
 
 #endif

@@ -1,6 +1,8 @@
 #ifndef	JWWDOC_H
 #define	JWWDOC_H
 
+#include <map>
+
 #include "jwtype.h"
 
 typedef struct	_DPoint{
@@ -507,8 +509,8 @@ public:
            >> m_dSizeX >> m_dSizeY
            >> m_dKankaku
            >> m_degKakudo;
-		jwBYTE bt;
-		jwWORD wd;
+		jwBYTE bt = 0;
+		jwWORD wd = 0;
          char buf[512];
 			ifstr >> bt;
 			if( bt != 0xFF ){
@@ -521,8 +523,20 @@ cout << "MojiData1:" << m_strFontName << endl;
 			}else
 			{
 				ifstr >> wd;
+
+        jwDWORD skip = 0;
+				if (wd > 511) {
+					skip = wd - 511;
+					wd = 511;
+				}
+
 				ifstr.read(buf,wd);
-				buf[wd] = '\0';
+
+				if (skip != 0) {
+                    ifstr.ignore(skip);
+                }
+
+                buf[wd] = '\0';
 				m_strFontName = buf;
 #ifdef	DATA_DUMP
 cout << "MojiData2:" << m_strFontName << endl;
@@ -539,8 +553,20 @@ cout << "MojiData3:"  << m_string << endl;
 			}else
 			{
 				ifstr >> wd;
+
+        jwDWORD skip = 0;
+				if (wd > 511) {
+					skip = wd - 511;
+					wd = 511;
+				}
+
 				ifstr.read(buf,wd);
-				buf[wd] = '\0';
+
+				if (skip != 0) {
+                    ifstr.ignore(skip);
+                }
+
+                buf[wd] = '\0';
 				m_string = buf;
 #ifdef	DATA_DUMP
 cout << "MojiData4:"  << m_string << endl;
@@ -580,6 +606,18 @@ public:
 	CDataTen m_TenHo1;	//基準点1
 	CDataTen m_TenHo2;	//基準点2
 	const char* className(){return "CDataSunpou";}
+	// the members are serialized with the dimension, and read by the version too
+	void SetVersion(jwDWORD ver){
+		CData::SetVersion(ver);
+		m_Sen.SetVersion(ver);
+		m_Moji.SetVersion(ver);
+		m_SenHo1.SetVersion(ver);
+		m_SenHo2.SetVersion(ver);
+		m_Ten1.SetVersion(ver);
+		m_Ten2.SetVersion(ver);
+		m_TenHo1.SetVersion(ver);
+		m_TenHo2.SetVersion(ver);
+	}
 	friend inline std::ostream& operator<<(std::ostream&, const CDataSunpou&); 
 	friend inline std::istream& operator>>(std::istream&, CDataSunpou&); 
 	void Serialize(std::ofstream& ofstr) const {
@@ -742,7 +780,7 @@ public:
                         //1:部分図(数学座標系)、2: 部分図(測地座標系)、
                         //3:作図グループ、4:作図部品
 	vector<CData*> m_DataList;	//定義データの実体のリスト
-	jwWORD Count;	//テスト用
+	jwDWORD Count = 0;	//JWWBlockListに読み込んだ定義データの数
 	const char* className(){return "CDataList";}
 	friend inline std::ostream& operator<<(std::ostream&, const CDataList&); 
 	friend inline std::istream& operator>>(std::istream&, CDataList&); 
@@ -779,8 +817,8 @@ public:
 		//"@@SfigorgFlag@@"に続けて、複合図形種別フラグを付加
 		//1:部分図(数学座標系)、2: 部分図(測地座標系)、
 		//3:作図グループ、4:作図部品
-		jwBYTE bt;
-		jwWORD wd;
+		jwBYTE bt = 0;
+		jwWORD wd = 0;
 		char buf[512];
 		ifstr >> bt;
 		if( bt != 0xFF ){
@@ -793,8 +831,20 @@ cout << "MojiData1:"  << m_strName << endl;
 		}else
 		{
 			ifstr >> wd;
+
+			jwDWORD skip = 0;
+			if (wd > 511) {
+				skip = wd - 511;
+				wd = 511;
+			}
+
 			ifstr.read(buf,wd);
-			buf[wd] = '\0';
+
+			if (skip != 0) {
+                ifstr.ignore(skip);
+            }
+
+            buf[wd] = '\0';
 			m_strName = buf;
 #ifdef	DATA_DUMP
 cout << "MojiData1:"  << m_strName << endl;
@@ -832,19 +882,17 @@ typedef	CDataType* PCDataType;
 //
 class	JWWBlockList
 {
-private:
-	vector<PCDataBlock> FBlockList;
-	vector<PCDataList> FDataList;
+	vector<PCDataList> FBlockList;
+	vector<CData*> FDataList;	//each record has the type FDataType names
 	vector<CDataType> FDataType;
-protected:
 public:
 	JWWBlockList();
 	~JWWBlockList();
-	CDataList GetBlockList(unsigned int i);
-	int getBlockListCount();
-    int GetDataListCount(unsigned int i);
-    void* GetData(unsigned int i, int j );
-    CDataType GetDataType(unsigned int i, int j );
+	CDataList GetBlockList(unsigned int i) const;
+	int getBlockListCount() const;
+    int GetDataListCount(unsigned int i) const;
+    CData* GetData(unsigned int i, int j ) const;
+    CDataType GetDataType(unsigned int i, int j ) const;
 
 	CDataEnko GetCDataEnko(int i, int j );
 	CDataMoji GetCDataMoji(int i, int j );
@@ -876,37 +924,40 @@ typedef	NoList*	PNoList;
 //データ格納リスト
 class	JWWList
 {
-private:
 	vector<PNoList> FList;
+	std::map<int, PNoList> FByNo;	//the number of each item of FList
 
 public:
 	JWWList();
 	~JWWList();
-	int GetCount();
-	NoList& GetItem(int i);
-	NoList& GetNoByItem(int i);
+	int GetCount() const;
+	NoList& GetItem(int i) const;
+	NoList& GetNoByItem(int i) const;
 	void AddItem(int No,string& str);
 };
 
 //JWWファイル入出力クラス
 class	JWWDocument
 {
-private:
 	string	InputFName,
 			OutputFName;
 public:
 	JWWDocument(string& iFName, string& oFName){
 		InputFName = iFName;
-		if(iFName.length()>0)
-			ifs = new ifstream(iFName.c_str(),ios::binary);
-		else
-			ifs = NULL;
-		OutputFName = oFName;
-		if(oFName.length()>0)
-			ofs = new ofstream(oFName.c_str(),ios::binary|ios::trunc);
-		else
-			ofs = NULL;
-		pList = new JWWList();
+		if(iFName.length()>0) {
+            ifs = new ifstream(iFName.c_str(),ios::binary);
+        }
+        else {
+            ifs = nullptr;
+        }
+        OutputFName = oFName;
+		if(oFName.length()>0) {
+            ofs = new ofstream(oFName.c_str(),ios::binary|ios::trunc);
+        }
+        else {
+            ofs = nullptr;
+        }
+        pList = new JWWList();
 		pBlockList = new JWWBlockList();
 	}
 	~JWWDocument(){
@@ -962,9 +1013,11 @@ public:
 	JWWBlockList*	pBlockList;//ブロックデータ定義部のリスト
 	vector<CData*>   m_DataList;    //図形データのリスト
 	vector<CDataList*>	m_DataListList;  //ブロックデータ定義部のリスト
-	void WriteString(string s);
-	string ReadData(int n);
+	void WriteString(string s) const;
+	string ReadData(int n) const;
 	string ReadString();
+	jwDWORD ReadCount();
+	jwBOOL ReadObjectTag(int& index, string& s);
 	jwBOOL ReadHeader();
 	jwBOOL WriteHeader();
 	jwBOOL Read();
@@ -980,4 +1033,4 @@ public:
 	jwBOOL SaveDataList(CDataList const& DList);
 };
 
-#endif //JWWDOC_H
+#endif

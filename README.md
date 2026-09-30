@@ -1,11 +1,11 @@
 # LibreCAD [![Build Status](https://travis-ci.org/LibreCAD/LibreCAD.svg?branch=master)](https://travis-ci.org/LibreCAD/LibreCAD) 
 
-[→ Download ←](https://github.com/LibreCAD/LibreCAD/wiki/Download)
+[→ **Download** ←](https://github.com/LibreCAD/LibreCAD/wiki/Download)
 
 [LibreCAD](https://www.librecad.org) is a 2D CAD drawing tool
 based on the community edition of [QCAD](https://www.qcad.org).
 LibreCAD uses the cross-platform framework [Qt](https://www.qt.io/download-open-source/),
-which means it works with most operating systems.  
+which means it works with most operating systems.
 The user interface is translated in over 30 languages.  https://translate.librecad.org
 
 LibreCAD is free software; you can redistribute it and/or modify  
@@ -13,41 +13,111 @@ it under the terms of the [GNU General Public License version 2](https://www.gnu
 as published by the Free Software Foundation.  
 Please read the [LICENSE](LICENSE) file for additional information.
 
-The master branch represents the latest pre-release code,  
-and now requires Qt 5.2.1 or newer.  
+The master branch represents the latest pre-release code.
+
+The 2.2.2 branch requires Qt 6.4.0 or newer.
+
+The 2.2.1 branch requires Qt 5.15.0 or newer.
+
+The 2.2 branch requires Qt 5.2.1 or newer.
+
 The 2.1 branch will be the last to support Qt4.  
-The 2.0 branch will be the last to support the QCAD toolbar. [![Build Status](https://travis-ci.org/LibreCAD/LibreCAD.svg?branch=2.0)](https://travis-ci.org/LibreCAD/LibreCAD) 
 
-- [Releases](https://github.com/LibreCAD/LibreCAD/releases)
-- [Milestones](https://github.com/LibreCAD/LibreCAD/milestones)
+The 2.0 branch will be the last to support the QCAD toolbar.
 
-[libdxfrw](https://sourceforge.net/projects/libdxfrw/) is an associated project that allows LibreCAD to read DWG files.
+(https://travis-ci.org/LibreCAD/LibreCAD.svg?branch=2.0)](https://travis-ci.org/LibreCAD/LibreCAD) 
 
-**Requests and Bug reports**
+## DXF Converter
 
-- [GitHub issues (preferred)](https://github.com/LibreCAD/LibreCAD/issues)
+LibreCAD can be used as DXF to a PDF, PNG, or SVG converter. For example, to convert a `foo.dxf` to `foo.pdf`, `foo.png`, or `foo.svg`:
+
+```bash
+$ librecad dxf2pdf foo.dxf
+$ librecad dxf2png foo.dxf
+$ librecad dxf2svg foo.dxf
+```
+
+## Releases and Milestones
+
+### Quick Downloads
+- [Latest stable release](https://github.com/LibreCAD/LibreCAD/releases/latest)
+- [Latest build from stable branch 2.2.1](https://github.com/LibreCAD/LibreCAD/releases/tag/2.2.1-latest)
+- [Latest build from master](https://github.com/LibreCAD/LibreCAD/releases/tag/continuous)
+
+### Releases
+- [Releases and Prereleases](https://github.com/LibreCAD/LibreCAD/releases)
+
+The macOS build is a universal (Apple Silicon + Intel) app. CI verifies the app's
+ad-hoc code signature both before packaging and from the mounted DMG, and release
+assets include a `.sha256` file that can be checked with:
+```bash
+shasum -a 256 -c LibreCAD-*.dmg.sha256
+```
+
+Ad-hoc signing does not provide an Apple Developer ID or notarization, so macOS
+blocks the first launch with "Apple could not verify LibreCAD is free of malware".
+Drag LibreCAD to Applications, open it once and dismiss that dialog, then open
+System Settings &rarr; Privacy &amp; Security, scroll to the Security section and
+click "Open Anyway" next to LibreCAD. On macOS 14 and earlier, right-click &rarr;
+Open on the app is enough. If macOS still refuses, clear the download quarantine
+attribute only ([#2162](https://github.com/LibreCAD/LibreCAD/issues/2162)):
+```bash
+xattr -dr com.apple.quarantine /Applications/LibreCAD.app
+```
+
+A different message, "LibreCAD is damaged and can't be opened", means the app's
+code signature is invalid. The v2.2.1.5 Apple Silicon build had that problem
+([#2574](https://github.com/LibreCAD/LibreCAD/issues/2574)); later builds from
+both branches are signed correctly.
+
+
+## Built with libdxfrw
+[`libdxfrw`](https://github.com/LibreCAD/libdxfrw) is an associated project that allows LibreCAD to read DXF and DWG files.
+
+
+## ESRI Shapefile (.shp) Import
+LibreCAD can natively import ESRI Shapefiles (`.shp`/`.shx`/`.dbf`), built with [`shapelib`](https://shapelib.maptools.org/). Points, polylines/arcs, and polygons are imported as native entities (Z preserved), with DBF-driven layers and per-entity styling (color, linetype, width) where the corresponding fields are present. Import is read-only; there is no Shapefile export.
+
+
+## Requests and Bug Reports
+
+- [GitHub Issues (preferred)](https://github.com/LibreCAD/LibreCAD/issues)
 - [SourceForge tickets (disabled)](https://sourceforge.net/p/librecad/_list/tickets?source=navbar)
 
-**Users Documentation**
+
+## Users Documentation
 
 - [Users Manual](https://librecad.readthedocs.io/)
 - [Wiki Main Page](https://dokuwiki.librecad.org/)
 
-**Questions or Comments**
+
+## Questions or Comments
 
 - [LibreCAD's Forum](https://forum.librecad.org/)
-- IRC: [#librecad](https://webchat.freenode.net/?channels=librecad) at freenode.net
+- IRC: [#librecad](https://web.libera.chat/#librecad) at libera.chat
 
-**Building**
 
-Requirements:
+## Building
 
-- [Qt](https://www.qt.io/download-open-source/) 5.2.1+ (MinGW version on Windows)
-- [Boost](https://www.boost.org/)
+### Requirements
+
+- [Qt](https://www.qt.io/download-open-source/) 6.4.0+ (MinGW version on Windows)
+- [Boost](https://www.boost.org/) 1.55.0+
 
 More information: [Build from source](https://github.com/LibreCAD/LibreCAD/wiki/Build-from-source)
 
-**Contributing**
+### Building Unit Tests
+
+To build unit tests (e.g., for `rs_math.cpp`), enable the `BUILD_TESTS` flag:
+
+```bash
+cmake -DBUILD_TESTS=ON ..
+make
+./build/librecad_tests
+```
+
+
+## Contributing
 
 [Git and GitHub](https://github.com/LibreCAD/LibreCAD/wiki/Git-and-GitHub)
 

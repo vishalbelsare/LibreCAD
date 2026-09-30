@@ -1,0 +1,118 @@
+/*******************************************************************************
+ *
+ This file is part of the LibreCAD project, a 2D CAD program
+
+ Copyright (C) 2025 LibreCAD.org
+ Copyright (C) 2025 sand1024
+
+ This program is free software; you can redistribute it and/or
+ modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 2
+ of the License, or (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ ******************************************************************************/
+
+#ifndef LC_UCSLISTWIDGET_H
+#define LC_UCSLISTWIDGET_H
+
+#include <QIcon>
+#include <QModelIndex>
+
+#include "lc_graphicviewawarewidget.h"
+#include "lc_ucslist.h"
+
+class LC_Formatter;
+class RS_Graphic;
+class RS_GraphicView;
+class LC_UCSListOptions;
+class LC_UCSListModel;
+
+class QItemSelection;
+class LC_UCSStateWidget;
+class LC_UCSListButton;
+class LC_GraphicViewport;
+
+namespace Ui {
+    class LC_UCSListWidget;
+}
+
+class LC_UCSListWidget : public LC_GraphicViewAwareWidget, LC_UCSListListener{
+    Q_OBJECT
+public:
+    explicit LC_UCSListWidget(const QString& title, QWidget* parent);
+    ~LC_UCSListWidget() override;
+    void setUCSList(LC_UCSList* viewsList);
+    void updateCurrentUCSWidget(const LC_UCS* ucs) const;
+    void setGraphicView(RS_GraphicView* gv) override;
+    void reload();
+    void fillUCSList(QList<LC_UCS *> &list) const;
+    QIcon getUCSTypeIcon(const LC_UCS *view) const;
+    QWidget* createSelectionWidget(QAction* createAction, QAction* defaultAction);
+    void ucsListModified([[maybe_unused]]bool changed) override{refresh();}
+    /// the list is being destroyed with its drawing: forget it, the view and the viewport, and clear the table
+    void ucsListDestroyed() override;
+    QModelIndex getIndexForUCS(const LC_UCS *u) const;
+    void applyUCSByIndex(const QModelIndex& index) const;
+    LC_UCS* getActiveUCS() const;
+    void removeExistingUCS(LC_UCS* selectedUCS);
+    void removeExistingUCS(const QString& name) const;
+    void renameExistingUCS(const QString& name);
+    void renameExistingUCS(LC_UCS *selectedUCS);
+signals:
+    void ucsListChanged();
+public slots:
+    void setWCS() const;
+    void onViewUCSChanged(const LC_UCS* ucs);
+    void setStateWidget(LC_UCSStateWidget *stateWidget);
+protected slots:
+    void invokeOptionsDialog();
+    void saveCurrentUCS();
+    void activateUCS();
+    void previewUCS();
+    void removeUCS();
+    void removeAllUCSs();
+    void editUCS();
+    void setUCSByDimOrdinate() const;
+    void onCustomContextMenu(const QPoint &pos);
+    void slotTableClicked(const QModelIndex& modelIndex);
+    void onTableSelectionChanged(const QItemSelection &selected, const QItemSelection &deselected) const;
+    void onTableDoubleClicked();
+protected:
+    LC_UCSList* m_currentUCSList{nullptr};
+    LC_UCSListModel* m_ucsListModel{nullptr};
+    LC_UCSListOptions *m_options {nullptr};
+    LC_UCSListButton *m_ucsListButton {nullptr};
+    LC_UCSStateWidget* m_ucsStateWidget {nullptr};
+    QAction* m_applyUCSAction {nullptr};
+    QAction* m_createUCSAction {nullptr};
+    RS_GraphicView *m_graphicView {nullptr};
+    LC_GraphicViewport *m_viewport {nullptr};
+    Ui::LC_UCSListWidget *ui;
+    int m_itemHeight = 21;
+    void doRemoveExistingUCS(LC_UCS *ucs) const;
+    void initToolbar() const;
+    void refresh();
+    void updateData(bool restoreSelectionIfPossible);
+    void loadOptions();
+    void createModel();
+    void applyUCS(LC_UCS* ucs) const;
+    void previewExistingUCS(LC_UCS* ucs) const;
+    LC_UCS *getSelectedUCS();
+    QModelIndex getSelectedItemIndex() const;
+    void renameExistingUCS(const QString& newName, LC_UCS *ucs);
+    void updateButtonsState() const;
+    void selectUCS(const LC_UCS *ucs) const;
+    int getSingleSelectedRow() const;
+    void restoreSingleSelectedRow(bool restoreSelectionIfPossible, int selectedRow) const;
+    QLayout* getTopLevelLayout() const override;
+};
+
+#endif

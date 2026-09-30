@@ -27,11 +27,10 @@
 #ifndef QC_ACTIONGETENT_H
 #define QC_ACTIONGETENT_H
 
-#include "rs_previewactioninterface.h"
-#include "rs_modification.h"
+#include "rs_actioninterface.h"
 
- class Plugin_Entity;
- class Doc_plugin_interface;
+class Plugin_Entity;
+class Doc_plugin_interface;
 
 /**
  * This action class can handle user events to select entities from plugin.
@@ -40,43 +39,30 @@
  */
 
 class QC_ActionGetEnt : public RS_ActionInterface {
-	Q_OBJECT
-//public:
-    /**
-     * Action States.
-     */
-/*    enum Status {
-        Select
-    };*/
-
+    Q_OBJECT
 public:
-    QC_ActionGetEnt(RS_EntityContainer& container,
-                        RS_GraphicView& graphicView);
-    ~QC_ActionGetEnt() {}
+    QC_ActionGetEnt(LC_ActionContext* actionContext);
+    void trigger() override;
+    void keyPressEvent(QKeyEvent* e) override;
 
-    virtual void updateMouseButtonHints();
+    void setMessage(const QString& msg);
 
-/*    virtual void init(int status=0);
-	
-    virtual void mouseReleaseEvent(QMouseEvent* e);
-	
-    virtual void updateMouseCursor();
-    virtual void updateToolBar();*/
+    bool isCompleted() const {
+        return m_completed;
+    }
 
-    virtual void trigger();
-    virtual void keyPressEvent(QKeyEvent* e);
-    virtual void mouseReleaseEvent(QMouseEvent* e);
-    virtual void updateMouseCursor();
+    Plugin_Entity* getSelected(Doc_plugin_interface* d) const;
 
-    void setMessage(QString msg);
-    bool isCompleted(){return completed;}
-    Plugin_Entity *getSelected(Doc_plugin_interface* d);
+protected:
+    RS2::CursorType doGetMouseCursor(int status) override;
+    void onMouseLeftButtonRelease(int status, QMouseEvent* e) override;
+    void onMouseRightButtonRelease(int status, QMouseEvent* e) override;
+    void updateActionPrompt() override;
 
 private:
-    bool completed;
-    QString message;
-    RS_Entity* en;
-
+    bool m_completed = false;
+    QString m_message;
+    RS_Entity* m_entity = nullptr;
 };
 
 #endif

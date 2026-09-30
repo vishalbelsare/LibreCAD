@@ -27,126 +27,211 @@
 #ifndef RS_MATH_H
 #define RS_MATH_H
 
+#include <algorithm>
+#include <cmath>
 #include <vector>
+
+class QString;
+class QRegularExpressionMatch;
 
 class RS_Vector;
 class RS_VectorSolutions;
-class QString;
 
 /**
  * Math functions.
  */
-class RS_Math {
-private:
-	RS_Math() = delete;
-public:
-	static int round(double v);
-    static double pow(double x, double y);
-    static RS_Vector pow(RS_Vector x, double y);
-    static bool equal(const double d1, const double d2);
+namespace RS_Math {
+    int round(double v);
+    double round(double v, double precision);
+    double pow(double x, double y);
+    RS_Vector pow(const RS_Vector& x, int y);
+    /**
+     * @brief equal test whether two floating points are equal
+     * @param d1 number 1
+     * @param d2 number 2
+     * @param tolerance tolerance to use, if the value is smaller than ulp of d1/d2, double of the ulp is used
+     * @return true if the floating points are considered equal
+     */
+    bool equal(double d1, double d2, double tolerance = 0.);
+    bool notEqual(double d1, double d2, double tolerance = 0.);
 
-    static double rad2deg(double a);
-    static double deg2rad(double a);
-    static double rad2gra(double a);
-	static double gra2rad(double a);
-	static unsigned findGCD(unsigned a, unsigned b);
-    static bool isAngleBetween(double a,
-                               double a1, double a2,
-                               bool reversed = false);
+    constexpr double rad2deg(const double a) {
+        return 180. / M_PI * a;
+    }
+    constexpr double deg2rad(const double a) {
+        return M_PI / 180.0 * a;
+    }
+    double rad2gra(double angle);
+    double gra2rad(double angle);
+    double gra2deg(double angle);
+    unsigned findGCD(unsigned a, unsigned b);
+
+    /**
+     * Tests if angle a is between a1 and a2.
+     * All angles in radians.
+     *
+     * @param angleRad - an angle
+     * @param angle1 - the start angle
+     * @param angle2 - the end angle
+     * @param reversed - whether the range is reversed, default to false
+     *        reversed=true for clockwise testing. false for ccw testing.
+     * @return true if the angle a is between amin and amax.
+     */
+    bool isAngleBetween(double angleRad, double angle1, double angle2, bool reversed = false);
     //! \brief correct angle to be within [0, +PI*2.0)
-    static double correctAngle(double a);
+    double correctAngle(double angle);
     //! \brief correct angle to be within [-PI, +PI)
-    static double correctAngle2(double a);
-    //! \brief correct angle to be unsigned [0, +PI)
-	static double correctAngleU(double a);
+    double correctAnglePlusMinusPi(double angle);
+    //! \brief correct angle to be unsigned [0, +2PI)
+    double correctAngle0To2Pi(double angle);
+    //! \brief correct angle to be unsigned [0, PI)
 
-	//! \brief angular difference
-	static double getAngleDifference(double a1, double a2, bool reversed = false);
-	/**
-	 * @brief getAngleDifferenceU abs of minimum angular difference, unsigned version of angular difference
-	 * @param a1,a2 angles
-	 * @return the minimum of angular difference a1-a2 and a2-a1
-	 */
-	static double getAngleDifferenceU(double a1, double a2);
-	static double makeAngleReadable(double angle, bool readable=true,
-									bool* corrected=nullptr);
-    static bool isAngleReadable(double angle);
-    static bool isSameDirection(double dir1, double dir2, double tol);
+    // check whether angles defines the line with the same inclination to x axix (useful for comparing similar lines with different directions, for example)
+    bool isSameInclineAngles(double first, double second, double tolerance);
 
-	//! \{ \brief evaluate a math string
-    static double eval(const QString& expr, double def=0.0);
-    static double eval(const QString& expr, bool* ok);
-	//! \}
+    double correctAngle0ToPi(double angle);
 
-    static std::vector<double> quadraticSolver(const std::vector<double>& ce);
-    static std::vector<double> cubicSolver(const std::vector<double>& ce);
+    void calculateAngles(double &angle, double &complementary, double &supplementary, double &alt);
+
+    //! \brief angular difference
+    double getAngleDifference(double angle1, double angle2, bool reversed = false);
+    /**
+         * @brief getAngleDifferenceU abs of minimum angular difference, unsigned version of angular difference
+         * @param angle1,angle2 angles
+         * @return the minimum of angular difference a1-a2 and a2-a1
+         */
+    double getAngleDifferenceU(double angle1, double angle2);
+    double makeAngleReadable(double angle, bool readable = true, bool* corrected = nullptr);
+    bool isAngleReadable(double angle);
+    bool isSameDirection(double angle1, double angle2, double tol);
+
+    //! \convert measurement strings with rationals or unit symbols to current unit
+    double convertUnit(const QRegularExpressionMatch&, const QString&, double, double);
+    QString derationalize(const QString& expression);
+
+    //! \{ \brief evaluate a math string
+    double eval(const QString& expression, double defaultValue = 0.0);
+    double eval(const QString& expression, bool* ok);
+    //! \}
+
+    std::vector<double> quadraticSolver(const std::vector<double>& ce);
+    std::vector<double> cubicSolver(const std::vector<double>& ce);
     /** quartic solver
-    * x^4 + ce[0] x^3 + ce[1] x^2 + ce[2] x + ce[3] = 0
-    @ce, a vector of size 4 contains the coefficient in order
-    @return, a vector contains real roots
-    **/
-    static std::vector<double> quarticSolver(const std::vector<double>& ce);
+        * x^4 + ce[0] x^3 + ce[1] x^2 + ce[2] x + ce[3] = 0
+        @ce, a vector of size 4 contains the coefficient in order
+        @return, a vector contains real roots
+        **/
+    std::vector<double> quarticSolver(const std::vector<double>& ce);
     /** quartic solver
-* ce[4] x^4 + ce[3] x^3 + ce[2] x^2 + ce[1] x + ce[0] = 0
-    @ce, a vector of size 5 contains the coefficient in order
-    @return, a vector contains real roots
-    **/
-    static std::vector<double> quarticSolverFull(const std::vector<double>& ce);
+    * ce[4] x^4 + ce[3] x^3 + ce[2] x^2 + ce[1] x + ce[0] = 0
+        @ce, a vector of size 5 contains the coefficient in order
+        @return, a vector contains real roots
+        **/
+    std::vector<double> quarticSolverFull(const std::vector<double>& ce);
     //solver for linear equation set
     /**
-      * Solve linear equation set
-	  *@param mt holds the augmented matrix
-	  *@param sn holds the solution
-	  *@param return true, if the equation set has a unique solution, return false otherwise
+     * Solve linear equation set
+     *@param m holds the augmented matrix
+     *@param sn holds the solution
+     *@return true, if the equation set has a unique solution, return false otherwise
       *
-	  *@author: Dongxu Li
-      */
-	static bool linearSolver(const std::vector<std::vector<double> >& m, std::vector<double>& sn);
+      *@author: Dongxu Li
+     */
+    bool linearSolver(const std::vector<std::vector<double>>& m, std::vector<double>& sn);
 
     /** solver quadratic simultaneous equations of a set of two **/
     /* solve the following quadratic simultaneous equations,
-      *  ma000 x^2 + ma011 y^2 - 1 =0
-      * ma100 x^2 + 2 ma101 xy + ma111 y^2 + mb10 x + mb11 y +mc1 =0
-      *
-      *@m, a vector of size 8 contains coefficients in the strict order of:
-      ma000 ma011 ma100 ma101 ma111 mb10 mb11 mc1
-      *@return a RS_VectorSolutions contains real roots (x,y)
-      */
-    static RS_VectorSolutions simultaneousQuadraticSolver(const std::vector<double>& m);
+          * ma000 x^2 + ma011 y^2 - 1 =0
+          * ma100 x^2 + 2 ma101 xy + ma111 y^2 + mb10 x + mb11 y +mc1 =0
+          *
+          *@m, a vector of size 8 contains coefficients in the strict order of:
+          ma000 ma011 ma100 ma101 ma111 mb10 mb11 mc1
+          *@return a RS_VectorSolutions contains real roots (x,y)
+          */
+    RS_VectorSolutions simultaneousQuadraticSolver(const std::vector<double>& m);
 
     /** solver quadratic simultaneous equations of a set of two **/
-	/** solve the following quadratic simultaneous equations,
-      * ma000 x^2 + ma001 xy + ma011 y^2 + mb00 x + mb01 y + mc0 =0
-      * ma100 x^2 + ma101 xy + ma111 y^2 + mb10 x + mb11 y + mc1 =0
-      *
-  *@param m a vector of size 2 each contains a vector of size 6 coefficients in the strict order of:
-  ma000 ma001 ma011 mb00 mb01 mc0
-  ma100 ma101 ma111 mb10 mb11 mc1
-      *@return a RS_VectorSolutions contains real roots (x,y)
-      */
-    static RS_VectorSolutions simultaneousQuadraticSolverFull(const std::vector<std::vector<double> >& m);
-    static RS_VectorSolutions simultaneousQuadraticSolverMixed(const std::vector<std::vector<double> >& m);
+    /** solve the following quadratic simultaneous equations,
+          * ma000 x^2 + ma001 xy + ma011 y^2 + mb00 x + mb01 y + mc0 =0
+          * ma100 x^2 + ma101 xy + ma111 y^2 + mb10 x + mb11 y + mc1 =0
+          *
+      *@param m a vector of size 2 each contains a vector of size 6 coefficients in the strict order of:
+      ma000 ma001 ma011 mb00 mb01 mc0
+      ma100 ma101 ma111 mb10 mb11 mc1
+          *@return a RS_VectorSolutions contains real roots (x,y)
+          */
+    RS_VectorSolutions simultaneousQuadraticSolverFull(const std::vector<std::vector<double>>& m);
+    /**
+     * Solve two full quadratic equations using the projective pencil of conics.
+     * Real singular pencil members are factored into line pairs, and all
+     * candidate affine points are verified against both original equations.
+     */
+    RS_VectorSolutions simultaneousQuadraticSolverProjective(const std::vector<std::vector<double>>& m);
+    RS_VectorSolutions simultaneousQuadraticSolverMixed(const std::vector<std::vector<double>>& m);
 
-	/** \brief verify simultaneousQuadraticVerify a solution for simultaneousQuadratic
-	  *@param m the coefficient matrix
-	  *@param v a candidate to verify
-      *@return true, for a valid solution
-      **/
-	static bool simultaneousQuadraticVerify(const std::vector<std::vector<double> >& m, RS_Vector& v);
+    /** \brief verify simultaneousQuadraticVerify a solution for simultaneousQuadratic
+          *@param m the coefficient matrix
+          *@param v a candidate to verify
+          *@return true, for a valid solution
+          **/
+    bool simultaneousQuadraticVerify(const std::vector<std::vector<double>>& m, RS_Vector& v);
     /** wrapper for elliptic integral **/
     /**
-     * wrapper of elliptic integral of the second type, Legendre form
-     *@k the elliptic modulus or eccentricity
-     *@phi elliptic angle, must be within range of [0, M_PI]
-     *
-	 *@\author: Dongxu Li
+         * wrapper of elliptic integral of the second type, Legendre form
+         *@k the elliptic modulus or eccentricity
+         *@phi elliptic angle, must be within range of [0, M_PI]
+         *
+         *@\author: Dongxu Li
+         */
+    double ellipticIntegral_2(double k, double phi);
+
+    // The ULP (Unit at Last Place) for a floating point
+    /**
+     * @brief ulp - the ULP (Unit at Last Place) for a floating point
+     * @param x - a floating point
+     * @return - the ULP of the given floating point
+     * @author: Dongxu Li
      */
-    static double ellipticIntegral_2(const double& k, const double& phi);
+    template <typename FT>
+    std::enable_if_t<std::is_floating_point_v<FT>, FT> ulp(FT x) {
+        if (std::signbit(x)) {
+            return x - std::nexttoward(x, -std::numeric_limits<FT>::infinity());
+        }
+        return std::nexttoward(x, std::numeric_limits<FT>::infinity()) - x;
+    }
 
-    static QString doubleToString(double value, double prec);
-    static QString doubleToString(double value, int prec);
+    /**
+     * @brief less - compare two floating points using ULP as tolerance
+     * @param a - a floating point
+     * @param b - a floating point
+     * @return bool - true, if a is less or equal within twice of the ULP of b
+     * @author: Dongxu Li
+     */
+    template <typename FT>
+    std::enable_if_t<std::is_floating_point_v<FT>, bool> less(FT a, FT b) {
+        return a <= b + 2 * RS_Math::ulp<FT>(b);
+    }
 
-    static void test();
-};
+    /**
+     * @brief inBetween - whether a floating point is between two given floating points
+     * @param x - a floating to determine whether in range
+     * @param a - one bound of the range
+     * @param b - one bound of the range
+     * @return bool - true, if the floating point x is within the range defined by
+     *          a and b, with floating point ULP used as tolerance in comparison
+     * @author: Dongxu Li
+     */
+    template <typename FT>
+    std::enable_if_t<std::is_floating_point_v<FT>, bool> inBetween(FT x, FT a, FT b) {
+        return RS_Math::less<FT>(x, std::max<FT>(a, b)) && RS_Math::less<FT>(std::min<FT>(a, b), x);
+    }
+
+    QString doubleToString(double value, double precision);
+    QString doubleToString(double value, int precision);
+
+    void test();
+
+    int getPeriodsCount(double angle1, double angle2, bool reversed);
+} // namespace RS_Math
 
 #endif

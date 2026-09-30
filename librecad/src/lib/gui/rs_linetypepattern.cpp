@@ -23,53 +23,112 @@
 ** This copyright notice MUST APPEAR in all copies of the script!  
 **
 **********************************************************************/
-
-
-#include<cmath>
 #include "rs_linetypepattern.h"
 
-RS_LineTypePattern::RS_LineTypePattern(std::initializer_list<double> const& pattern):
-	pattern(pattern)
-{
-    totalLength=0.;
-	num = pattern.size();
-	for(double const& l: this->pattern){
-		totalLength += fabs(l);
-	}
+#include <cstdlib>
+#include <map>
+
+#include "rs.h"
+
+namespace {
+//define all line patterns in pixels
+const RS_LineTypePattern PATTERN_SOLID_LINE={10.0};
+
+const RS_LineTypePattern PATTERN_DOT_LINE_TINY{{0.15, -1.}};
+const RS_LineTypePattern PATTERN_DOT_LINE{{0.2, -6.2}};
+const RS_LineTypePattern PATTERN_DOT_LINE2{{0.2, -3.1}};
+const RS_LineTypePattern PATTERN_DOT_LINE_X2{{0.2, -12.4}};
+
+const RS_LineTypePattern PATTERN_DASH_LINE_TINY{{2., -1.}};
+const RS_LineTypePattern PATTERN_DASH_LINE{{12.0, -6.0}};
+const RS_LineTypePattern PATTERN_DASH_LINE2{{6.0, -3.0}};
+const RS_LineTypePattern PATTERN_DASH_LINE_X2{{24.0, -12.0}};
+
+const RS_LineTypePattern PATTERN_DASH_DOT_LINE_TINY{{2., -2., 0.15, -2.}};
+const RS_LineTypePattern PATTERN_DASH_DOT_LINE{{12.0, -5., 0.2, -5.}};
+const RS_LineTypePattern PATTERN_DASH_DOT_LINE2{{6.0, -2.5, 0.2, -2.5}};
+const RS_LineTypePattern PATTERN_DASH_DOT_LINE_X2{{24.0, -8., 0.2, -8.}};
+
+const RS_LineTypePattern PATTERN_DIVIDE_LINE_TINY{{2., -0.7, 0.15, -0.7, 0.15, -0.7}};
+const RS_LineTypePattern PATTERN_DIVIDE_LINE{{12.0, -4.9, 0.2, -4.9, 0.2, -4.9}};
+const RS_LineTypePattern PATTERN_DIVIDE_LINE2{{6.0, -1.9, 0.2, -1.9, 0.2, -1.9}};
+const RS_LineTypePattern PATTERN_DIVIDE_LINE_X2{{24.0, -8., 0.2, -8., 0.2, -8.}};
+
+const RS_LineTypePattern PATTERN_CENTER_LINE_TINY{{5., -1., 1., -1.}};
+const RS_LineTypePattern PATTERN_CENTER_LINE{{32.0, -6.0, 6.0, -6.0}};
+const RS_LineTypePattern PATTERN_CENTER_LINE2{{16.0, -3.0, 3.0, -3.0}};
+const RS_LineTypePattern PATTERN_CENTER_LINE_X2{{64.0, -12.0, 12.0, -12.0}};
+
+const RS_LineTypePattern PATTERN_BORDER_LINE_TINY{{2., -1., 2., -1., 0.15, -1.}};
+const RS_LineTypePattern PATTERN_BORDER_LINE{{12.0, -4.0, 12.0, -4., 0.2, -4.}};
+const RS_LineTypePattern PATTERN_BORDER_LINE2{{6.0, -3.0, 6.0, -3., 0.2, -3.}};
+const RS_LineTypePattern PATTERN_BORDER_LINE_X2{{24.0, -8.0, 24.0, -8., 0.2, -8.}};
+// acad.lin HIDDEN is half of DASHED (.25,-.125 vs .5,-.25)
+const RS_LineTypePattern PATTERN_HIDDEN_LINE_TINY{{1., -0.5}};
+const RS_LineTypePattern PATTERN_HIDDEN_LINE{{6.0, -3.0}};
+const RS_LineTypePattern PATTERN_HIDDEN_LINE2{{3.0, -1.5}};
+const RS_LineTypePattern PATTERN_HIDDEN_LINE_X2{{12.0, -6.0}};
+// acad.lin PHANTOM is CENTER with a second short dash (1.25,-.25,.25,-.25,.25,-.25)
+const RS_LineTypePattern PATTERN_PHANTOM_LINE_TINY{{5., -1., 1., -1., 1., -1.}};
+const RS_LineTypePattern PATTERN_PHANTOM_LINE{{32.0, -6.0, 6.0, -6.0, 6.0, -6.0}};
+const RS_LineTypePattern PATTERN_PHANTOM_LINE2{{16.0, -3.0, 3.0, -3.0, 3.0, -3.0}};
+const RS_LineTypePattern PATTERN_PHANTOM_LINE_X2{{64.0, -12.0, 12.0, -12.0, 12.0, -12.0}};
+
+const RS_LineTypePattern PATTERN_BLOCK_LINE{{0.5, -0.5}};
+const RS_LineTypePattern PATTERN_SELECTED{{1.0, -3.0}};
 }
 
-//define all line patterns in pixels
-const RS_LineTypePattern RS_LineTypePattern::patternSolidLine={10.0};
+RS_LineTypePattern::RS_LineTypePattern(const std::initializer_list<qreal>& pattern):
+    pattern(pattern), num { pattern.size()}{
+    for(const qreal l: pattern){
+        totalLength += std::abs(l);
+    }
+}
 
-const RS_LineTypePattern RS_LineTypePattern::patternDotLineTiny{{0.15, -1.}};
-const RS_LineTypePattern RS_LineTypePattern::patternDotLine{{0.2, -6.2}};
-const RS_LineTypePattern RS_LineTypePattern::patternDotLine2{{0.2, -3.1}};
-const RS_LineTypePattern RS_LineTypePattern::patternDotLineX2{{0.2, -12.4}};
 
-const RS_LineTypePattern RS_LineTypePattern::patternDashLineTiny{{2., -1.}};
-const RS_LineTypePattern RS_LineTypePattern::patternDashLine{{12.0, -6.0}};
-const RS_LineTypePattern RS_LineTypePattern::patternDashLine2{{6.0, -3.0}};
-const RS_LineTypePattern RS_LineTypePattern::patternDashLineX2{{24.0, -12.0}};
-
-const RS_LineTypePattern RS_LineTypePattern::patternDashDotLineTiny{{2., -0.7, 0.15, -2.}};
-const RS_LineTypePattern RS_LineTypePattern::patternDashDotLine{{12.0, -5., 0.2, -5.95}};
-const RS_LineTypePattern RS_LineTypePattern::patternDashDotLine2{{6.0, -2., 0.2, -2.}};
-const RS_LineTypePattern RS_LineTypePattern::patternDashDotLineX2{{24.0, -8., 0.2, -8.}};
-
-const RS_LineTypePattern RS_LineTypePattern::patternDivideLineTiny{{2., -0.7, 0.15, -0.7, 0.15, -0.7}};
-const RS_LineTypePattern RS_LineTypePattern::patternDivideLine{{12.0, -4.9, 0.2, -4.9, 0.2, -4.9}};
-const RS_LineTypePattern RS_LineTypePattern::patternDivideLine2{{6.0, -1.9, 0.2, -1.9, 0.2, -1.9}};
-const RS_LineTypePattern RS_LineTypePattern::patternDivideLineX2{{24.0, -8., 0.2, -8., 0.2, -8.}};
-
-const RS_LineTypePattern RS_LineTypePattern::patternCenterLineTiny{{5., -1., 1., -1.}};
-const RS_LineTypePattern RS_LineTypePattern::patternCenterLine{{32.0, -6.0, 6.0, -6.0}};
-const RS_LineTypePattern RS_LineTypePattern::patternCenterLine2{{16.0, -3.0, 3.0, -3.0}};
-const RS_LineTypePattern RS_LineTypePattern::patternCenterLineX2{{64.0, -12.0, 12.0, -12.0}};
-
-const RS_LineTypePattern RS_LineTypePattern::patternBorderLineTiny{{2., -1., 2., -1., 0.15, -1.}};
-const RS_LineTypePattern RS_LineTypePattern::patternBorderLine{{12.0, -4.0, 12.0, -4., 0.2, -4.}};
-const RS_LineTypePattern RS_LineTypePattern::patternBorderLine2{{6.0, -3.0, 6.0, -3., 0.2, -3.}};
-const RS_LineTypePattern RS_LineTypePattern::patternBorderLineX2{{24.0, -8.0, 24.0, -8., 0.2, -8.}};
-
-const RS_LineTypePattern RS_LineTypePattern::patternBlockLine{{0.5, -0.5}};
-const RS_LineTypePattern RS_LineTypePattern::patternSelected{{1.0, -3.0}};
+const RS_LineTypePattern* RS_LineTypePattern::getPattern(const RS2::LineType lineType){
+    static std::map<RS2::LineType, const RS_LineTypePattern*> lineTypeToPattern = {
+            {RS2::NoPen, &PATTERN_SOLID_LINE},
+            {RS2::SolidLine, &PATTERN_SOLID_LINE},
+            {RS2::DotLine, &PATTERN_DOT_LINE},
+            {RS2::DotLineTiny, &PATTERN_DOT_LINE_TINY},
+            {RS2::DotLine2, &PATTERN_DOT_LINE2},
+            {RS2::DotLineX2, &PATTERN_DOT_LINE_X2},
+            {RS2::DashLine, &PATTERN_DASH_LINE},
+            {RS2::DashLineTiny, &PATTERN_DASH_LINE_TINY},
+            {RS2::DashLine2, &PATTERN_DASH_LINE2},
+            {RS2::DashLineX2, &PATTERN_DASH_LINE_X2},
+            {RS2::DashDotLine, &PATTERN_DASH_DOT_LINE},
+            {RS2::DashDotLineTiny, &PATTERN_DASH_DOT_LINE_TINY},
+            {RS2::DashDotLine2, &PATTERN_DASH_DOT_LINE2},
+            {RS2::DashDotLineX2, &PATTERN_DASH_DOT_LINE_X2},
+            {RS2::DivideLine, &PATTERN_DIVIDE_LINE},
+            {RS2::DivideLineTiny, &PATTERN_DIVIDE_LINE_TINY},
+            {RS2::DivideLine2, &PATTERN_DIVIDE_LINE2},
+            {RS2::DivideLineX2, &PATTERN_DIVIDE_LINE_X2},
+            {RS2::CenterLine, &PATTERN_CENTER_LINE},
+            {RS2::CenterLineTiny, &PATTERN_CENTER_LINE_TINY},
+            {RS2::CenterLine2, &PATTERN_CENTER_LINE2},
+            {RS2::CenterLineX2, &PATTERN_CENTER_LINE_X2},
+            {RS2::BorderLine, &PATTERN_BORDER_LINE},
+            {RS2::BorderLineTiny, &PATTERN_BORDER_LINE_TINY},
+            {RS2::BorderLine2, &PATTERN_BORDER_LINE2},
+            {RS2::BorderLineX2, &PATTERN_BORDER_LINE_X2},
+            {RS2::HiddenLine, &PATTERN_HIDDEN_LINE},
+            {RS2::HiddenLineTiny, &PATTERN_HIDDEN_LINE_TINY},
+            {RS2::HiddenLine2, &PATTERN_HIDDEN_LINE2},
+            {RS2::HiddenLineX2, &PATTERN_HIDDEN_LINE_X2},
+            {RS2::PhantomLine, &PATTERN_PHANTOM_LINE},
+            {RS2::PhantomLineTiny, &PATTERN_PHANTOM_LINE_TINY},
+            {RS2::PhantomLine2, &PATTERN_PHANTOM_LINE2},
+            {RS2::PhantomLineX2, &PATTERN_PHANTOM_LINE_X2},
+            {RS2::LineByLayer, &PATTERN_BLOCK_LINE},
+            {RS2::LineByBlock, &PATTERN_BLOCK_LINE},
+            {RS2::LineSelected, &PATTERN_SELECTED}
+            };
+    if (lineTypeToPattern.count(lineType) == 0) {
+        // fixme - redundant check since its developer bug?
+        return nullptr;
+    }
+    return lineTypeToPattern[lineType];
+}

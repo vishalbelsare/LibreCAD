@@ -5,6 +5,7 @@
 ** Copyright (C) 2021 A. Stebich (librecad@mail.lordofbikes.de)
 ** Copyright (C) 2010 R. van Twisk (librecad@rvt.dds.nl)
 ** Copyright (C) 2001-2003 RibbonSoft. All rights reserved.
+** Copyright (C) 2026 LibreCAD (librecad.org)
 **
 **
 ** This file may be distributed and/or modified under the terms of the
@@ -26,19 +27,27 @@
 **********************************************************************/
 
 #include <cstddef>
+#include <QApplication>
 #include <QFileInfo>
 #include <QTextStream>
+#include <cstddef>
 #ifdef DWGSUPPORT
-#include <QMessageBox>
 #include <QApplication>
+#include <QMessageBox>
 #endif
+#include <QTextStream>
+#include "rs_debug.h"
+#include "rs_dialogfactory.h"
+#include "rs_dialogfactoryinterface.h"
 #include "rs_fileio.h"
+
+#include "rs_debug.h"
 #include "rs_filtercxf.h"
 #include "rs_filterdxf1.h"
+#include "rs_filterdxfrw.h"
 #include "rs_filterjww.h"
 #include "rs_filterlff.h"
-#include "rs_filterdxfrw.h"
-#include "rs_debug.h"
+#include "rs_filtershp.h"
 
 /**
  * Calls the import method of the filter responsible for the format
@@ -48,9 +57,11 @@
  *        entities. Usually that's an RS_Graphic entity but
  *        it can also be a polyline, text, ...
  * @param file Path and name of the file to import.
+ * @param type
  */
 bool RS_FileIO::fileImport(RS_Graphic& graphic, const QString& file,
-        RS2::FormatType type) {
+                           RS2::FormatType type,
+                           std::function<bool(bool, const QString&)> errorCallback) const {
 
     RS_DEBUG->print("Trying to import file '%s'...", file.toLatin1().data());
 
@@ -63,173 +74,200 @@ bool RS_FileIO::fileImport(RS_Graphic& graphic, const QString& file,
     }
 
     if (RS2::FormatUnknown != t) {
-		std::unique_ptr<RS_FilterInterface>&& filter(getImportFilter(file, t));
-		if (filter){
+        std::unique_ptr<RS_FilterInterface>&& filter(getImportFilter(file, t));
+        if (filter) {
 #ifdef DWGSUPPORT
-            if (file.endsWith(".dwg",Qt::CaseInsensitive)){
-                QMessageBox::StandardButton sel = QMessageBox::warning(qApp->activeWindow(), QObject::tr("Warning"),
-                                                  QObject::tr("experimental, save your work first.\nContinue?"),
-                                                  QMessageBox::Ok|QMessageBox::Cancel, QMessageBox::NoButton);
-                if (sel == QMessageBox::Cancel)
-                    return false;
-            }
+            const bool isDwg{file.endsWith(".dwg", Qt::CaseInsensitive)};
 #endif
-            bool bImported {filter->fileImport(graphic, file, t)};
+            // Save writes the drawing back in the format it was read from. A
+            // filter that reads several versions of a format narrows it down.
+            graphic.setFormatType(t);
+            const bool bImported{filter->fileImport(graphic, file, t)};
             if (!bImported) {
-                QMessageBox::critical( qApp->activeWindow(),
-                                       QObject::tr("Error"),
-                                       QObject::tr( "Import error:\n    %1", "fileImport").arg( filter->lastError()),
-                                       QMessageBox::Ok,
-                                       QMessageBox::NoButton);
+                if (errorCallback != nullptr) {
+                    return errorCallback(!graphic.isEmpty(), filter->lastError());
+                }
+
+                QApplication::restoreOverrideCursor();  // disable WaitCursor for messagebox
+
+                const QString strTitle{QObject::tr("Error", "fileImport")};
+                QString strError{QObject::tr("Import error:", "fileImport")};
+                QString strLastError("    %1");
+#ifdef DWGSUPPORT
+                if (isDwg) {
+                    if (graphic.isEmpty()) {
+                        QMessageBox::critical(qApp->activeWindow(), strTitle,
+                                              QStringList({strError, strLastError}).join("\n").arg(filter->lastError()), QMessageBox::Ok,
+                                              QMessageBox::NoButton);
+                    }
+                    else {
+                        const QStringList message{
+                            strError,
+                            strLastError,
+                            "",
+                            QObject::tr("Anyhow, there are some entities identified.", "dwgImport"),
+                            QObject::tr("If you open the file now, the drawing may be not complete or unusable.", "dwgImport"),
+                            "",
+                            QObject::tr("Ignore error and open the file?", "dwgImport"),
+                        };
+                        const QMessageBox::StandardButton answer = QMessageBox::warning(qApp->activeWindow(),
+                                                                                        QObject::tr("Warning"),
+                                                                                        message.join("\n").arg(filter->lastError()),
+                                                                                        QMessageBox::Yes | QMessageBox::No,
+                                                                                        QMessageBox::NoButton);
+                        if (QMessageBox::Yes == answer) {
+                            // Save must not write over a file that was not read completely
+                            graphic.setFormatType(RS2::FormatUnknown);
+                            return true; // open the file anyhow
+                        }
+                    }
+                }
+                else
+#endif
+                {
+                    QMessageBox::critical(qApp->activeWindow(), strTitle,
+                                          QStringList({strError, strLastError}).join("\n").arg(filter->lastError()), QMessageBox::Ok,
+                                          QMessageBox::NoButton);
+                }
+                QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
             }
+
             return bImported;
         }
-        RS_DEBUG->print(RS_Debug::D_WARNING,
-                        "RS_FileIO::fileImport: failed to import file: %s",
-                        file.toLatin1().data());
+        RS_DEBUG->print(RS_Debug::D_WARNING, "RS_FileIO::fileImport: failed to import file: %s", file.toLatin1().data());
     }
     else {
-        RS_DEBUG->print(RS_Debug::D_WARNING,
-                        "RS_FileIO::fileImport: failed to detect file format: %s",
-                        file.toLatin1().data());
+        RS_DEBUG->print(RS_Debug::D_WARNING, "RS_FileIO::fileImport: failed to detect file format: %s", file.toLatin1().data());
     }
 
     return false;
 }
 
-
 /** \brief extension2Type convert extension to file format type
  * \param file type
- * \param verifyRead read the file to verify dxf/dxfrw type, default to false
+ * \param forRead
  * \return file format type
  */
-RS2::FormatType RS_FileIO::detectFormat(QString const& file, bool forRead)
-{
-	// look up table
-	std::map<QString, RS2::FormatType> list{
-		{"dxf", RS2::FormatDXFRW},
-		{"cxf", RS2::FormatCXF},
-		{"lff", RS2::FormatLFF}
-	};
-	// only read support for dwg
-	if(forRead) list["dwg"]=RS2::FormatDWG;
+RS2::FormatType RS_FileIO::detectFormat(const QString & file, bool forRead){
+// look up table
+    std::map<QString, RS2::FormatType> list{
+        {"dxf", RS2::FormatDXFRW},
+        {"cxf", RS2::FormatCXF},
+        {"lff", RS2::FormatLFF},
+        {"shp", RS2::FormatSHP}
+    };
+#ifdef DWGSUPPORT
+    list["dwg"] = RS2::FormatDWG;
+#endif
 
-	QString const extension = QFileInfo(file).suffix().toLower();
-	RS2::FormatType type=(list.find(extension)!=
-			list.end()) ? list[extension]:RS2::FormatUnknown;
+    const QString extension = QFileInfo(file).suffix().toLower();
+    RS2::FormatType type = (list.find(extension) != list.end()) ? list[extension] : RS2::FormatUnknown;
 
-	//only read dxf to verify
-	if (forRead && type==RS2::FormatDXFRW) {
-		type = RS2::FormatDXFRW;
-		QFile f(file);
+    //only read dxf to verify
+    if (forRead && type == RS2::FormatDXFRW) {
+        type = RS2::FormatDXFRW;
+        QFile f(file);
 
-		if (!f.open(QIODevice::ReadOnly)) {
-			// Error opening file:
-			RS_DEBUG->print(RS_Debug::D_WARNING,
-							"%s:"
-							"Cannot open file: %s",
-							__func__,
-							file.toLatin1().data());
-			type = RS2::FormatUnknown;
-		} else {
-			RS_DEBUG->print("%s:"
-							"Successfully opened DXF file: %s",
-							__func__,
-							file.toLatin1().data());
+        if (!f.open(QIODevice::ReadOnly)) {
+            // Error opening file:
+            RS_DEBUG->print(RS_Debug::D_WARNING, "%s:" "Cannot open file: %s", __func__, file.toLatin1().data());
+            type = RS2::FormatUnknown;
+        }
+        else {
+            RS_DEBUG->print("%s:" "Successfully opened DXF file: %s", __func__, file.toLatin1().data());
 
-			QTextStream ts(&f);
-			QString line;
-			int c=0;
-			while (!ts.atEnd() && ++c<100) {
-				line = ts.readLine();
-				if (line=="$ACADVER" || line=="ENTITIES") {
-					type = RS2::FormatDXFRW;
-					break;
-				}
-				// very simple reduced DXF:
-				//                if (line=="ENTITIES" && c<10) {
-				//                    type = RS2::FormatDXFRW;
-				//                }
-			}
-			f.close();
-		}
-	}
-	return type;
+            QTextStream ts(&f);
+            int c = 0;
+            while (!ts.atEnd() && ++c < 100) {
+                QString line = ts.readLine();
+                if (line == "$ACADVER" || line == "ENTITIES") {
+                    type = RS2::FormatDXFRW;
+                    break;
+                }
+                // very simple reduced DXF:
+                //                if (line=="ENTITIES" && c<10) {
+                //                    type = RS2::FormatDXFRW;
+                //                }
+            }
+            f.close();
+        }
+    }
+    return type;
 }
 
 /**
  * Calls the export method of the object responsible for the format
  * of the given file.
  *
+ * @param graphic
  * @param file Path and name of the file to import.
+ * @param type
  */
-bool RS_FileIO::fileExport(RS_Graphic& graphic, const QString& file,
-        RS2::FormatType type) {
-
+bool RS_FileIO::fileExport(RS_Graphic& graphic, const QString& file, RS2::FormatType type) const {
     RS_DEBUG->print("RS_FileIO::fileExport");
     //RS_DEBUG->print("Trying to export file '%s'...", file.latin1());
 
-    if (type==RS2::FormatUnknown) {
-		type=detectFormat(file, false);
+    if (type == RS2::FormatUnknown) {
+        type = detectFormat(file, false);
     }
 
-	std::unique_ptr<RS_FilterInterface>&& filter(getExportFilter(file, type));
-	if (filter){
-        return filter->fileExport(graphic, file, type);
+    m_lastExportReport.clear();
+    std::unique_ptr<RS_FilterInterface>&& filter(getExportFilter(file, type));
+    if (filter) {
+        const bool exported = filter->fileExport(graphic, file, type);
+        m_lastExportReport = filter->exportReport();
+        return exported;
     }
     RS_DEBUG->print("RS_FileIO::fileExport: no filter found");
 
     return false;
 }
 
+bool RS_FileIO::canExport(const RS2::FormatType type) const {
+    return type != RS2::FormatUnknown && getExportFilter(QString(), type) != nullptr;
+}
 
 RS_FileIO* RS_FileIO::instance() {
-	static RS_FileIO* uniqueInstance=nullptr;
-	if (!uniqueInstance) {
-		uniqueInstance = new RS_FileIO();
-	}
-	return uniqueInstance;
+    static RS_FileIO* uniqueInstance = nullptr;
+    if (uniqueInstance == nullptr) {
+        uniqueInstance = new RS_FileIO();
+    }
+    return uniqueInstance;
 }
 
 /**
  * @return Filter which can import the given file type.
  */
-std::unique_ptr<RS_FilterInterface> RS_FileIO::getImportFilter(const QString &fileName,
-									RS2::FormatType t) const{
-	for(auto f: getFilters()){
-		std::unique_ptr<RS_FilterInterface> filter(f());
-		if(filter &&
-				filter->canImport(fileName, t)){
-			return filter;
-		}
-	}
-	return nullptr;
+std::unique_ptr<RS_FilterInterface> RS_FileIO::getImportFilter(const QString& fileName, const RS2::FormatType t) const {
+    for (const auto& f : getFilters()) {
+        std::unique_ptr<RS_FilterInterface> filter(f());
+        if (filter && filter->canImport(fileName, t)) {
+            return filter;
+        }
+    }
+    return nullptr;
 }
 
 /**
  * @return Filter which can export the given file type.
  */
-std::unique_ptr<RS_FilterInterface> RS_FileIO::getExportFilter(const QString &fileName,
-									RS2::FormatType t) const{
-	for(auto f: getFilters()){
-		std::unique_ptr<RS_FilterInterface> filter(f());
-		if(filter &&
-				filter->canExport(fileName, t)){
-			return filter;
-		}
-	}
-	return nullptr;
+std::unique_ptr<RS_FilterInterface> RS_FileIO::getExportFilter(const QString& fileName, const RS2::FormatType t) const {
+    for (const auto& f : getFilters()) {
+        std::unique_ptr<RS_FilterInterface> filter(f());
+        if (filter && filter->canExport(fileName, t)) {
+            return filter;
+        }
+    }
+    return nullptr;
 }
 
-std::vector<std::function<RS_FilterInterface*()>> RS_FileIO::getFilters()
-{
-												  return {
-												  RS_FilterLFF::createFilter
-												  ,RS_FilterDXFRW::createFilter
-												  ,RS_FilterCXF::createFilter
-												  ,RS_FilterJWW::createFilter
-												  ,RS_FilterDXF1::createFilter
-												  };
+std::vector<std::function<RS_FilterInterface*()>> RS_FileIO::getFilters() {
+    return {
+        RS_FilterLFF::createFilter,
+        RS_FilterDXFRW::createFilter,
+        RS_FilterCXF::createFilter,
+        RS_FilterJWW::createFilter,
+        RS_FilterDXF1::createFilter,
+        RS_FilterSHP::createFilter
+    };
 }
-
-// EOF

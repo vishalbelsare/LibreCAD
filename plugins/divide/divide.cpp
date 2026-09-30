@@ -12,9 +12,10 @@
 *  along with this program.  If not, see <http://www.gnu.org/licenses/>.    *
 ****************************************************************************/
 
+#include <complex>
+
 #include <QtGui>
 #include <QApplication>
-#include <QDesktopWidget>
 #include <QDialog>
 #include <QGroupBox>
 #include <QDialogButtonBox>
@@ -22,12 +23,11 @@
 #include <QGridLayout>
 #include <QMessageBox>
 #include <QLabel>
-#include <complex>
 
 #include "divide.h"
+
 #include "dividedlg.h"
 
-//#include <QDebug>
 
 QString divide::name() const
 {
@@ -38,17 +38,15 @@ PluginCapabilities divide::getCapabilities() const
 {
     PluginCapabilities pluginCapabilities;
     pluginCapabilities.menuEntryPoints
-            << PluginMenuLocation( "plugins_menu", tr( "Divide" ) );
+        << PluginMenuLocation( "plugins_menu", tr( "Divide" ),
+            tr("Divide test tip..."));
     return pluginCapabilities;
 }
 
 void divide::execComm( Document_Interface *doc,
-                       QWidget *parent,
-                       QString cmd )
+                       [[maybe_unused]] QWidget *parent,
+                       [[maybe_unused]] QString cmd )
 {
-    Q_UNUSED ( parent );
-    Q_UNUSED ( cmd );
-
     d = doc;
 
     QList<Plug_Entity *> obj;
@@ -362,8 +360,7 @@ void divide::execComm( Document_Interface *doc,
 
 
 void divide::segmentLine( QPointF startPoint, QPointF lineEnd, QPointF lineStart,
-                          QString type, int qty, int count )
-{
+                          QString type, int qty, int count ) const {
     QString layerName = ( "Break layer - " + type );
     QString cl = d->getCurrentLayer();
     d->setLayer( layerName );
@@ -385,8 +382,7 @@ void divide::segmentLine( QPointF startPoint, QPointF lineEnd, QPointF lineStart
 }
 
 void divide::segment( QPointF * centerCircle, double radius,
-                      double angle, double arcAngle, QString type )
-{
+                      double angle, double arcAngle, QString type ) const {
     QString layerName = ( "Break layer - " + type );
     QString cl = d->getCurrentLayer();
     d->setLayer( layerName );
@@ -398,7 +394,7 @@ void divide::segment( QPointF * centerCircle, double radius,
 
 double divide::findHypLength( double h1, double h2, double v1, double v2 )
 {
-    return ( hypot( h1 - h2, v1 - v2 ) ); //needs (C++11 or later) - hypotenuse
+    return ( std::hypot( h1 - h2, v1 - v2 ) ); //needs (C++14 or later) - hypotenuse
     //see - http://www.cplusplus.com/reference/cmath/hypot/  - C99
 }
 

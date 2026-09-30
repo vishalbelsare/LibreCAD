@@ -12,7 +12,6 @@
 
 
 #include <QTextEdit>
-//#include <QColor>
 #include <QDialogButtonBox>
 #include <QVBoxLayout>
 #include <cmath>
@@ -27,15 +26,14 @@ PluginCapabilities LC_List::getCapabilities() const
 {
     PluginCapabilities pluginCapabilities;
     pluginCapabilities.menuEntryPoints
-            << PluginMenuLocation("plugins_menu", tr("List entities"));
+        << PluginMenuLocation("plugins_menu", tr("List entities"),
+            tr("List test tip..."));
     return pluginCapabilities;
 }
 
 void LC_List::execComm(Document_Interface *doc,
-                             QWidget *parent, QString cmd)
+                             [[maybe_unused]] QWidget *parent, [[maybe_unused]] QString cmd)
 {
-    Q_UNUSED(parent);
-    Q_UNUSED(cmd);
     d = doc;
     QList<Plug_Entity *> obj;
     bool yes  = doc->getSelect(&obj);

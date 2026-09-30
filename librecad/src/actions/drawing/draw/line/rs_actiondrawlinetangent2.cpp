@@ -1,0 +1,234 @@
+/****************************************************************************
+**
+** This file is part of the LibreCAD project, a 2D CAD program
+**
+** Copyright (C) 2010 R. van Twisk (librecad@rvt.dds.nl)
+** Copyright (C) 2001-2003 RibbonSoft. All rights reserved.
+**
+**
+** This file may be distributed and/or modified under the terms of the
+** GNU General Public License version 2 as published by the Free Software
+** Foundation and appearing in the file gpl-2.0.txt included in the
+** packaging of this file.
+**
+** This program is distributed in the hope that it will be useful,
+** but WITHOUT ANY WARRANTY; without even the implied warranty of
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+** GNU General Public License for more details.
+**
+** You should have received a copy of the GNU General Public License
+** along with this program; if not, write to the Free Software
+** Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+**
+** This copyright notice MUST APPEAR in all copies of the script!
+**
+**********************************************************************/
+
+#include "rs_actiondrawlinetangent2.h"
+
+#include "rs_creation.h"
+#include "rs_document.h"
+#include "rs_line.h"
+#include "rs_polyline.h"
+#include "rs_preview.h"
+
+struct RS_ActionDrawLineTangent2::ActionData {
+    /** Closest tangent. */
+    std::vector<std::unique_ptr<RS_Line>> tangents;
+    /** 1st chosen entity */
+    RS_Entity* circle1 = nullptr;
+    /** 2nd chosen entity */
+    RS_Entity* circle2 = nullptr;
+};
+
+namespace {
+    //list of entity types supported by current action
+    const auto g_circleType = EntityTypeList{RS2::EntityArc, RS2::EntityCircle, RS2::EntityEllipse,
+                                         RS2::EntityHyperbola,
+                                         RS2::EntityParabola};
+
+    double linePointDist(const RS_Line &line, const RS_Vector &point){
+        return point.distanceTo(line.getNearestPointOnEntity(point));
+    }
+}
+
+RS_ActionDrawLineTangent2::RS_ActionDrawLineTangent2(LC_ActionContext *actionContext)
+    :LC_SingleEntityCreationAction("Draw Tangents 2", actionContext, RS2::ActionDrawLineTangent2), m_actionData{std::make_unique<ActionData>()}{
+}
+
+RS_ActionDrawLineTangent2::~RS_ActionDrawLineTangent2(){
+    cleanup();
+}
+
+void RS_ActionDrawLineTangent2::init(const int status){
+    if (status == SetCircle1) {
+        cleanup();
+    }
+    RS_PreviewActionInterface::init(status);
+}
+
+void RS_ActionDrawLineTangent2::doInitWithContextEntity(RS_Entity* contextEntity, const RS_Vector& clickPos) {
+    auto entity = contextEntity;
+    if (isPolyline(entity)) {
+        const auto polyline = static_cast<RS_Polyline*>(contextEntity);
+        entity = polyline->getNearestEntity(clickPos);
+    }
+    if (entity != nullptr && g_circleType.contains(entity->rtti())) {
+        m_actionData->circle1 = entity;
+        m_actionData->circle2 = nullptr;
+        setStatus(SetCircle2);
+        highlightHover(entity);
+        drawPreview();
+    }
+}
+
+void RS_ActionDrawLineTangent2::finish(){
+    cleanup();
+    RS_PreviewActionInterface::finish();
+}
+
+RS_Entity* RS_ActionDrawLineTangent2::doTriggerCreateEntity() {
+    if (m_actionData->tangents.empty() || m_actionData->tangents.front() == nullptr) {
+        return nullptr;
+    }
+    const auto newEntity = new RS_Line{m_document, m_actionData->tangents.front()->getData()};
+    return newEntity;
+}
+
+void RS_ActionDrawLineTangent2::doTriggerCompletion([[maybe_unused]]bool success) {
+    cleanup();
+    setStatus(SetCircle1);
+}
+
+void RS_ActionDrawLineTangent2::cleanup() const {
+    m_actionData->circle1 = nullptr;
+    m_actionData->circle2 = nullptr;
+}
+
+void RS_ActionDrawLineTangent2::onMouseMoveEvent(const int status, const LC_MouseEvent* e) {
+    deleteSnapper();
+    switch (status) {
+        case SetCircle1: {
+            deletePreview();
+            const auto *en = catchAndDescribe(e, g_circleType, RS2::ResolveAll);
+            if (en != nullptr){
+                highlightHover(en);
+            }
+            break;
+        }
+        case SetCircle2: {
+            RS_Entity *en = catchAndDescribe(e, g_circleType, RS2::ResolveAll);
+            highlightSelected(m_actionData->circle1);
+            if (en != nullptr && en != m_actionData->circle1){
+                highlightHover(en);
+                m_actionData->circle2 = en;
+
+                m_actionData->tangents = RS_Creation::createTangent2(m_actionData->circle1, m_actionData->circle2);
+                if (m_actionData->tangents.empty()){
+                } else {
+                    preparePreview(status, e);
+                }
+            }
+            break;
+        }
+        case SelectLine: {
+            // FIXME _ SAND _ is there not-necessary click?
+            highlightSelected(m_actionData->circle1);
+            highlightSelected(m_actionData->circle2);
+            preparePreview(status, e);
+            break;
+        }
+        default:
+            break;
+    }
+}
+
+void RS_ActionDrawLineTangent2::onMouseLeftButtonRelease(const int status, const LC_MouseEvent* e) {
+    deleteSnapper();
+    switch (status) {
+        case SetCircle1: {
+            m_actionData->circle1 = catchEntityByEvent(e, g_circleType, RS2::ResolveAll);
+            if (m_actionData->circle1 == nullptr) {
+                return;
+            }
+            setStatus(SetCircle2);
+            break;
+        }
+        case SetCircle2: {
+            m_actionData->tangents = RS_Creation::createTangent2(m_actionData->circle1, m_actionData->circle2);
+            if (!m_actionData->tangents.empty()){
+                if (m_actionData->tangents.size() == 1){
+                    trigger();
+                } else {
+                    setStatus(SelectLine);
+                    preparePreview(status, e);
+                    invalidateSnapSpot();
+                }
+            }
+            break;
+        }
+        case SelectLine: {
+            if (!m_actionData->tangents.empty()) {
+                trigger();
+            }
+            break;
+        }
+        default:
+            break;
+    }
+}
+
+void RS_ActionDrawLineTangent2::onMouseRightButtonRelease(const int status, [[maybe_unused]] const LC_MouseEvent* e) {
+    deleteSnapper();
+    deletePreview();
+    if (status == SetCircle1) {
+        m_actionData->circle1 = nullptr;
+    }
+    initPrevious(status);
+}
+
+void RS_ActionDrawLineTangent2::preparePreview(const int status, const LC_MouseEvent *e) const {
+    switch (status) {
+        case SetCircle2:
+        case SelectLine: {
+            RS_Vector mouse = e->graphPoint;
+            std::sort(m_actionData->tangents.begin(), m_actionData->tangents.end(), [&mouse](
+                const std::unique_ptr<RS_Line> &lhs,
+                const std::unique_ptr<RS_Line> &rhs){
+                return linePointDist(*lhs, mouse) < linePointDist(*rhs, mouse);
+            });
+            for (const auto &line: m_actionData->tangents) {
+                if (m_showRefEntitiesOnPreview) {
+                    previewRefPoint(line->getData().startpoint);
+                }
+                previewRefSelectablePoint(line->getData().endpoint);
+            }
+            const RS_LineData &lineData = m_actionData->tangents.front()->getData();
+            previewToCreateLine(lineData.startpoint, lineData.endpoint);
+            break;
+        }
+        default:
+            break;
+    }
+    deleteSnapper();
+}
+
+void RS_ActionDrawLineTangent2::updateActionPrompt(){
+    switch (getStatus()) {
+        case SetCircle1:
+            updatePromptTRCancel(tr("Select first circle/ellipse/parabola"));
+            break;
+        case SetCircle2:
+            updatePromptTRBack(tr("Select second circle/ellipse/parabola"));
+            break;
+        case SelectLine:
+            updatePromptTRBack(tr("Select the tangent line closest to cursor"));
+            break;
+        default:
+            updatePrompt();
+            break;
+    }
+}
+RS2::CursorType RS_ActionDrawLineTangent2::doGetMouseCursor([[maybe_unused]] int status){
+    return RS2::SelectCursor;
+}

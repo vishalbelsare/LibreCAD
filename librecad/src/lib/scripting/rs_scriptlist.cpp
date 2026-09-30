@@ -24,13 +24,15 @@
 **
 **********************************************************************/
 
-#include <QString>
 #include "rs_scriptlist.h"
 
-#include "rs_system.h"
-#include "rs_debug.h"
+#include <QFileInfo>
+#include <QString>
 
-RS_ScriptList* RS_ScriptList::uniqueInstance = NULL;
+#include "rs_debug.h"
+#include "rs_system.h"
+
+RS_ScriptList* RS_ScriptList::m_uniqueInstance = nullptr;
 
 /**
  * Default constructor.
@@ -40,7 +42,6 @@ RS_ScriptList::RS_ScriptList() {
     //scriptListListeners.setAutoDelete(false);
     //activeScript = NULL;
 }
-
 
 /**
  * Initializes the script list by creating RS_Script 
@@ -52,15 +53,14 @@ void RS_ScriptList::init() {
 
     clearScripts();
     QStringList list = RS_SYSTEM->getScriptList();
-    RS_Script* script;
 
     for ( QStringList::Iterator it = list.begin();
-            it != list.end(); ++it ) {
-        RS_DEBUG->print("script: %s:", (*it).toLatin1().data());
+          it != list.end(); ++it ) {
+        RS_DEBUG->print("script: %s:", it->toLatin1().data());
 
         QFileInfo fi(*it);
-        script = new RS_Script(fi.baseName(), fi.absoluteFilePath());
-        scripts.append(script);
+        const auto script = new RS_Script(fi.baseName(), fi.absoluteFilePath());
+        m_scripts.append(script);
 
         RS_DEBUG->print("base: %s", fi.baseName().toLatin1().data());
         RS_DEBUG->print("path: %s", fi.absoluteFilePath().toLatin1().data());
@@ -70,16 +70,14 @@ void RS_ScriptList::init() {
     //scripts.append(f);
 }
 
-
 /**
  * Removes all scripts in the scriptlist.
  */
 void RS_ScriptList::clearScripts() {
-    while (!scripts.isEmpty())
-        delete scripts.takeFirst();
+    while (!m_scripts.isEmpty()) {
+        delete m_scripts.takeFirst();
+    }
 }
-
-
 
 /**
  * Removes a script from the list.
@@ -90,7 +88,7 @@ void RS_ScriptList::removeScript(RS_Script* script) {
     RS_DEBUG->print("RS_ScriptList::removeScript()");
 
     // here the script is removed from the list but not deleted
-    scripts.removeOne(script);
+    m_scripts.removeOne(script);
 
     //for (unsigned i=0; i<scriptListListeners.count(); ++i) {
     //    RS_ScriptListListener* l = scriptListListeners.at(i);
@@ -102,30 +100,28 @@ void RS_ScriptList::removeScript(RS_Script* script) {
     //    activateScript(scripts.first());
     //}
 
-    // now it's save to delete the script
+    // now it's safe to delete the script
     //delete script;
 }
-
-
 
 /**
  * @return Pointer to the script with the given name or
  * \p NULL if no such script was found. The script will be loaded into
  * memory if it's not already.
  */
-RS_Script* RS_ScriptList::requestScript(const QString& name) {
+RS_Script* RS_ScriptList::requestScript(const QString& name) const {
     RS_DEBUG->print("RS_ScriptList::requestScript %s",  name.toLatin1().data());
 
-    QString name2 = name.toLower();
-    RS_Script* foundScript = NULL;
+    const QString name2 = name.toLower();
+    RS_Script* foundScript = nullptr;
 
     RS_DEBUG->print("name2: %s", name2.toLatin1().data());
 
     // Search our list of available scripts:
-    for (int i = 0; i < scripts.size(); ++i) {
+    for (int i = 0; i < m_scripts.size(); ++i) {
 
-        if (scripts.at(i)->getName()==name2) {
-            foundScript = scripts.at(i);
+        if (m_scripts.at(i)->getName()==name2) {
+            foundScript = m_scripts.at(i);
             break;
         }
     }
@@ -133,8 +129,6 @@ RS_Script* RS_ScriptList::requestScript(const QString& name) {
     // Script not found:
     return foundScript;
 }
-
-
 
 /**
  * @return Pointer to the script with the given name or
@@ -155,6 +149,3 @@ bool RS_ScriptList::test() {
 
     return true;
 }
-
-
-// EOF

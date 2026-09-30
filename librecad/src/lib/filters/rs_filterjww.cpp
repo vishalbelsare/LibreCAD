@@ -24,13 +24,16 @@
 **
 **********************************************************************/
 
-#include <QTextCodec>
-#include "rs_filterjww.h"
+#include <string_view>
+
+#include <QFile>
+#include <QFileInfo>
 
 #include "dl_attributes.h"
 #include "dl_codes.h"
 #include "dl_writer_ascii.h"
-
+#include "intern/drw_textcodec.h"
+#include "lc_containertraverser.h"
 #include "rs_arc.h"
 #include "rs_block.h"
 #include "rs_circle.h"
@@ -40,6 +43,7 @@
 #include "rs_dimlinear.h"
 #include "rs_dimradial.h"
 #include "rs_ellipse.h"
+#include "rs_filterjww.h"
 #include "rs_hatch.h"
 #include "rs_image.h"
 #include "rs_insert.h"
@@ -51,10 +55,73 @@
 #include "rs_solid.h"
 #include "rs_spline.h"
 #include "lc_splinepoints.h"
-#include "rs_system.h"
 #include "rs_math.h"
 #include "rs_debug.h"
 
+namespace {
+/**
+ * Gives a character decoded from code page 932 the code point JIS X 0208
+ * gives it. Microsoft maps six of its symbols to code points of its own, and
+ * the fonts these drawings are written with, kst32b among them, have those
+ * symbols where the standard puts them. Without this they would draw as the
+ * character a font has no glyph for.
+ */
+QChar toJisSymbol(QChar c) {
+    switch (c.unicode()) {
+        case 0xFF5E: return QChar{0x301C}; // wave dash
+        case 0x2225: return QChar{0x2016}; // double vertical line
+        case 0xFF0D: return QChar{0x2212}; // minus sign
+        case 0xFFE0: return QChar{0x00A2}; // cent sign
+        case 0xFFE1: return QChar{0x00A3}; // pound sign
+        case 0xFFE2: return QChar{0x00AC}; // not sign
+        default: return c;
+    }
+}
+
+/**
+ * Decodes a string from a JWW file. Jw_cad writes its strings as Shift-JIS,
+ * code page 932, whatever the locale, and they have no escape codes: every
+ * character stands for itself. DRW_Conv932Table decodes code page 932 with
+ * libdxfrw's own tables, so this needs neither ICU nor a Qt codec, but it
+ * also decodes the DXF codes \U+XXXX and \M+nXXXX. It is therefore never
+ * given a backslash: the string is decoded in runs between them. A byte from
+ * 0x80 up, other than a half-width katakana (A1 to DF), starts a two-byte
+ * character, as DRW_Conv932Table reads it, and the second byte of one can be
+ * 0x5C (95 5C is U+8868): that byte is not a backslash.
+ */
+QString fromJwwString(const std::string& text) {
+    DRW_Conv932Table shiftJis;
+    const auto decode = [&shiftJis](const std::string_view run) {
+        return QString::fromStdString(shiftJis.toUtf8(run));
+    };
+    QString res;
+    std::size_t runStart = 0;
+    for (std::size_t i = 0; i < text.size(); ++i) {
+        const auto c = static_cast<unsigned char>(text[i]);
+        if (c >= 0x80 && (c < 0xA1 || c > 0xDF)) {
+            ++i; // the first byte of a pair: the next byte is its second
+        } else if (c == '\\') {
+            res += decode(std::string_view{text}.substr(runStart, i - runStart));
+            res += QLatin1Char('\\');
+            runStart = i + 1;
+        }
+    }
+    res += decode(std::string_view{text}.substr(runStart));
+    for (QChar& c : res) {
+        c = toJisSymbol(c);
+    }
+    return res;
+}
+
+/**
+ * Decodes Jw_cad text for an MText. The text is plain, but an MText reads a
+ * backslash as the start of a code (\P, \S, \f, and \A0; to \A2; at the
+ * start), so each one is doubled to stay a backslash.
+ */
+QString fromJwwText(const std::string& text) {
+    return fromJwwString(text).replace(QLatin1Char('\\'), QStringLiteral("\\\\"));
+}
+} // namespace
 
 /**
  * Default constructor.
@@ -151,11 +218,10 @@ void RS_FilterJWW::addLayer(const DL_LayerData& data) {
         RS_DEBUG->print("  adding layer: %s", data.name.c_str());
 
         RS_DEBUG->print("RS_FilterJWW::addLayer: creating layer");
-////////////////////2006/06/05
-        RS_Layer* layer = new RS_Layer(toNativeString(data.name.c_str(),getDXFEncoding()));
-////////////////////
-        RS_DEBUG->print("RS_FilterJWW::addLayer: set pen");
-        layer->setPen(attributesToPen(attributes));
+        RS_Layer* layer = new RS_Layer(fromJwwString(data.name));
+        // A Jw_cad layer has no pen, so the layer keeps RS_Layer's default.
+        // DL_Jww adds the layer before it sets the attributes of the record,
+        // so `attributes` still holds the previous record's pen here.
         //layer->setFlags(data.flags&0x07);
 
         RS_DEBUG->print("RS_FilterJWW::addLayer: flags");
@@ -204,15 +270,7 @@ void RS_FilterJWW::addBlock(const DL_BlockData& data) {
                 else {
 #endif
                         RS_Vector bp(data.bpx, data.bpy);
-//////////////////////////////2006/06/05
-                        QString enc = RS_System::getEncoding(
-                                                                variables.getString("$DWGCODEPAGE", "ANSI_1252"));
-                        // get the codec for Japanese
-                        QString blName = data.name.c_str();
-                        QTextCodec *codec = QTextCodec::codecForName(enc.toLatin1());
-                        if(codec)
-                                blName = codec->toUnicode(data.name.c_str());
-//////////////////////////////
+                        QString blName = fromJwwString(data.name);
                         RS_Block* block =
                                 new RS_Block(graphic,
                                                          RS_BlockData(blName, bp, false));
@@ -452,7 +510,7 @@ void RS_FilterJWW::addInsert(const DL_InsertData& data) {
 
         //cout << "Insert: " << name << " " << ip << " " << cols << "/" << rows << endl;
 
-        RS_InsertData d(data.name.c_str(),
+        RS_InsertData d(fromJwwString(data.name),
 										ip, sc, RS_Math::deg2rad(data.angle),
                                         data.cols, data.rows,
                                         sp,
@@ -460,7 +518,7 @@ void RS_FilterJWW::addInsert(const DL_InsertData& data) {
                                         RS2::NoUpdate);
         RS_Insert* entity = new RS_Insert(currentContainer, d);
         setEntityAttributes(entity, attributes);
-        RS_DEBUG->print("  id: %d", entity->getId());
+        RS_DEBUG->Log() << "  id: " << entity->getId();
         //entity->update();
         currentContainer->addEntity(entity);
 }
@@ -478,27 +536,6 @@ void RS_FilterJWW::addInsert(const DL_InsertData& data) {
 void RS_FilterJWW::addMTextChunk(const char* text) {
     RS_DEBUG->print("RS_FilterJWW::addMTextChunk: %s", text);
     mtext+=text;
-}
-
-/*
- * get the encoding of the DXF files,
- * Acad versions >= 2007 are UTF-8, others in ANSI_1252
- */
-QString RS_FilterJWW::getDXFEncoding() {
-
-    QString acadver=variables.getString("$ACADVER", "");
-    acadver.replace(QRegExp("[a-zA-Z]"), "");
-    bool ok;
-    int version=acadver.toInt(&ok);
-
-    // >= ACAD2007
-    if (ok && version >= 1021) {
-        return RS_System::getEncoding("UTF-8");
-    }
-
-    // < ACAD2007
-    QString codePage=variables.getString("$DWGCODEPAGE", "ANSI_1252");
-    return RS_System::getEncoding(codePage);
 }
 
 /**
@@ -545,8 +582,7 @@ void RS_FilterJWW::addMText(const DL_MTextData& data) {
                 lss = RS_MTextData::Exact;
         }
 
-    mtext+=data.text.c_str();
-    mtext = toNativeString(mtext.toLocal8Bit().data(), getDXFEncoding());
+    mtext += fromJwwText(data.text);
 
         // use default style for the drawing:
         if (sty.isEmpty()) {
@@ -712,7 +748,7 @@ RS_DimensionData RS_FilterJWW::convDimensionData(
                 lss = RS_MTextData::Exact;
         }
 
-        t = toNativeString(data.text.c_str(), getDXFEncoding());
+        t = fromJwwText(data.text);
 
         if (sty.isEmpty()) {
                 sty = variables.getString("$DIMSTYLE", "Standard");
@@ -726,7 +762,7 @@ RS_DimensionData RS_FilterJWW::convDimensionData(
                                                         valign, halign,
                                                         lss,
                                                         data.lineSpacingFactor,
-                                                        t, sty, data.angle);
+                                                        t, sty, data.angle, 0.0, true, nullptr, false, false);
 }
 
 
@@ -885,7 +921,7 @@ void RS_FilterJWW::addDimAngular3P(const DL_DimensionData& data,
 void RS_FilterJWW::addLeader(const DL_LeaderData& data) {
         RS_DEBUG->print("RS_FilterJWW::addDimLeader");
         //RS_DEBUG->print("RS_FilterJWW::addPolyline()");
-        RS_LeaderData d(data.arrowHeadFlag==1);
+        RS_LeaderData d(data.arrowHeadFlag==1, "");
         leader = new RS_Leader(currentContainer, d);
         setEntityAttributes(leader, attributes);
 
@@ -1246,7 +1282,10 @@ bool RS_FilterJWW::fileExport(RS_Graphic& g, const QString& file, RS2::FormatTyp
 
         // Line types:
         RS_DEBUG->print("writing line types...");
-        int numLT = (int)RS2::BorderLineX2-(int)RS2::LineByBlock;
+        // RS2::LineTypeUnchanged and RS2::LineSelected sit between the two
+        // blocks and are UI-only, so the table is written as two ranges.
+        int numLT = (int)RS2::BorderLineX2-(int)RS2::LineByBlock
+                  + (int)RS2::PhantomLineX2-(int)RS2::HiddenLine+1;
         if (type==RS2::FormatJWC) {
                 numLT-=2;
         }
@@ -1255,6 +1294,9 @@ bool RS_FilterJWW::fileExport(RS_Graphic& g, const QString& file, RS2::FormatTyp
                 if ((RS2::LineType)t!=RS2::NoPen) {
                         writeLineType(*dw, (RS2::LineType)t);
                 }
+        }
+        for (int t=(int)RS2::HiddenLine; t<=(int)RS2::PhantomLineX2; ++t) {
+                writeLineType(*dw, (RS2::LineType)t);
         }
         dw->tableEnd();
 
@@ -1301,7 +1343,7 @@ bool RS_FilterJWW::fileExport(RS_Graphic& g, const QString& file, RS2::FormatTyp
 
                 for (unsigned i=0; i<graphic->countBlocks(); ++i) {
                         RS_Block* blk = graphic->blockAt(i);
-                        if (!blk->isUndone())
+                        if (!blk->isDeleted())
                             jww.writeBlockRecord(*dw,
                                 std::string((const char*)blk->getName().toLocal8Bit().data()));
                         /*
@@ -1348,7 +1390,7 @@ bool RS_FilterJWW::fileExport(RS_Graphic& g, const QString& file, RS2::FormatTyp
                 // Careful: other blocks with * / $ exist
                 //if (blk->getName().at(0)!='*' &&
                 //		blk->getName().at(0)!='$') {
-                if (!blk->isUndone())
+                if (!blk->isDeleted())
                     writeBlock(*dw, blk);
                 //}
         }
@@ -1579,7 +1621,7 @@ void RS_FilterJWW::writeEntity(DL_WriterA& dw, RS_Entity* e) {
 void RS_FilterJWW::writeEntity(DL_WriterA& dw, RS_Entity* e,
                                                            const DL_Attributes& attrib) {
 
-		if (!e || e->getFlag(RS2::FlagUndone)) {
+		if (!e || e->getFlag(RS2::FlagDeleted)) {
                 return;
         }
         RS_DEBUG->print("writing Entity");
@@ -1705,12 +1747,11 @@ void RS_FilterJWW::writePolyline(DL_WriterA& dw,
         bool first = true;
         RS_Entity* nextEntity = 0;
 		RS_AtomicEntity* ae = nullptr;
-        RS_Entity* lastEntity = l->lastEntity(RS2::ResolveNone);
-        for (RS_Entity* v=l->firstEntity(RS2::ResolveNone);
-                        v;
-                        v=nextEntity) {
+        lc::LC_ContainerTraverser traverser{*l, RS2::ResolveNone};
+        RS_Entity* lastEntity = traverser.last();
+        for (RS_Entity* v=traverser.first(); v != nullptr; v = nextEntity) {
 
-                nextEntity = l->nextEntity(RS2::ResolveNone);
+            nextEntity = traverser.next();
 
                 if (!v->isAtomic()) {
                         continue;
@@ -1774,7 +1815,7 @@ void RS_FilterJWW::writeSpline(DL_WriterA& dw,
                 return;
         }
 
-        if (s->getNumberOfControlPoints() < s->getDegree()+1) {
+        if (s->getNumberOfControlPoints() < size_t(s->getDegree())+1) {
                 RS_DEBUG->print(RS_Debug::D_ERROR, "RS_FilterJWW::writeSpline: "
                                                 "Discarding spline: not enough control points given.");
                 return;
@@ -1786,12 +1827,7 @@ void RS_FilterJWW::writeSpline(DL_WriterA& dw,
         // Number of knots (= number of control points + spline degree + 1)
         int numKnots = numCtrl + s->getDegree() + 1;
 
-        int flags;
-        if (s->isClosed()) {
-                flags = 11;
-        } else {
-                flags = 8;
-        }
+        int flags = s->isClosed() ? 11 : 8;
 
         // write spline header:
         jww.writeSpline(
@@ -2127,7 +2163,7 @@ void RS_FilterJWW::writeDimension(DL_WriterA& dw, RS_Dimension* d,
                                                                                  0.0);
 
                 jww.writeDimAligned(dw, dimData, dimAlignedData, attrib);
-        } else if (d->rtti()==RS2::EntityDimLinear) {
+        } else if (d->rtti()==RS2::EntityDimLinear) { // fixme - support of dim ordinate?
                 RS_DimLinear* dl = (RS_DimLinear*)d;
 
                 DL_DimLinearData dimLinearData(dl->getExtensionPoint1().x,
@@ -2195,10 +2231,7 @@ void RS_FilterJWW::writeLeader(DL_WriterA& dw, RS_Leader* l,
                                                   l->count()),
                         attrib);
                 bool first = true;
-                for (RS_Entity* v=l->firstEntity(RS2::ResolveNone);
-                                v;
-                                v=l->nextEntity(RS2::ResolveNone)) {
-
+                for(RS_Entity* v: lc::LC_ContainerTraverser{*l, RS2::ResolveNone}.entities()) {
                         // Write line verties:
                         if (v->rtti()==RS2::EntityLine) {
                                 RS_Line* l = (RS_Line*)v;
@@ -2236,10 +2269,7 @@ void RS_FilterJWW::writeHatch(DL_WriterA& dw, RS_Hatch* h,
         bool writeIt = true;
         if (h->countLoops()>0) {
                 // check if all of the loops contain entities:
-                for (RS_Entity* l=h->firstEntity(RS2::ResolveNone);
-                                l;
-                                l=h->nextEntity(RS2::ResolveNone)) {
-
+            for(RS_Entity* l: lc::LC_ContainerTraverser{*h, RS2::ResolveNone}.entities()) {
                         if (l->isContainer() && !l->getFlag(RS2::FlagTemp)) {
                                 if (l->count()==0) {
                                         writeIt = false;
@@ -2261,19 +2291,14 @@ void RS_FilterJWW::writeHatch(DL_WriterA& dw, RS_Hatch* h,
                                                   (const char*)h->getPattern().toLocal8Bit().data());
                 jww.writeHatch1(dw, data, attrib);
 
-                for (RS_Entity* l=h->firstEntity(RS2::ResolveNone);
-                                l;
-                                l=h->nextEntity(RS2::ResolveNone)) {
+                for(RS_Entity* l: lc::LC_ContainerTraverser{*h, RS2::ResolveNone}.entities()) {
 
                         // Write hatch loops:
                         if (l->isContainer() && !l->getFlag(RS2::FlagTemp)) {
                                 RS_EntityContainer* loop = (RS_EntityContainer*)l;
                                 DL_HatchLoopData lData(loop->count());
                                 jww.writeHatchLoop1(dw, lData);
-
-                                for (RS_Entity* ed=loop->firstEntity(RS2::ResolveNone);
-                                                ed;
-                                                ed=loop->nextEntity(RS2::ResolveNone)) {
+                                for(RS_Entity* ed: lc::LC_ContainerTraverser{*loop, RS2::ResolveNone}.entities()) {
 
                                         // Write hatch loop edges:
                                         if (ed->rtti()==RS2::EntityLine) {
@@ -2386,7 +2411,7 @@ void RS_FilterJWW::writeEntityContainer(DL_WriterA& dw, RS_EntityContainer* con,
 
         while (true) {
                 tmp = tmp/c;
-                blkName.append((char) tmp %10 + 48);
+                blkName.append(QChar{tmp %10 + 48});
                 c *= 10;
                 if (tmp < 10) {
                         break;
@@ -2411,9 +2436,8 @@ void RS_FilterJWW::writeEntityContainer(DL_WriterA& dw, RS_EntityContainer* con,
 
         RS_Block* blk = new RS_Block(graphic, blkdata);
 
-		for (RS_Entity* e1 = con->firstEntity(); e1 ;
-                        e1 = con->nextEntity() ) {
-                blk->addEntity(e1);
+        for(RS_Entity* e1: lc::LC_ContainerTraverser{*con, RS2::ResolveNone}.entities()) {
+            blk->addEntity(e1);
         }
         writeBlock(dw, blk);
         //delete e1;
@@ -2428,11 +2452,7 @@ void RS_FilterJWW::writeEntityContainer(DL_WriterA& dw, RS_EntityContainer* con,
 void RS_FilterJWW::writeAtomicEntities(DL_WriterA& dw, RS_EntityContainer* c,
                                                                            const DL_Attributes& attrib,
                                                                            RS2::ResolveLevel level) {
-
-        for (RS_Entity* e=c->firstEntity(level);
-                        e;
-                        e=c->nextEntity(level)) {
-
+        for(RS_Entity* e: lc::LC_ContainerTraverser{*c, level}.entities()) {
                 writeEntity(dw, e, attrib);
         }
 }
@@ -2441,7 +2461,7 @@ void RS_FilterJWW::writeAtomicEntities(DL_WriterA& dw, RS_EntityContainer* c,
  * Writes an IMAGEDEF object into an OBJECT section.
  */
 void RS_FilterJWW::writeImageDef(DL_WriterA& dw, RS_Image* i) {
-		if (!i || i->getFlag(RS2::FlagUndone)) {
+		if (!i || i->getFlag(RS2::FlagDeleted)) {
                 return;
         }
 
@@ -2484,14 +2504,7 @@ void RS_FilterJWW::setEntityAttributes(RS_Entity* entity,
                 entity->setLayer("0");
         } else {
 //-------------------------
-                //2007-02-24 added
-                QString enc = RS_System::getEncoding(
-                                                        variables.getString("$DWGCODEPAGE", "ANSI_1252"));
-                // get the codec for Japanese
-                QString lName = attrib.getLayer().c_str();
-                QTextCodec *codec = QTextCodec::codecForName(enc.toLatin1());
-                if(codec)
-                        lName = codec->toUnicode(attrib.getLayer().c_str());
+                QString lName = fromJwwString(attrib.getLayer());
 				if (!graphic->findLayer(lName)) {
                         addLayer(DL_LayerData(attrib.getLayer(), 0));
                 }
@@ -2742,14 +2755,23 @@ RS2::LineType RS_FilterJWW::nameToLineType(const QString& name) {
 
 
         } else if (uName=="ACAD_ISO02W100" || uName=="ACAD_ISO03W100" ||
-                           uName=="DASHED" || uName=="HIDDEN") {
+                           uName=="DASHED") {
                 return RS2::DashLine;
 
-        } else if (uName=="DASHED2" || uName=="HIDDEN2") {
+        } else if (uName=="DASHED2") {
                 return RS2::DashLine2;
 
-        } else if (uName=="DASHEDX2" || uName=="HIDDENX2") {
+        } else if (uName=="DASHEDX2") {
                 return RS2::DashLineX2;
+
+        } else if (uName=="HIDDEN") {
+                return RS2::HiddenLine;
+
+        } else if (uName=="HIDDEN2") {
+                return RS2::HiddenLine2;
+
+        } else if (uName=="HIDDENX2") {
+                return RS2::HiddenLineX2;
 
 
         } else if (uName=="ACAD_ISO10W100" ||
@@ -2782,6 +2804,15 @@ RS2::LineType RS_FilterJWW::nameToLineType(const QString& name) {
 
         } else if (uName=="CENTERX2") {
                 return RS2::CenterLineX2;
+
+        } else if (uName=="ACAD_ISO09W100" || uName=="PHANTOM") {
+                return RS2::PhantomLine;
+
+        } else if (uName=="PHANTOM2") {
+                return RS2::PhantomLine2;
+
+        } else if (uName=="PHANTOMX2") {
+                return RS2::PhantomLineX2;
 
 
         } else if (uName=="BORDER") {
@@ -2831,6 +2862,16 @@ QString RS_FilterJWW::lineTypeToName(RS2::LineType lineType) {
                 return "DASHEDX2";
                 break;
 
+        case RS2::HiddenLine:
+                return "HIDDEN";
+                break;
+        case RS2::HiddenLine2:
+                return "HIDDEN2";
+                break;
+        case RS2::HiddenLineX2:
+                return "HIDDENX2";
+                break;
+
         case RS2::DashDotLine:
                 return "DASHDOT";
                 break;
@@ -2859,6 +2900,16 @@ QString RS_FilterJWW::lineTypeToName(RS2::LineType lineType) {
                 break;
         case RS2::CenterLineX2:
                 return "CENTERX2";
+                break;
+
+        case RS2::PhantomLine:
+                return "PHANTOM";
+                break;
+        case RS2::PhantomLine2:
+                return "PHANTOM2";
+                break;
+        case RS2::PhantomLineX2:
+                return "PHANTOMX2";
                 break;
 
         case RS2::BorderLine:
@@ -3071,87 +3122,6 @@ QString RS_FilterJWW::toDxfString(const QString& string) {
         }
 
         return res;
-}
-
-
-
-/**
- * Converts a DXF encoded string into a native Unicode string.
- */
-QString RS_FilterJWW::toNativeString(const char* data, const QString& encoding) {
-    QString res = QString(data);
-
-    /*	- If the given string doesn't contain any unicode characters, we pass
-     *	  the string through a textcoder.
-     *	--------------------------------------------------------------------- */
-    if (!res.contains("\\U+")) {
-        QTextCodec *codec = QTextCodec::codecForName(encoding.toLatin1());
-        if (codec)
-            res = codec->toUnicode(data);
-    }
-
-    // Line feed:
-    res = res.replace(QRegExp("\\\\P"), "\n");
-    // Space:
-    res = res.replace(QRegExp("\\\\~"), " ");
-    // diameter:
-    res = res.replace(QRegExp("%%c"), QChar(0x2205));
-    // degree:
-    res = res.replace(QRegExp("%%d"), QChar(0x00B0));
-    // plus/minus
-    res = res.replace(QRegExp("%%p"), QChar(0x00B1));
-
-    // Unicode characters:
-    QString cap = "";
-    int uCode = 0;
-    bool ok = false;
-    do {
-        QRegExp regexp("\\\\U\\+[0-9A-Fa-f]{4,4}");
-        regexp.indexIn(res);
-        cap = regexp.cap();
-        if (!cap.isNull()) {
-            uCode = cap.right(4).toInt(&ok, 16);
-            // workaround for Qt 3.0.x:
-            res.replace(QRegExp("\\\\U\\+" + cap.right(4)), QChar(uCode));
-            // for Qt 3.1:
-            //res.replace(cap, QChar(uCode));
-        }
-    }
-    while (!cap.isNull());
-
-    // ASCII code:
-    cap = "";
-//    uCode = 0;
-    ok = false;
-    do {
-        QRegExp regexp("%%[0-9]{3,3}");
-        regexp.indexIn(res);
-        cap = regexp.cap();
-        if (!cap.isNull()) {
-            uCode = cap.right(3).toInt(&ok, 10);
-            // workaround for Qt 3.0.x:
-            res.replace(QRegExp("%%" + cap.right(3)), QChar(uCode));
-            // for Qt 3.1:
-            //res.replace(cap, QChar(uCode));
-        }
-    }
-    while (!cap.isNull());
-
-    // Ignore font tags:
-    res = res.replace(QRegExp("\\\\f[0-9A-Za-z| ]{0,};"), "");
-
-    // Ignore {}
-    res = res.replace("\\{", "#curly#");
-    res = res.replace("{", "");
-    res = res.replace("#curly#", "{");
-
-    res = res.replace("\\}", "#curly#");
-    res = res.replace("}", "");
-    res = res.replace("#curly#", "}");
-
-    RS_DEBUG->print("RS_FilterDXF::toNativeString:");
-    RS_DEBUG->printUnicode(res);
-    return res;
 }
 
 
@@ -3390,6 +3360,3 @@ bool RS_FilterJWW::isVariableTwoDimensional(const QString& var) {
                 return false;
         }
 }
-
-// EOF
-

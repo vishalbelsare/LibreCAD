@@ -27,10 +27,11 @@
 
 #ifndef RS_VECTOR_H
 #define RS_VECTOR_H
-
-#include <vector>
+#include <cstddef>
 #include <iosfwd>
-#include "rs.h"
+#include <vector>
+
+class QPointF;
 
 /**
  * Represents a 3d vector (x/y/z)
@@ -39,25 +40,33 @@
  */
 class RS_Vector {
 public:
-	RS_Vector()=default;
-	RS_Vector(double vx, double vy, double vz=0.0);
+    RS_Vector()=default;
+    RS_Vector(double vx, double vy, double vz=0.0);
     explicit RS_Vector(double angle);
     //RS_Vector(double v[]);
     explicit RS_Vector(bool valid);
-	~RS_Vector()=default;
+    explicit RS_Vector(const QPointF& point);
+    ~RS_Vector()=default;
 
-	//!
-	//! \brief operator bool explicit and implicit conversion to bool
-	//!
-	explicit operator bool() const;
+//!
+//! \brief operator bool explicit and implicit conversion to bool
+//!
+    explicit operator bool() const;
 
-	void set(double angle); // set to unit vector by the direction of angle
+    bool isValid() const
+    {
+        return valid;
+    }
+
+    void set(double angle); // set to unit vector by the direction of angle
     void set(double vx, double vy, double vz=0.0);
+    void plus(const RS_Vector& other);
+    void minus(const RS_Vector& other);
     void setPolar(double radius, double angle);
-	//! \{
-	//! construct by cartesian, or polar coordinates
-	static RS_Vector polar(double rho, double theta);
-	//! \}
+//! \{
+//! construct by cartesian, or polar coordinates
+    static RS_Vector polar(double rho, double theta);
+//! \}
 
     double distanceTo(const RS_Vector& v) const;
     double angle() const;
@@ -73,46 +82,70 @@ public:
 
     RS_Vector toInteger();
 
-    RS_Vector move(const RS_Vector& offset);
-	RS_Vector rotate(double ang);
-    RS_Vector rotate(const RS_Vector& angleVector);
-	RS_Vector rotate(const RS_Vector& center, double ang);
-    RS_Vector rotate(const RS_Vector& center, const RS_Vector& angleVector);
-	RS_Vector scale(double factor);
-    RS_Vector scale(const RS_Vector& factor);
-	RS_Vector scale(const RS_Vector& factor) const;
-	RS_Vector scale(const RS_Vector& center, const RS_Vector& factor);
-    RS_Vector mirror(const RS_Vector& axisPoint1, const RS_Vector& axisPoint2);
-	double dotP(const RS_Vector& v1) const;
+    RS_Vector& move(const RS_Vector& offset);
+    RS_Vector& rotate(double ang);
+    RS_Vector rotated(double angle) const;
+    RS_Vector& rotate(const RS_Vector& angleVector);
+    RS_Vector rotated(const RS_Vector& angleVector) const;
+    RS_Vector& rotate(const RS_Vector& center, double ang);
+    RS_Vector& rotate(const RS_Vector& center, const RS_Vector& angleVector);
+    RS_Vector& scale(double factor);
+    RS_Vector& scale(const RS_Vector& factor);
+    RS_Vector scaled(const RS_Vector& factor) const;
+    RS_Vector& scale(const RS_Vector& center, const RS_Vector& factor);
+    RS_Vector& mirror(const RS_Vector& axisPoint1, const RS_Vector& axisPoint2);
+    /**
+     * Returns vector that defines point located in specified distance and angle from current
+     * @param distance distance to target point
+     * @param angle angle from target point from this one
+     * @return resulting point
+     */
+    RS_Vector relative(double distance, double angle) const;
+    /**
+     * @brief shear     Shear/Skew transform
+     * @author          Dongxu Li
+     * @param k         the shear parameter: x = x + k y; y=y
+     * @return          the transformed vector
+     */
+    RS_Vector& shear(double k);
+    double dotP(const RS_Vector& v1) const;
+    RS_Vector normalized() const;
+    RS_Vector& normalize();
+
+    RS_Vector crossP(const RS_Vector& vp) const;
 
     RS_Vector operator + (const RS_Vector& v) const;
-	RS_Vector operator + (double d) const;
-	RS_Vector operator - (const RS_Vector& v) const;
-	RS_Vector operator - (double d) const;
-	RS_Vector operator * (const RS_Vector& v) const;
-	RS_Vector operator / (const RS_Vector& v) const;
-	RS_Vector operator * (double s) const;
-	RS_Vector operator / (double s) const;
+    RS_Vector operator + (double d) const;
+    RS_Vector operator - (const RS_Vector& v) const;
+    RS_Vector operator - (double d) const;
+    RS_Vector operator * (const RS_Vector& v) const;
+    RS_Vector operator / (const RS_Vector& v) const;
+    RS_Vector operator * (double s) const;
+    RS_Vector operator / (double s) const;
     RS_Vector operator - () const;
 
-	RS_Vector operator += (const RS_Vector& v);
-	RS_Vector operator -= (const RS_Vector& v);
-	RS_Vector operator *= (const RS_Vector& v);
-	RS_Vector operator /= (const RS_Vector& v);
-	RS_Vector operator *= (double s);
-	RS_Vector operator /= (double s);
+    RS_Vector operator += (const RS_Vector& v);
+    RS_Vector operator -= (const RS_Vector& v);
+    RS_Vector operator *= (const RS_Vector& v);
+    RS_Vector operator /= (const RS_Vector& v);
+    RS_Vector operator *= (double s);
+    RS_Vector operator /= (double s);
 
     bool operator == (const RS_Vector& v) const;
     bool operator != (const RS_Vector& v) const {
         return !operator==(v);
     }
-	//!
-	//! \brief operator == comparison of validity with bool
-	//! \param valid boolean parameter
-	//! \return true is the parameter valid is the same as validity
-	//!
-	bool operator == (bool valid) const;
-	bool operator != (bool valid) const;
+//!
+//! \brief operator == comparison of validity with bool
+//! \param val boolean parameter
+//! \return true is the parameter valid is the same as validity
+//!
+    bool operator == (bool val) const;
+    bool operator != (bool val) const;
+
+    static bool isValid(const RS_Vector& v) {
+        return v.valid;
+    }
 
     static RS_Vector minimum(const RS_Vector& v1, const RS_Vector& v2);
     static RS_Vector maximum(const RS_Vector& v1, const RS_Vector& v2);
@@ -124,20 +157,25 @@ public:
                             const RS_Vector& pos);
 
     /** switch x,y for all vectors */
-    RS_Vector flipXY(void) const;
+    RS_Vector flipXY() const;
 
+    friend RS_Vector operator * (double scale, const RS_Vector& vp);
     friend std::ostream& operator << (std::ostream&, const RS_Vector& v);
+
+    double getX() const {return x;}
+    double getY() const {return y;}
+    void setX(const double val){ x = val;}
+    void setY(const double val){ y = val;}
 
 #ifdef RS_TEST
 
     static bool test();
 #endif
 
-public:
-	double x=0.;
-	double y=0.;
-	double z=0.;
-	bool valid=false;
+    double x=0.;
+    double y=0.;
+    double z=0.;
+    bool valid=false;
 };
 
 
@@ -147,63 +185,69 @@ public:
  */
 class RS_VectorSolutions {
 public:
-	typedef RS_Vector value_type;
-	RS_VectorSolutions();
-	RS_VectorSolutions(const std::vector<RS_Vector>& s);
-	RS_VectorSolutions(std::initializer_list<RS_Vector> const& l);
-	RS_VectorSolutions(int num);
+    typedef RS_Vector value_type;
+    RS_VectorSolutions() = default;
+    RS_VectorSolutions(std::vector<RS_Vector> vectors);
+    RS_VectorSolutions(std::initializer_list<RS_Vector> list);
+    explicit RS_VectorSolutions(int num);
 
-	~RS_VectorSolutions()=default;
-
-	void alloc(size_t num);
+    void alloc(size_t num);
     void clear();
-	/**
-	 * @brief get range safe method of member access
-	 * @param i member index
-	 * @return indexed member, or invalid vector, if out of range
-	 */
-	RS_Vector get(size_t i) const;
-	const RS_Vector& at(size_t i) const;
-	const RS_Vector&  operator [] (const size_t i) const;
-	RS_Vector&  operator [] (const size_t i);
-	size_t getNumber() const;
-	size_t size() const;
+/**
+ * @brief get range safe method of member access
+ * @param i member index
+ * @return indexed member, or invalid vector, if out of range
+ */
+    RS_Vector get(size_t i) const;
+    const RS_Vector& back() const;
+    RS_Vector& back();
+    const RS_Vector& front() const;
+    RS_Vector& front();
+    RS_Vector& at(size_t i);
+    const RS_Vector& at(size_t i) const;
+    const RS_Vector&  operator [] (size_t i) const;
+    RS_Vector&  operator [] (size_t i);
+    size_t getNumber() const;
+    bool isEmpty() const;
+    bool isNotEmpty() const;
+    size_t size() const;
+    bool empty() const;
     void resize(size_t n);
     bool hasValid() const;
-void set(size_t i, const RS_Vector& v);
+    void set(size_t i, const RS_Vector& v);
     void push_back(const RS_Vector& v);
-	void removeAt(const size_t i);
-	RS_VectorSolutions& push_back(const RS_VectorSolutions& v);
+    void removeAt(size_t i);
+    RS_VectorSolutions& push_back(const RS_VectorSolutions& v);
     void setTangent(bool t);
     bool isTangent() const;
     RS_Vector getClosest(const RS_Vector& coord,
-						 double* dist=nullptr, size_t* index=nullptr) const;
+                         double* dist=nullptr, size_t* index=nullptr) const;
     double getClosestDistance(const RS_Vector& coord,
                               int counts = -1); //default to search all
-	const std::vector<RS_Vector>& getVector() const;
-	std::vector<RS_Vector>::const_iterator begin() const;
-	std::vector<RS_Vector>::const_iterator end() const;
-	std::vector<RS_Vector>::iterator begin();
-	std::vector<RS_Vector>::iterator end();
-	void rotate(double ang);
+    const std::vector<RS_Vector>& getVector() const;
+    std::vector<RS_Vector>::const_iterator cbegin() const;
+    std::vector<RS_Vector>::const_iterator cend() const;
+    std::vector<RS_Vector>::const_iterator begin() const;
+    std::vector<RS_Vector>::const_iterator end() const;
+    std::vector<RS_Vector>::iterator begin();
+    std::vector<RS_Vector>::iterator end();
+    void rotate(double ang);
     void rotate(const RS_Vector& angleVector);
-	void rotate(const RS_Vector& center, double ang);
+    void rotate(const RS_Vector& center, double ang);
     void rotate(const RS_Vector& center, const RS_Vector& angleVector);
     void move(const RS_Vector& vp);
     void scale(const RS_Vector& center, const RS_Vector& factor);
     void scale(const RS_Vector& factor);
 
     /** switch x,y for all vectors */
-    RS_VectorSolutions flipXY(void) const;
+    RS_VectorSolutions flipXY() const;
 
     friend std::ostream& operator << (std::ostream& os,
                                       const RS_VectorSolutions& s);
 
 private:
-	std::vector<RS_Vector> vector;
-    bool tangent;
+    std::vector<RS_Vector> m_vector;
+    bool m_tangent = false;
 };
 
 #endif
-
-// EOF

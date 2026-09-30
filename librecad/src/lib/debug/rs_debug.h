@@ -24,23 +24,41 @@
 **
 **********************************************************************/
 
-
 #ifndef RS_DEBUG_H
 #define RS_DEBUG_H
 
-#include <iosfwd>
 #ifdef __hpux
 #include <sys/_size_t.h>
 #endif
 
+#if defined(__GNUC__) || defined(__clang__)
+#define RS_DEBUG_PRINTF_FORMAT(formatIndex, firstArg) \
+    __attribute__((format(printf, formatIndex, firstArg)))
+#else
+#define RS_DEBUG_PRINTF_FORMAT(formatIndex, firstArg)
+#endif
+
+class RS_Vector;
+class QByteArray;
+class QChar;
+class QLatin1String;
 class QString;
+class QStringView;
 
 /** print out a debug header*/
 #define DEBUG_HEADER debugHeader(__FILE__, __func__, __LINE__);
 void debugHeader(char const* file, char const* func, int line);
 #define RS_DEBUG RS_Debug::instance()
-#define RS_DEBUG_VERBOSE DEBUG_HEADER \
-	RS_Debug::instance()
+#define RS_DEBUG_VERBOSE \
+    DEBUG_HEADER\
+    RS_Debug::instance()
+
+
+// stream style logging
+// Example: LC_LOG<<"logging debugging message"; // default log level: D_DEBUGGING
+//          LC_LOG(D_ERROR)<<"Logging error message"; // specified logging level: D_ERROR
+#define LC_LOG RS_Debug::Log()
+#define LC_ERR RS_Debug::Log(RS_Debug::D_ERROR)
 
 /**
  * Debugging facilities.
@@ -63,41 +81,83 @@ public:
      *  <li>D_DEBUGGING: very verbose
      * </ul>
      */
-    enum RS_DebugLevel { D_NOTHING,
-                         D_CRITICAL,
-                         D_ERROR,
-                         D_WARNING,
-                         D_NOTICE,
-                         D_INFORMATIONAL,
-                         D_DEBUGGING };
+    enum RS_DebugLevel: char { D_NOTHING=0,
+                         D_CRITICAL=1,
+                         D_ERROR=2,
+                         D_WARNING=3,
+                         D_NOTICE=4,
+                         D_INFORMATIONAL=5,
+                         D_DEBUGGING=6 };
+
+    ~RS_Debug();
+    RS_Debug(const RS_Debug&)=delete;
+    RS_Debug& operator = (const RS_Debug&)=delete;
+    RS_Debug(RS_Debug&&)=delete;
+    RS_Debug& operator = (RS_Debug&&)=delete;
+
+    /**
+     * @brief instance() - accessor for the singleton instance
+     * @return the singleton instance
+     */
+    static RS_Debug* instance();
+
+    /**
+     * @brief The LogStream class: Support for debugging info by the c++ stream style
+     *
+     * Example:
+     *      LC_LOG(D_ERROR)<<"Log text";
+     *      LC_ERR<<"Error text";
+     */
+    class LogStream {
+    public:
+        LogStream(RS_DebugLevel level);
+        virtual ~LogStream();
+        LogStream& operator<<(char16_t ch);
+        LogStream& operator<<(QChar ch);
+        LogStream& operator<<(char ch);
+        LogStream& operator<<(signed short i);
+        LogStream& operator<<(unsigned short i);
+        LogStream& operator<<(signed int i);
+        LogStream& operator<<(unsigned int i);
+        LogStream& operator<<(signed long i);
+        LogStream& operator<<(unsigned long i);
+        LogStream& operator<<(long long i);
+        LogStream& operator<<(unsigned long long i);
+        LogStream& operator<<(float f);
+        LogStream& operator<<(double f);
+        LogStream& operator<<(const QString& s);
+        LogStream& operator<<(QStringView s);
+        LogStream& operator<<(QLatin1String s);
+        LogStream& operator<<(const QByteArray& array);
+        LogStream& operator<<(const char *c);
+        LogStream& operator<<(const void *ptr);
+        LogStream& operator<<(const RS_Vector &);
+        LogStream& operator () (RS_DebugLevel level);
+
+    private:
+        struct StreamImpl;
+        StreamImpl* m_pStream = nullptr;
+    };
+
+
+    static LogStream Log(RS_DebugLevel level = D_DEBUGGING);
+
+    void setLevel(RS_DebugLevel level);
+    RS_DebugLevel getLevel();
+    void print(RS_DebugLevel level, const char* format ...)
+        RS_DEBUG_PRINTF_FORMAT(3, 4);
+    void print(const char* format ...)
+        RS_DEBUG_PRINTF_FORMAT(2, 3);
+    void print(const QString& text);
+    void printUnicode(const QString& text);
+    void timestamp();
 
 private:
     RS_Debug();
-	RS_Debug(const RS_Debug&)=delete;
-	RS_Debug& operator = (const RS_Debug&)=delete;
-	RS_Debug(RS_Debug&&)=delete;
-	RS_Debug& operator = (RS_Debug&&)=delete;
 
-public:
-    static RS_Debug* instance();
-
-    static void deleteInstance();
-    void setLevel(RS_DebugLevel level);
-    RS_DebugLevel getLevel();
-    void print(RS_DebugLevel level, const char* format ...);
-    void print(const char* format ...);
-    void printUnicode(const QString& text);
-    void timestamp();
-    void setStream(FILE* s) {
-        stream = s;
-    }
-
-private:
-    static RS_Debug* uniqueInstance;
-
-    RS_DebugLevel debugLevel;
-    FILE* stream;
+    RS_DebugLevel m_debugLevel = D_INFORMATIONAL;
 };
 
+#undef RS_DEBUG_PRINTF_FORMAT
+
 #endif
-// EOF

@@ -27,27 +27,22 @@
 #ifndef RS_MAINWINDOWINTERFACE_H
 #define RS_MAINWINDOWINTERFACE_H
 
-#include "rs_document.h"
+class QString;
 
-#include "rs_graphicview.h"
+class RS_Document;
+class RS_GraphicView;
 
 /**
  * Interface for main application windows.
  */
 class RS_MainWindowInterface {
-
 public:
-	RS_MainWindowInterface() = default;
-	virtual ~RS_MainWindowInterface() = default;
+    virtual ~RS_MainWindowInterface() = default;
 
-	virtual RS_GraphicView const* getGraphicView() const = 0;
-	virtual RS_Document const* getDocument() const= 0;
-	virtual RS_GraphicView* getGraphicView() = 0;
-	virtual RS_Document* getDocument() = 0;
-
-	virtual void createNewDocument(const QString& fileName = QString(), RS_Document* doc=nullptr) = 0;
-
+    virtual const RS_GraphicView* getGraphicView() const = 0;
+    virtual const RS_Document* getDocument() const = 0;
+    virtual RS_GraphicView* getGraphicView() = 0;
+    virtual RS_Document* getDocument() = 0;
 };
 
 #endif
-

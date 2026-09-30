@@ -33,7 +33,8 @@ PluginCapabilities PicFile::getCapabilities() const
 {
     PluginCapabilities pluginCapabilities;
     pluginCapabilities.menuEntryPoints
-            << PluginMenuLocation("plugins_menu", tr("Read PIC file"));
+        << PluginMenuLocation("plugins_menu", tr("Read PIC file"),
+            tr("PIC test tip..."));
     return pluginCapabilities;
 }
 
@@ -43,9 +44,8 @@ QString PicFile::name() const
  }
 
 void PicFile::execComm(Document_Interface *doc,
-                             QWidget *parent, QString cmd)
+                             QWidget *parent, [[maybe_unused]] QString cmd)
 {
-    Q_UNUSED(cmd);
     picPunto pdt(parent);
     int result = pdt.exec();
     if (result == QDialog::Accepted)
@@ -112,8 +112,7 @@ void picPunto::dptFile()
     fileedit->setText(fileName);
 }
 
-bool picPunto::failGUI(QString *msg)
-{
+bool picPunto::failGUI(QString *msg) const {
     double val = scaleedit->text().toDouble();
     if ( val == 0 ) {
         msg->insert(0, tr("Scale Factor is empty or invalid"));
@@ -137,7 +136,7 @@ void picPunto::processFile(Document_Interface *doc)
         QMessageBox::critical ( this, "picPunto", QString(tr("Can't open the file %1")).arg(fileedit->text()) );
          return;
     }
-    QString currlay = currDoc->getCurrentLayer();
+    // QString currlay = currDoc->getCurrentLayer();
     processFilePic(&infile);
     infile.close ();
 
@@ -145,8 +144,7 @@ void picPunto::processFile(Document_Interface *doc)
     currDoc = NULL;
 }
 
-double picPunto::getPValue(QString p)
-{
+double picPunto::getPValue(QString p) const {
     return (p.toDouble() * scale);
 }
 
@@ -233,7 +231,11 @@ void picPunto::processFilePic(QFile* file)
 {
     //    QString outname, sep;
     QString sep = " ";
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+    Qt::SplitBehaviorFlags skip = Qt::KeepEmptyParts;
+#else
     QString::SplitBehavior skip = QString::KeepEmptyParts;
+#endif
     QStringList data;
     QString cmd;
     pointData *pd;
@@ -282,7 +284,7 @@ void picPunto::processFilePic(QFile* file)
                         QString txt = line.split("\"", skip).at(1);
                         QStringList rline = line.split("\"", skip).at(2).split(" ",skip);
                         txt.remove ( txt.size()-3, 3);
-                        txt.remove (QRegExp("^.*fR"));
+                        txt.remove (QRegularExpression("^.*fR"));
                         // printf("process line: %s: %s\n",rline.at(2).toStdString().c_str(),txt.toStdString().c_str() );
                         drawText(rline.at(2).split(',').at(0), rline.at(2).split(',').at(1), txt, rline.at(3));
                     }
@@ -313,8 +315,7 @@ void picPunto::readSettings()
     move(pos);
  }
 
-void picPunto::writeSettings()
- {
+void picPunto::writeSettings() const {
     QSettings settings(QSettings::IniFormat, QSettings::UserScope, "LibreCAD", "picfile");
     settings.setValue("pos", pos());
     settings.setValue("size", size());

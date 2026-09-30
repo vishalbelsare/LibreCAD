@@ -1,0 +1,97 @@
+/*
+ * ********************************************************************************
+ * This file is part of the LibreCAD project, a 2D CAD program
+ *
+ * Copyright (C) 2025 LibreCAD.org
+ * Copyright (C) 2025 sand1024
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * ********************************************************************************
+ */
+
+#ifndef LC_DIVISION_H
+#define LC_DIVISION_H
+#include <QVector>
+
+#include <memory>
+
+#include "rs_vector.h"
+
+class RS_Line;
+class RS_Circle;
+class RS_Arc;
+class RS_EntityContainer;
+class RS_Entity;
+class RS_Vector;
+
+class LC_Division{
+public:
+    /**
+        * configuration of segment of entity on which snap selection occurred
+        */
+    enum SegmentDisposition{
+        SEGMENT_INSIDE, // segment is between two intersection points
+        SEGMENT_TO_START, // snap is between start point of entity and intersection point
+        SEGMENT_TO_END, // snap is between end point of entity and intersection point
+        // The selected segment is the source entity itself. This is semantic
+        // operation data; consumers must not infer it from coincident endpoints.
+        SEGMENT_ENTIRE
+    };
+
+    /**
+     * Snap segment info for line
+     */
+    struct LineSegmentData{
+        SegmentDisposition segmentDisposition = SEGMENT_INSIDE;
+        RS_Vector snapSegmentStart;
+        RS_Vector snapSegmentEnd;
+    };
+
+    /**
+     * Snap segment for angle
+     */
+    struct ArcSegmentData{
+        SegmentDisposition segmentDisposition = SEGMENT_INSIDE;
+        double snapSegmentStartAngle;
+        double snapSegmentEndAngle;
+    };
+
+    /**
+     * Snap segment for circle     *
+     */
+    struct CircleSegmentData{
+        SegmentDisposition segmentDisposition = SEGMENT_INSIDE;
+        double snapSegmentStartAngle;
+        double snapSegmentEndAngle;
+    };
+
+    explicit LC_Division(RS_EntityContainer *entityContainer);
+
+    std::unique_ptr<ArcSegmentData> findArcSegmentBetweenIntersections(const RS_Arc* arc, const RS_Vector& snap, bool allowEntireArcAsSegment);
+    std::unique_ptr<CircleSegmentData> findCircleSegmentBetweenIntersections(const RS_Circle* circle, const RS_Vector& snap, bool allowEntireCircleAsSegment);
+    std::unique_ptr<LineSegmentData> findLineSegmentBetweenIntersections(const RS_Line* line, const RS_Vector& snap, bool allowEntireLine);
+
+    LineSegmentData* findLineSegmentEdges(const RS_Line* line, const RS_Vector& snap, QVector<RS_Vector> intersections, bool allowEntireLineAsSegment);
+    ArcSegmentData* findArcSegmentEdges(const RS_Arc* arc, const RS_Vector& snap, const QVector<RS_Vector>& intersections, bool allowEntireArcAsSegment);
+    CircleSegmentData* findCircleSegmentEdges(const RS_Circle* circle, const RS_Vector& snap, const QVector<RS_Vector>& intersections);
+
+    QVector<RS_Vector> collectAllIntersectionsWithEntity(const RS_Entity *entity) const;
+private:
+    RS_EntityContainer *m_container = nullptr;
+protected:
+    void addPointsFromSolutionToList(RS_VectorSolutions& sol, QVector<RS_Vector>& result) const;
+};
+
+#endif

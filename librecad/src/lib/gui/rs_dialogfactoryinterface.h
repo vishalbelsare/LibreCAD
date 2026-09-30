@@ -1,46 +1,38 @@
-/****************************************************************************
-**
-** This file is part of the LibreCAD project, a 2D CAD program
-**
-** Copyright (C) 2010 R. van Twisk (librecad@rvt.dds.nl)
-** Copyright (C) 2001-2003 RibbonSoft. All rights reserved.
-**
-**
-** This file may be distributed and/or modified under the terms of the
-** GNU General Public License version 2 as published by the Free Software
-** Foundation and appearing in the file gpl-2.0.txt included in the
-** packaging of this file.
-**
-** This program is distributed in the hope that it will be useful,
-** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-** GNU General Public License for more details.
-**
-** You should have received a copy of the GNU General Public License
-** along with this program; if not, write to the Free Software
-** Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
-**
-** This copyright notice MUST APPEAR in all copies of the script!
-**
-**********************************************************************/
-
+/*
+ * ********************************************************************************
+ * This file is part of the LibreCAD project, a 2D CAD program
+ *
+ * Copyright (C) 2026 LibreCAD.org
+ * Copyright (C) 2026 sand1024
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * ********************************************************************************
+ */
 
 #ifndef RS_DIALOGFACTORYINTERFACE_H
 #define RS_DIALOGFACTORYINTERFACE_H
+#include "rs_block.h"
 
-#include "rs.h"
-#include <QString>
-
+class QWidget;
+class QG_CommandWidget;
+class QG_CoordinateWidget;
+class QG_MouseWidget;
+class QG_SelectionWidget;
 class RS_ActionInterface;
-struct RS_ArcData;
-class RS_AttributesData;
-class RS_BevelData;
 class RS_Block;
-struct RS_BlockData;
 class RS_BlockList;
-struct RS_CircleData;
-struct RS_DimLinearData;
-struct RS_DimensionData;
 class RS_Document;
 class RS_Entity;
 class RS_EventHandler;
@@ -51,43 +43,48 @@ class RS_Hatch;
 class RS_Insert;
 class RS_Layer;
 class RS_LayerList;
-class RS_MirrorData;
-class RS_MoveData;
-class RS_MoveRotateData;
 class RS_MText;
 class RS_Painter;
-class RS_Rotate2Data;
-class RS_RotateData;
-class RS_RoundData;
-class RS_ScaleData;
 class RS_Solid;
 class RS_Text;
 class RS_Vector;
-class QG_MouseWidget;
-class QG_CoordinateWidget;
-class QG_SelectionWidget;
-class QG_CommandWidget;
+class LC_GraphicViewport;
+
+struct RS_ArcData;
+struct RS_AttributesData;
+struct RS_BevelData;
+struct RS_CircleData;
+struct RS_DimLinearData;
+struct RS_DimensionData;
+struct RS_MirrorData;
+struct RS_MoveData;
+struct RS_MoveRotateData;
+struct RS_Rotate2Data;
+struct RS_RotateData;
+struct RS_RoundData;
+struct RS_ScaleData;
 
 /**
  * Interface for objects that can create and show dialogs.
  */
 class RS_DialogFactoryInterface {
 public:
-	virtual ~RS_DialogFactoryInterface() = default;
+    virtual ~RS_DialogFactoryInterface() = default;
 
     /**
      * This virtual method must be overwritten and must provide
      * a message dialog.
      */
-    virtual void requestWarningDialog(const QString& warning) = 0;
+    virtual void requestWarningDialog([[maybe_unused]] const QString& warning) {
+    }
 
-        /**
-         * This virtual method must be overwritten and must create a new
-         * window for the given document or for a new document isf no document
-         * is given.
-         */
-//    virtual RS_GraphicView* requestNewDocument(const QString& fileName = QString(),
-//                        RS_Document* doc=NULL) = 0;
+    /**
+     * This virtual method must be overwritten and must create a new
+     * window for the given document or for a new document isf no document
+     * is given.
+     */
+    //    virtual RS_GraphicView* requestNewDocument(const QString& fileName = QString(),
+    //                        RS_Document* doc=NULL) = 0;
 
     /**
      * This virtual method must be overwritten and must provide
@@ -99,8 +96,9 @@ public:
      *         to the newly created layer or NULL if the user
      *         cancels the dialog.
      */
-    virtual RS_Layer* requestNewLayerDialog(
-        RS_LayerList* layerList = NULL) = 0;
+    virtual RS_Layer* requestNewLayerDialog([[maybe_unused]] RS_LayerList* layerList = nullptr) {
+        return nullptr;
+    }
 
     /**
      * This virtual method must be overwritten and must provide
@@ -112,8 +110,9 @@ public:
      *         to the layer which can ne removed or NULL if the user
      *         cancels the dialog.
      */
-    virtual RS_Layer* requestLayerRemovalDialog(
-        RS_LayerList* layerList = NULL) = 0;
+    virtual RS_Layer* requestLayerRemovalDialog([[maybe_unused]] RS_LayerList* layerList = nullptr) {
+        return nullptr;
+    }
 
     /**
      * This virtual method must be overwritten and must provide
@@ -125,8 +124,9 @@ public:
      *         of selected layers names to be removed, or empty
      *         list if the user cancels the dialog.
      */
-    virtual QStringList requestSelectedLayersRemovalDialog(
-        RS_LayerList* layerList = NULL) = 0;
+    virtual QStringList requestSelectedLayersRemovalDialog([[maybe_unused]] RS_LayerList* layerList = nullptr) {
+        return QStringList();
+    }
 
     /**
      * This virtual method must be overwritten and must provide
@@ -137,8 +137,9 @@ public:
      *         to the modified layer or NULL if the user
      *         cancels the dialog.
      */
-    virtual RS_Layer* requestEditLayerDialog(
-        RS_LayerList* layerList = NULL) = 0;
+    virtual RS_Layer* requestEditLayerDialog([[maybe_unused]] RS_LayerList* layerList = nullptr) {
+        return nullptr;
+    }
 
     /**
      * This virtual method must be overwritten and must provide
@@ -146,14 +147,15 @@ public:
      * created. The method must create the new block but not add
      * it to the block list. The latter is up to the caller.
     *
-    * @param block Pointer to the newly created block with default
-    *              attributes.
+    * @param blockList
      *
      * @return The implementation is expected to return a pointer
      *         to the newly created block or NULL if the user
      *         cancels the dialog.
      */
-    virtual RS_BlockData requestNewBlockDialog(RS_BlockList* blockList) = 0;
+    virtual RS_BlockData requestNewBlockDialog([[maybe_unused]] RS_BlockList* blockList) {
+        return RS_BlockData();
+    }
 
     /**
      * This virtual method must be overwritten and must provide
@@ -165,8 +167,9 @@ public:
      *         to the block which can be removed or NULL if the user
      *         cancels the dialog.
      */
-    virtual RS_Block* requestBlockRemovalDialog(
-        RS_BlockList* blockList) = 0;
+    virtual RS_Block* requestBlockRemovalDialog([[maybe_unused]] RS_BlockList* blockList) {
+        return nullptr;
+    }
 
     /**
      * This virtual method must be overwritten and must provide
@@ -178,8 +181,9 @@ public:
      *         of selected blocks to be removed, or empty
      *         list if the user cancels the dialog.
      */
-    virtual QList<RS_Block*> requestSelectedBlocksRemovalDialog(
-        RS_BlockList* blockList = NULL) = 0;
+    virtual QList<RS_Block*> requestSelectedBlocksRemovalDialog([[maybe_unused]] RS_BlockList* blockList = nullptr) {
+        return QList<RS_Block*>();
+    }
 
     /**
      * This virtual method must be overwritten and must provide
@@ -190,17 +194,12 @@ public:
      *         to the block which was changed or NULL if the user
      *         cancels the dialog.
      */
-    virtual RS_BlockData requestBlockAttributesDialog(
-        RS_BlockList* blockList) = 0;
+    virtual RS_BlockData requestBlockAttributesDialog([[maybe_unused]] RS_BlockList* blockList) {
+        return RS_BlockData();
+    }
 
-    /**
-     * This virtual method must be overwritten and should provide
-     * a way to edit a block.
-     */
-    virtual void requestEditBlockWindow(
-        RS_BlockList* blockList) = 0;
-
-        virtual void closeEditBlockWindow(RS_Block* block) = 0;
+    virtual void closeEditBlockWindow([[maybe_unused]] RS_Block* block) {
+    }
 
     /**
      * This virtual method must be overwritten and must provide
@@ -233,37 +232,9 @@ public:
      *         which contains the file name or an empty string if
      *         the user cancels the dialog.
      */
-    virtual QString requestImageOpenDialog() = 0;
-
-    /**
-     * This virtual method must be overwritten and must present
-     * a widget for options for the given action.
-     *
-         * @param action Pointer to the action which needs the options.
-     * @param on true: switch widget on, false: off
-         * @param update true: widget gets data from the action, false:
-         *   widget gets data from config file.
-     */
-    virtual void requestOptions(RS_ActionInterface* action,
-                bool on, bool update = false) = 0;
-
-    /**
-     * This virtual method must be overwritten and must present
-     * a widget for snap point with distance options.
-     *
-     * @param dist Distance which can be directly changed
-     *             by the presented widget.
-     * @param on true: switch widget on, false: off
-     */
-    virtual void requestSnapDistOptions(double& dist, bool on) = 0;
-    virtual void requestSnapMiddleOptions(int& middlePoints, bool on) = 0;
-    /**
-      *This virtual method must overwritten and must present
-      * a widget for actionmodifyoffset distance
-      * @dist, distance of offset
-      * @on, to create the widget if true, and to delete the widget if false
-      */
-    virtual void requestModifyOffsetOptions(double& dist, bool on) = 0;
+    virtual QString requestImageOpenDialog() {
+        return "";
+    }
 
     /**
      * This virtual method must be overwritten and must present
@@ -271,161 +242,88 @@ public:
      *
      * @param data Attribute data which can be directly changed
      *             by the presented widget.
+     * @param layerList
      */
-    virtual bool requestAttributesDialog(RS_AttributesData& data,
-                RS_LayerList& layerList) = 0;
-
-    /**
-     * This virtual method must be overwritten and must present
-     * a widget for move options (number of copies).
-     *
-     * @param data Move data which can be directly changed
-     *             by the presented widget.
-     */
-    virtual bool requestMoveDialog(RS_MoveData& data) = 0;
-
-    /**
-     * This virtual method must be overwritten and must present
-     * a widget for rotate options (number of copies, angle).
-     *
-     * @param data Rotation data which can be directly changed
-     *             by the presented widget.
-     */
-    virtual bool requestRotateDialog(RS_RotateData& data) = 0;
-
-    /**
-     * This virtual method must be overwritten and must present
-     * a widget for rotate options (number of copies, angle).
-     *
-     * @param data Scaling data which can be directly changed
-     *             by the presented widget.
-     */
-    virtual bool requestScaleDialog(RS_ScaleData& data) = 0;
-
-    /**
-     * This virtual method must be overwritten and must present
-     * a widget for mirror options (number of copies).
-     *
-     * @param data Mirror data which can be directly changed
-     *             by the presented widget.
-     */
-    virtual bool requestMirrorDialog(RS_MirrorData& data) = 0;
-
-    /**
-     * This virtual method must be overwritten and must present
-     * a widget for move/rotate options (number of copies, angle).
-     *
-     * @param data Move/rotate data which can be directly changed
-     *             by the presented widget.
-     */
-    virtual bool requestMoveRotateDialog(RS_MoveRotateData& data) = 0;
-
-    /**
-     * This virtual method must be overwritten and must present
-     * a widget for rotate around two centers options (number of
-    * copies, angles).
-     *
-     * @param data Rotate data which can be directly changed
-     *             by the presented widget.
-     */
-    virtual bool requestRotate2Dialog(RS_Rotate2Data& data) = 0;
+    virtual bool requestAttributesDialog([[maybe_unused]] RS_AttributesData& data, [[maybe_unused]] RS_LayerList& layerList) {
+        return false;
+    }
 
     /**
      * This virtual method must be overwritten and must present
      * a dialog to edit the given entity.
      *
      * @param entity Pointer to the entity.
+     * @param viewport
      */
-    virtual bool requestModifyEntityDialog(RS_Entity* entity) = 0;
+    virtual bool requestModifyEntityDialog([[maybe_unused]] RS_Entity* entity, [[maybe_unused]] LC_GraphicViewport* viewport) {
+        return false;
+    }
 
     /**
      * This virtual method must be overwritten and must present
      * a dialog to edit multi-line text entity attributes.
      *
-     * @param entity Pointer to the mtext entity.
+     * @param text  Pointer to the mtext entity.
+     * @param viewport
      */
-    virtual bool requestMTextDialog(RS_MText* text) = 0;
+    virtual bool requestMTextDialog([[maybe_unused]] RS_MText* text, [[maybe_unused]] LC_GraphicViewport* viewport) {
+        return false;
+    }
 
     /**
      * This virtual method must be overwritten and must present
      * a dialog to edit text entity attributes.
      *
-     * @param entity Pointer to the text entity.
+     * @param text Pointer to the text entity.
+     * @param viewport
      */
-    virtual bool requestTextDialog(RS_Text* text) = 0;
+    virtual bool requestTextDialog([[maybe_unused]] RS_Text* text, [[maybe_unused]] LC_GraphicViewport* viewport) {
+        return false;
+    }
 
     /**
      * This virtual method must be overwritten and must present
      * a dialog to select pattern attributes.
      *
-     * @param entity Pointer to the hatch entity.
+     * @param hatch Pointer to the hatch entity.
+     * @param viewport
      */
-    virtual bool requestHatchDialog(RS_Hatch* hatch) = 0;
-
-    /**
-     * This virtual method must be overwritten and must present
-     * a dialog for general application options.
-     */
-    virtual void requestOptionsGeneralDialog() = 0;
+    virtual bool requestHatchDialog([[maybe_unused]] RS_Hatch* hatch, [[maybe_unused]] LC_GraphicViewport* viewport) {
+        return false;
+    }
 
     /**
      * This virtual method must be overwritten and must present
      * a dialog for drawing options.
          *
          * @param graphic Graphic document.
+         * @param tabIndex
      */
-    virtual void requestOptionsDrawingDialog(RS_Graphic& graphic) = 0;
+    virtual int requestOptionsDrawingDialog([[maybe_unused]] RS_Graphic& graphic, [[maybe_unused]] int tabIndex = -1) {
+        return 0;
+    }
 
     /**
      * This virtual method must be overwritten and must present
      * a dialog for options how to export as MakeCAM SVG.
      */
-    virtual bool requestOptionsMakerCamDialog() = 0;
+    virtual bool requestOptionsMakerCamDialog() {
+        return false;
+    }
 
     /**
      * This virtual method must be overwritten and must present
      * a dialog for saving a file.
      */
-    virtual QString requestFileSaveAsDialog(const QString& caption = QString(),
-                                            const QString& dir = QString(),
-                                            const QString& filter = QString(), 
-                                            QString* selectedFilter = 0) = 0;
+    virtual QString requestFileSaveAsDialog([[maybe_unused]] const QString& caption = QString(),
+                                            [[maybe_unused]] const QString& dir = QString(),
+                                            [[maybe_unused]] const QString& filter = QString(),
+                                            [[maybe_unused]] QString* selectedFilter = nullptr) {
+        return "";
+    }
 
-    /**
-     * This virtual method must be overwritten if the graphic view has
-     * a component that is interested in the current mouse position.
-     * The implementation will be called every time the mouse position
-     * changes.
-     *
-     * @param abs Absolute coordinate of the mouse cursor or the
-     *            point it snaps to.
-     * @param rel Relative coordinate.
-     */
-    virtual void updateCoordinateWidget(const RS_Vector& abs, const RS_Vector& rel, bool updateFormat=false) = 0;
-
-    /**
-     * This virtual method must be overwritten if the graphic view has
-     * a component that is interested in the current mouse button hints.
-     * The implementation will be called typically by actions to inform
-     * the user about the current functionality of the mouse buttons.
-     *
-     * @param left Help text for the left mouse button.
-     * @param right Help text for the right mouse button.
-	 */
-	virtual void updateMouseWidget(const QString& = QString(),
-								   const QString& = QString())=0;
-    virtual void updateArcTangentialOptions(const double& d, bool byRadius)=0;
-
-    /**
-     * This virtual method must be overwritten if the graphic view has
-     * a component that is interested in the current number of selected
-         * entities.
-     * The implementation will be called every time the selection
-     * changes.
-     *
-     * @param num Number of selected entities
-     */
-    virtual void updateSelectionWidget(int num, double length) = 0;
+    [[deprecated]] virtual void displayBlockName([[maybe_unused]] const QString& blockName, [[maybe_unused]] const bool display) {
+    }
 
     /**
      * This virtual method must be overwritten if the graphic view has
@@ -436,11 +334,14 @@ public:
      *
      * @param message The message for the user.
      */
-    virtual void commandMessage(const QString& message) = 0;
-	virtual void setMouseWidget(QG_MouseWidget*) = 0;
-	virtual void setCoordinateWidget(QG_CoordinateWidget* ) = 0;
-	virtual void setSelectionWidget(QG_SelectionWidget* ) = 0;
-	virtual void setCommandWidget(QG_CommandWidget* ) = 0;
+    virtual void commandMessage([[maybe_unused]] const QString& message) {
+    }
+
+    virtual void command([[maybe_unused]] const QString& message) {
+    }
+
+    virtual void commandPrompt([[maybe_unused]] const QString& message) {
+    }
 };
 
 #endif

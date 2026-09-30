@@ -28,7 +28,6 @@
 #define QC_ACTIONGETPOINT_H
 
 #include "rs_previewactioninterface.h"
-#include "rs_modification.h"
 
 class QPointF;
 
@@ -38,35 +37,35 @@ class QPointF;
  * @author  Rallaz
  */
 class QC_ActionGetPoint : public RS_PreviewActionInterface {
-	Q_OBJECT
-
+    Q_OBJECT
 public:
-    QC_ActionGetPoint(RS_EntityContainer& container,
-                        RS_GraphicView& graphicView);
-	~QC_ActionGetPoint();
+    explicit QC_ActionGetPoint(LC_ActionContext* actionContext);
+    ~QC_ActionGetPoint() override;
 
-    virtual void trigger() override;
-	
-    virtual void mouseMoveEvent(QMouseEvent* e) override;
-    virtual void mouseReleaseEvent(QMouseEvent* e) override;
-	
-    virtual void coordinateEvent(RS_CoordinateEvent* e ) override;
+    void trigger() override;
+    void mouseMoveEvent(QMouseEvent* e) override;
+    void mouseReleaseEvent(QMouseEvent* e) override;
+    void keyPressEvent(QKeyEvent* e) override;
+    void getPoint(QPointF* point) const;
+    void setBasepoint(const QPointF* basepoint);
+    void setMessage(const QString& msg) const;
 
-    virtual void updateMouseButtonHints() override;
-    virtual void updateMouseCursor() override;
+    bool isCompleted() const {
+        return m_completed;
+    }
 
-    void getPoint(QPointF *point);
-    void setBasepoint(QPointF* basepoint);
-    void setMessage(QString msg);
-    bool isCompleted(){return completed;}
-    bool wasCanceled(){return canceled;}
+    bool wasCanceled() const {
+        return m_canceled;
+    }
 
-private:
-    bool canceled;
-	bool completed;
-	bool setTargetPoint;
-	struct Points;
-	std::unique_ptr<Points> pPoints;
+protected:
+    bool m_canceled;
+    bool m_completed;
+    bool m_setTargetPoint;
+    struct ActionData;
+    std::unique_ptr<ActionData> m_actionData;
+    RS2::CursorType doGetMouseCursor(int status) override;
+    void onCoordinateEvent(int status, bool isZero, const RS_Vector& pos) override;
+    void updateActionPrompt() override;
 };
-
 #endif

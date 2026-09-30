@@ -30,7 +30,7 @@
 LC_SimpleTests::LC_SimpleTests(QWidget *parent):
 	QObject(parent)
 {
-	auto appWin=QC_ApplicationWindow::getAppWindow();
+    const auto& appWin=QC_ApplicationWindow::getAppWindow();
 	QMenu* testMenu=appWin->menuBar()->addMenu(tr("De&bugging"));
 	testMenu->setObjectName("Debugging");
 
@@ -122,7 +122,7 @@ void LC_SimpleTests::slotTestDumpEntities(RS_EntityContainer* d){
 		dumpFile.open("debug_entities.html", std::ios::app);
 		++level;
 	} else {
-		d = QC_ApplicationWindow::getAppWindow()->getDocument();
+		d = QC_ApplicationWindow::getAppWindow()->getCurrentDocument();
 		dumpFile.open("debug_entities.html");
 		level = 0;
 	}
@@ -133,7 +133,7 @@ void LC_SimpleTests::slotTestDumpEntities(RS_EntityContainer* d){
 			dumpFile << "<body>\n";
 		}
 
-		for(auto e: *d){
+		for(const auto e: *d){
 
 			dumpFile << "<table border=\"1\">\n";
 			dumpFile << "<tr><td>Entity: " << e->getId()
@@ -142,7 +142,7 @@ void LC_SimpleTests::slotTestDumpEntities(RS_EntityContainer* d){
 			dumpFile
 					<< "<tr><td><table><tr>"
 					<< "<td>VIS:" << e->isVisible() << "</td>"
-					<< "<td>UND:" << e->isUndone() << "</td>"
+                    << "<td>UND:" << e->isDeleted() << "</td>"
 					<< "<td>SEL:" << e->isSelected() << "</td>"
 					<< "<td>TMP:" << e->getFlag(RS2::FlagTemp) << "</td>";
 			QString lay = "NULL";
@@ -152,7 +152,7 @@ void LC_SimpleTests::slotTestDumpEntities(RS_EntityContainer* d){
 			dumpFile
 					<< "<td>Layer: " << lay.toLatin1().data() << "</td>"
 					<< "<td>Width: " << (int)e->getPen(false).getWidth() << "</td>"
-					<< "<td>Parent: " << e->getParent()->getId() << "</td>"
+					<< "<td>Parent: " << (e->getParent() ? e->getParent()->getId() : -1) << "</td>"
 					<< "</tr></table>";
 
 			dumpFile
@@ -160,7 +160,7 @@ void LC_SimpleTests::slotTestDumpEntities(RS_EntityContainer* d){
 
 			switch (e->rtti()) {
 			case RS2::EntityPoint: {
-				RS_Point* p = (RS_Point*)e;
+				const RS_Point* p = (RS_Point*)e;
 				dumpFile
 						<< "<table><tr><td>"
 						<< "<b>Point:</b>"
@@ -175,7 +175,7 @@ void LC_SimpleTests::slotTestDumpEntities(RS_EntityContainer* d){
 				break;
 
 			case RS2::EntityLine: {
-				RS_Line* l = (RS_Line*)e;
+				const RS_Line* l = (RS_Line*)e;
 				dumpFile
 						<< "<table><tr><td>"
 						<< "<b>Line:</b>"
@@ -193,7 +193,7 @@ void LC_SimpleTests::slotTestDumpEntities(RS_EntityContainer* d){
 				break;
 
 			case RS2::EntityArc: {
-				RS_Arc* a = (RS_Arc*)e;
+				const RS_Arc* a = (RS_Arc*)e;
 				dumpFile
 						<< "<table><tr><td>"
 						<< "<b>Arc:</b>"
@@ -226,7 +226,7 @@ void LC_SimpleTests::slotTestDumpEntities(RS_EntityContainer* d){
 				break;
 
 			case RS2::EntityCircle: {
-				RS_Circle* c = (RS_Circle*)e;
+				const RS_Circle* c = (RS_Circle*)e;
 				dumpFile
 						<< "<table><tr><td>"
 						<< "<b>Circle:</b>"
@@ -298,7 +298,7 @@ void LC_SimpleTests::slotTestDumpEntities(RS_EntityContainer* d){
 				break;
 
 			case RS2::EntityInsert: {
-				RS_Insert* i = (RS_Insert*)e;
+				const RS_Insert* i = (RS_Insert*)e;
 				dumpFile
 						<< "<table><tr><td>"
 						<< "<b>Insert:</b>"
@@ -313,7 +313,7 @@ void LC_SimpleTests::slotTestDumpEntities(RS_EntityContainer* d){
 				break;
 
 			case RS2::EntityMText: {
-				RS_MText* t = (RS_MText*)e;
+				const RS_MText* t = (RS_MText*)e;
 				dumpFile
 						<< "<table><tr><td>"
 						<< "<b>Text:</b>"
@@ -331,7 +331,7 @@ void LC_SimpleTests::slotTestDumpEntities(RS_EntityContainer* d){
 				break;
 
 			case RS2::EntityText: {
-				RS_Text* t = (RS_Text*)e;
+				const RS_Text* t = (RS_Text*)e;
 				dumpFile
 						<< "<table><tr><td>"
 						<< "<b>Text:</b>"
@@ -349,7 +349,7 @@ void LC_SimpleTests::slotTestDumpEntities(RS_EntityContainer* d){
 				break;
 
 			case RS2::EntityHatch: {
-				RS_Hatch* h = (RS_Hatch*)e;
+				const RS_Hatch* h = (RS_Hatch*)e;
 				dumpFile
 						<< "<table><tr><td>"
 						<< "<b>Hatch:</b>"
@@ -408,7 +408,7 @@ void LC_SimpleTests::slotTestDumpEntities(RS_EntityContainer* d){
 void LC_SimpleTests::slotTestDumpUndo() {
 	RS_DEBUG->print("%s\n: begin\n", __func__);
 
-	RS_Document* d = QC_ApplicationWindow::getAppWindow()->getDocument();
+	RS_Document* d = QC_ApplicationWindow::getAppWindow()->getCurrentDocument();
 	if (d) {
 		std::cout << *(RS_Undo*)d;
 		std::cout << std::endl;
@@ -422,7 +422,7 @@ void LC_SimpleTests::slotTestDumpUndo() {
 void LC_SimpleTests::slotTestUpdateInserts() {
 	RS_DEBUG->print("%s\n: begin\n", __func__);
 
-	RS_Document* d = QC_ApplicationWindow::getAppWindow()->getDocument();
+	RS_Document* d = QC_ApplicationWindow::getAppWindow()->getCurrentDocument();
 	if (d) {
 		d->updateInserts();
 	}
@@ -491,9 +491,9 @@ void LC_SimpleTests::slotTestDrawFreehand() {
  */
 void LC_SimpleTests::slotTestInsertBlock() {
 	RS_DEBUG->print("%s\n: begin\n", __func__);
-	auto appWin=QC_ApplicationWindow::getAppWindow();
+   /* auto& appWin=QC_ApplicationWindow::getAppWindow();
 
-	RS_Document* d = appWin->getDocument();
+	RS_Document* d = appWin->getCurrentDocument();
 	if (d && d->rtti()==RS2::EntityGraphic) {
 		RS_Graphic* graphic = (RS_Graphic*)d;
 		if (graphic==NULL) {
@@ -621,11 +621,11 @@ void LC_SimpleTests::slotTestInsertBlock() {
 		graphic->addEntity(ins);
 
 
-		RS_GraphicView* v = appWin->getGraphicView();
+		RS_GraphicView* v = appWin->getCurrentGraphicView();
 		if (v) {
 			v->redraw();
 		}
-	}
+    }*/
 	RS_DEBUG->print("%s\n: end\n", __func__);
 }
 
@@ -634,9 +634,9 @@ void LC_SimpleTests::slotTestInsertBlock() {
  */
 void LC_SimpleTests::slotTestInsertEllipse() {
 	RS_DEBUG->print("%s\n: begin\n", __func__);
-	auto appWin=QC_ApplicationWindow::getAppWindow();
+    const auto& appWin=QC_ApplicationWindow::getAppWindow();
 
-	RS_Document* d = appWin->getDocument();
+	RS_Document* d = appWin->getCurrentDocument();
 	if (d) {
 		RS_Graphic* graphic = (RS_Graphic*)d;
 		if (!graphic) {
@@ -770,7 +770,7 @@ void LC_SimpleTests::slotTestInsertEllipse() {
 			  }
 		*/
 
-		RS_GraphicView* v = appWin->getGraphicView();
+		RS_GraphicView* v = appWin->getCurrentGraphicView();
 		if (v) {
 			v->redraw();
 		}
@@ -784,7 +784,7 @@ void LC_SimpleTests::slotTestInsertEllipse() {
 void LC_SimpleTests::slotTestInsertMText() {
 	RS_DEBUG->print("%s\n: begin\n", __func__);
 
-	RS_Document* d = QC_ApplicationWindow::getAppWindow()->getDocument();
+	RS_Document* d = QC_ApplicationWindow::getAppWindow()->getCurrentDocument();
 	if (d) {
 		RS_Graphic* graphic = (RS_Graphic*)d;
 		if (graphic==NULL) {
@@ -822,7 +822,7 @@ void LC_SimpleTests::slotTestInsertText() {
 	RS_DEBUG->print("%s\n: begin\n", __func__);
 
 
-	RS_Document* d = QC_ApplicationWindow::getAppWindow()->getDocument();
+	RS_Document* d = QC_ApplicationWindow::getAppWindow()->getCurrentDocument();
 	if (d) {
 		RS_Graphic* graphic = (RS_Graphic*)d;
 		if (graphic==NULL) {
@@ -933,7 +933,7 @@ void LC_SimpleTests::slotTestInsertText() {
 void LC_SimpleTests::slotTestInsertImage() {
 	RS_DEBUG->print("%s\n: begin\n", __func__);
 
-	RS_Document* d = QC_ApplicationWindow::getAppWindow()->getDocument();
+	RS_Document* d = QC_ApplicationWindow::getAppWindow()->getCurrentDocument();
 	if (d) {
 		RS_Graphic* graphic = (RS_Graphic*)d;
 		if (graphic==NULL) {
@@ -965,10 +965,10 @@ void LC_SimpleTests::slotTestInsertImage() {
  */
 void LC_SimpleTests::slotTestUnicode() {
 	RS_DEBUG->print("%s\n: begin\n", __func__);
-	auto appWin= QC_ApplicationWindow::getAppWindow();
+    const auto& appWin= QC_ApplicationWindow::getAppWindow();
 
-	appWin->slotFileOpen("./fonts/unicode.cxf", RS2::FormatCXF);
-	RS_Document* d =appWin->getDocument();
+	appWin->openFile("./fonts/unicode.cxf", RS2::FormatCXF);
+	RS_Document* d =appWin->getCurrentDocument();
 	if (d) {
 		RS_Graphic* graphic = (RS_Graphic*)d;
 		if (graphic==NULL) {
@@ -1025,8 +1025,8 @@ void LC_SimpleTests::slotTestUnicode() {
  */
 void LC_SimpleTests::slotTestMath01() {
 	RS_DEBUG->print("%s\n: begin\n", __func__);
-	auto appWin=QC_ApplicationWindow::getAppWindow();
-	RS_Document* d = appWin->getDocument();
+    const auto& appWin=QC_ApplicationWindow::getAppWindow();
+	RS_Document* d = appWin->getCurrentDocument();
 	if (d) {
 		RS_Graphic* graphic = (RS_Graphic*)d;
 		if (!graphic) {
@@ -1044,7 +1044,7 @@ void LC_SimpleTests::slotTestMath01() {
 		double x_0 = RS_Math::deg2rad(60.0);
 		for (a=0.01; a<2*M_PI; a+=0.01) {
 			// cos curve:
-			RS_Line* line = new RS_Line{graphic, {a-0.01, cos(a-0.01)},
+			const RS_Line* line = new RS_Line{graphic, {a-0.01, cos(a-0.01)},
 			{a, cos(a)}};
 			graphic->addEntity(line);
 
@@ -1066,7 +1066,7 @@ void LC_SimpleTests::slotTestMath01() {
 		//                   RS_Vector(6.0,cos(x_0)-sin(x_0)*(6.0-x_0))));
 
 
-		RS_GraphicView* v = appWin->getGraphicView();
+		RS_GraphicView* v = appWin->getCurrentGraphicView();
 		if (v) {
 			v->redraw();
 		}

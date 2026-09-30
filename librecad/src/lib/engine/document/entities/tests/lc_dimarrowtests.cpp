@@ -1,0 +1,110 @@
+/*
+ * ********************************************************************************
+ * This file is part of the LibreCAD project, a 2D CAD program
+ *
+ * Copyright (C) 2026 LibreCAD.org
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * ********************************************************************************
+ */
+
+#include <catch2/catch_approx.hpp>
+#include <catch2/catch_test_macros.hpp>
+
+#include <cmath>
+#include <memory>
+
+#include "lc_arrow_headclosed.h"
+#include "lc_arrow_headopen.h"
+#include "rs_solid.h"
+
+namespace {
+    // A copy is built from the position and the angle, so it matches the arrow only while its transforms
+    // keep the vertices, the position, the angle and the point the stem is drawn to consistent.
+    void requireMatchesCopy(const LC_DimArrow& arrow) {
+        const std::unique_ptr<RS_Entity> copy{arrow.clone()};
+        const auto& copied = static_cast<const LC_DimArrow&>(*copy);
+        CHECK(copied.getMin().distanceTo(arrow.getMin()) < 1e-9);
+        CHECK(copied.getMax().distanceTo(arrow.getMax()) < 1e-9);
+        CHECK(copied.getDimLinePoint().distanceTo(arrow.getDimLinePoint()) < 1e-9);
+    }
+}
+
+TEST_CASE("LC_DimArrow transforms keep the arrow consistent", "[dimension][arrow]") {
+    const double ownAngle = M_PI / 12.;
+
+    SECTION("rotate turns the arrow about the given center") {
+        LC_ArrowHeadOpen arrow(nullptr, RS_Vector(10., 0.), 0., 2., ownAngle);
+        arrow.rotate(RS_Vector(10., 10.), M_PI / 2.);
+        // (10, 0) turns to (20, 10) about (10, 10); the position used to turn about the origin, to (0, 10)
+        CHECK(arrow.getPosition().distanceTo(RS_Vector(20., 10.)) < 1e-9);
+        CHECK(arrow.getAngle() == Catch::Approx(M_PI / 2.));
+        requireMatchesCopy(arrow);
+    }
+
+    SECTION("move") {
+        LC_ArrowHeadOpen arrow(nullptr, RS_Vector(10., 0.), 0.3, 2., ownAngle);
+        arrow.move(RS_Vector(-4., 7.));
+        CHECK(arrow.getPosition().distanceTo(RS_Vector(6., 7.)) < 1e-9);
+        requireMatchesCopy(arrow);
+    }
+
+    SECTION("mirror") {
+        LC_ArrowHeadOpen arrow(nullptr, RS_Vector(10., 0.), 0.3, 2., ownAngle);
+        // across the line y = x + 5
+        arrow.mirror(RS_Vector(0., 5.), RS_Vector(1., 6.));
+        CHECK(arrow.getPosition().distanceTo(RS_Vector(-5., 15.)) < 1e-9);
+        CHECK(arrow.getAngle() == Catch::Approx(M_PI / 2. - 0.3));
+        requireMatchesCopy(arrow);
+    }
+}
+
+TEST_CASE("LC_ArrowHeadClosed exports the same shape it draws",
+          "[dimension][arrow]") {
+    const RS_Vector position(10., 5.);
+    const double dirAngle = 0.2;
+    const double size = 2.;
+    const double ownAngle = M_PI / 12.;
+
+    SECTION("filled: one SOLID at the triangle's own vertices") {
+        LC_ArrowHeadClosed arrow(nullptr, position, dirAngle, size, ownAngle,
+                                 /*filled=*/true);
+        auto primitives = arrow.exportPrimitives();
+        REQUIRE(primitives.size() == 1);
+        const auto *solid = dynamic_cast<RS_Solid *>(primitives.front().get());
+        REQUIRE(solid != nullptr);
+        // getCorner(2)/(3) alias when a SOLID has only three distinct points.
+        CHECK(solid->getCorner(0).distanceTo(solid->getCorner(1)) > 1e-6);
+        CHECK(solid->getCorner(1).distanceTo(solid->getCorner(2)) > 1e-6);
+        CHECK(solid->getMin().distanceTo(arrow.getMin()) < 1e-9);
+        CHECK(solid->getMax().distanceTo(arrow.getMax()) < 1e-9);
+    }
+
+    SECTION("unfilled: nothing -- it is a named block (\"Closed\"), not the "
+            "blockless default") {
+        // Unlike the filled arrow (DIMBLK "", AutoCAD's own default, which
+        // never has a block on either side), the unfilled outline is a named
+        // arrow type that AutoCAD always stores as an INSERT of its own
+        // block. LC_ArrowHeadClosed(filled=false) is only what
+        // LC_DimArrowRegistry falls back to while that block is momentarily
+        // missing from the drawing; the write side should not hand-draw it
+        // and instead let the model-level fix (ensuring the block exists
+        // before the dimension regenerates) turn it into an RS_Insert like
+        // every other named kind.
+        LC_ArrowHeadClosed arrow(nullptr, position, dirAngle, size, ownAngle,
+                                 /*filled=*/false);
+        CHECK(arrow.exportPrimitives().empty());
+    }
+}

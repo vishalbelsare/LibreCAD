@@ -8,6 +8,7 @@ APPDATADIR="${THISDIR}/unix/appdata"
 TSDIRLC="${LCDIR}/ts"
 TSDIRPI="${PIDIR}/ts"
 SPTDIR="${LCDIR}/support"
+DESKTOPDIR="${THISDIR}/desktop"
 LRELEASE="lrelease"
 
 cd "${THISDIR}"
@@ -15,10 +16,15 @@ cd "${THISDIR}"
 # Postprocess for unix
 mkdir -p "${RESOURCEDIR}"/fonts
 mkdir -p "${RESOURCEDIR}"/patterns
-cp "${SPTDIR}"/patterns/*.dxf "${RESOURCEDIR}"/patterns
+if [ -d "${SPTDIR}/patterns" ]; then
+        find "${SPTDIR}/patterns" -maxdepth 1 -type f -name '*.dxf' \
+                -exec cp {} "${RESOURCEDIR}/patterns" \;
+fi
 cp "${SPTDIR}"/fonts/*.lff* "${RESOURCEDIR}"/fonts
-find "${SPTDIR}"/library -type d | sed 's:^.*support/::' | xargs -IFILES  mkdir -p "${RESOURCEDIR}"/FILES
-find "${SPTDIR}"/library -type f -iname *.dxf | sed 's/^.*support//' | xargs -IFILES  cp "${SPTDIR}"/FILES "${RESOURCEDIR}"/FILES
+if [ -d "${SPTDIR}/library" ]; then
+        find "${SPTDIR}"/library -type d | sed 's:^.*support/::' | xargs -IFILES  mkdir -p "${RESOURCEDIR}"/FILES
+        find "${SPTDIR}"/library -type f -iname "*.dxf" | sed 's/^.*support//' | xargs -IFILES  cp "${SPTDIR}"/FILES "${RESOURCEDIR}"/FILES
+fi
 
 # Generate translations
 ${LRELEASE} "${LCDIR}"/src/src.pro
@@ -38,6 +44,7 @@ do
         cp "${tf}" "${RESOURCEDIR}/qm/${tf}"
 done
 
-# copy appdata.xml to unix/appdata/librecad.appdata.xml
+# copy desktop and appdata files to unix/appdata/
 mkdir -p "${APPDATADIR}"
-cp "${SPTDIR}"/librecad.appdata.xml "${APPDATADIR}"/
+cp "${DESKTOPDIR}"/librecad.desktop "${APPDATADIR}"/
+cp "${DESKTOPDIR}"/org.librecad.librecad.appdata.xml "${APPDATADIR}"/

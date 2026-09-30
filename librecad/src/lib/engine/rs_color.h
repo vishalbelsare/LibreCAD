@@ -25,11 +25,11 @@
 **
 **********************************************************************/
 
-
 #ifndef RS_COLOR_H
 #define RS_COLOR_H
 
 #include <QColor>
+#include <QString>
 
 #include "rs.h"
 #include "rs_flags.h"
@@ -44,23 +44,34 @@
  *
  * @author Andrew Mustun
  */
-class RS_Color: public QColor, public RS_Flags {
+class RS_Color : public QColor, public RS_Flags {
 public:
-    RS_Color() : QColor(), RS_Flags() {}
-    RS_Color(int r, int g, int b) : QColor(r, g, b), RS_Flags() {}
-    RS_Color(int r, int g, int b, int a) : QColor(r, g, b, a), RS_Flags() {}
-    RS_Color(const QColor& c) : QColor(c), RS_Flags() {}
-    RS_Color(const Qt::GlobalColor color) : QColor(color), RS_Flags() {}
-    RS_Color(const RS_Color& c) : QColor(c), RS_Flags() {
-        setFlags(c.getFlags());
-    }
-    RS_Color(unsigned int f) : QColor(), RS_Flags(f) {}
-    RS_Color(QString name) : QColor(name), RS_Flags() {}
+    RS_Color() = default;
 
+    RS_Color(const int r, const int g, const int b) : QColor(r, g, b) {
+    }
+
+    RS_Color(const int r, const int g, const int b, const int a) : QColor(r, g, b, a) {
+    }
+
+    RS_Color(const QColor& c) : QColor(c) {
+    }
+
+    // not explicit, or RS_Color(unsigned int) would take a Qt::GlobalColor as flags
+    // ReSharper disable once CppNonExplicitConvertingConstructor
+    RS_Color(const Qt::GlobalColor color) : QColor(color) {
+    }
+
+    // ReSharper disable once CppNonExplicitConvertingConstructor
+    RS_Color(const unsigned int f) : RS_Flags(f) {
+    }
+
+    explicit RS_Color(const QString& name) : QColor(name) {
+    }
 
     /** @return A copy of this color without flags. */
     RS_Color stripFlags() const {
-        return RS_Color(red(), green(), blue());
+        return {red(), green(), blue(), alpha()};
     }
 
     /** @return true if the color is defined by layer. */
@@ -73,16 +84,27 @@ public:
         return getFlag(RS2::FlagByBlock);
     }
 
-    QColor toQColor(void) const {
-            QColor c0;
-            c0.setRgb(red(),green(),blue());
-            return c0;
+    QColor toQColor() const {
+        return {red(), green(), blue(), alpha()};
     }
 
     //These 3 methods are used for plugins
-    int toIntColor(void) const;
+    int toIntColor() const;
     void fromIntColor(int co);
     int colorDistance(const RS_Color& c) const;
+
+    /**
+     * WCAG 2 relative luminance of \p color: its sRGB channels linearised and weighted
+     * 0.2126 R + 0.7152 G + 0.0722 B, from 0 (black) to 1 (white). Alpha is ignored.
+     */
+    static double relativeLuminance(const QColor& color);
+    /**
+     * WCAG 2 contrast ratio of two colours, (L1 + 0.05) / (L2 + 0.05) with L1 the
+     * relative luminance of the lighter one: from 1 (equal luminance) to 21 (black and
+     * white), symmetric in its arguments. Alpha is ignored, so pass the opaque colours as
+     * painted. WCAG 2.1 asks for at least 3 for graphics and large text, 4.5 for text.
+     */
+    static double contrastRatio(const QColor& a, const QColor& b);
 
     enum {
         Black = 0,
@@ -90,25 +112,31 @@ public:
          * Minimum acceptable distance between two colors before visibility
          * enhancement is required. Determined empirically.
          */
-        MinColorDistance = 20,  //< in %
+        MinColorDistance = 20, //< in %
     };
 
-    RS_Color& operator = (const RS_Color& c) {
-        setRgb(c.red(), c.green(), c.blue());
-        setFlags(c.getFlags());
-
-        return *this;
+    bool isEqualIgnoringFlags(const RS_Color& c) const {
+        return red() == c.red() && green() == c.green() && blue() == c.blue() && alpha() == c.alpha();
     }
 
-    bool operator == (const RS_Color& c) const {
-        return (red()==c.red() &&
-                green()==c.green() &&
-                blue()==c.blue() &&
-                getFlags()==c.getFlags());
+    void applyFlags(const RS_Color& source) {
+        setFlags(source.getFlags());
     }
+
+    bool operator ==(const RS_Color& c) const {
+        return (red() == c.red() && green() == c.green() && blue() == c.blue() && alpha() == c.alpha() && getFlags() == c.getFlags());
+    }
+
+    // Optional named-color tag, e.g. DWG/DXF AcDbColor "BOOK$ENTRY".
+    // Passive metadata: not part of equality, not used by rendering.
+    const QString &colorName() const { return m_colorName; }
+    void setColorName(const QString &n) { m_colorName = n; }
+    bool hasColorName() const { return !m_colorName.isEmpty(); }
 
     friend std::ostream& operator << (std::ostream& os, const RS_Color& c);
+
+  private:
+    QString m_colorName;
 };
 
 #endif
-

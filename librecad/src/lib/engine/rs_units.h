@@ -39,8 +39,15 @@ class QString;
  *
  * @author Andrew Mustun
  */
-class RS_Units {
+class RS_Units{
 public:
+    static void setCurrentDrawingUnits(const RS2::Unit inputUnits){
+        m_currentDrawingUnits = inputUnits;
+    }
+
+    static RS2::Unit getCurrentDrawingUnits(){
+        return m_currentDrawingUnits;
+    }
 
     //static char* unit2sign(RS2::Unit unit);
 
@@ -52,44 +59,52 @@ public:
     static QString unitToString(RS2::Unit u, bool t = true);
     static RS2::Unit stringToUnit(const QString& u);
 
-	static bool isMetric(RS2::Unit u);
-	static double getFactorToMM(RS2::Unit u);
-	static double convert(double val, RS2::Unit src, RS2::Unit dest);
-	static RS_Vector convert(const RS_Vector& val, RS2::Unit src, RS2::Unit dest);
-	
+    static bool isMetric(RS2::Unit u);
+    static double getFactorToMM(RS2::Unit u);
+    static double convert(double val);
+    static double convert(double val, RS2::Unit src, RS2::Unit dest);
+    static RS_Vector convert(const RS_Vector& val, RS2::Unit src, RS2::Unit dest);
+
     static QString unitToSign(RS2::Unit u);
 
     static QString formatLinear(double length, RS2::Unit unit,
-                                  RS2::LinearFormat format,
-                                  int prec, bool showUnit=false);
+                                RS2::LinearFormat format,
+                                int prec, bool showUnit=false);
     static QString formatScientific(double length, RS2::Unit unit,
-                                  int prec, bool showUnit=false);
+                                    int prec, bool showUnit=false);
     static QString formatDecimal(double length, RS2::Unit unit,
-                                  int prec, bool showUnit=false);
+                                 int prec, bool showUnit=false);
     static QString formatEngineering(double length, RS2::Unit unit,
-                                  int prec, bool showUnit=false);
+                                     int prec, bool showUnit=false);
     static QString formatArchitectural(double length, RS2::Unit unit,
-                                  int prec, bool showUnit=false);
+                                       int prec, bool showUnit=false);
     static QString formatFractional(double length, RS2::Unit unit,
-                                  int prec, bool showUnit=false);
+                                    int prec, bool showUnit=false);
     static QString formatArchitecturalMetric(double length, RS2::Unit unit,
-                                  int prec, bool showUnit=false);
+                                             int prec, bool showUnit=false);
 
     static QString formatAngle(double angle, RS2::AngleFormat format,
-                                 int prec);
+                               int prec);
     static RS2::AngleFormat numberToAngleFormat(int num);
 
-	static RS_Vector paperFormatToSize(RS2::PaperFormat p);
-	static RS2::PaperFormat paperSizeToFormat(const RS_Vector& s);
+    static RS_Vector paperFormatToSize(RS2::PaperFormat p);
+    static RS2::PaperFormat paperSizeToFormat(const RS_Vector& s);
 
-	static QString paperFormatToString(RS2::PaperFormat p);
-	static RS2::PaperFormat stringToPaperFormat(const QString& p);
+    static QString paperFormatToString(RS2::PaperFormat p);
+    static RS2::PaperFormat stringToPaperFormat(const QString& p);
 
-	static void test();
+    static void test();
     static double dpiToScale(double dpi, RS2::Unit unit);
     static double scaleToDpi(double scale, RS2::Unit unit);
 
+    static QString replaceSurveyorsAnglesByDecimalDegrees(const QString& val, bool *ok, QString& errorMsg);
+    static QString replaceRadiantAnglesByDecimalDegrees(const QString& val, bool *ok);
+    static QString replaceGradAnglesByDecimalDegrees(const QString& val, bool *ok);
+    static QString replaceExplicitDegreesByDecimalDegrees(const QString& val, bool *ok);
+    static QString replaceExplicitBearingAnglesByDecimalDegrees(const QString& val, bool *ok);
+    static QString replaceAllPotentialAnglesByDecimalDegrees(const QString& val, bool *ok);
+    static double evalAngleValue(const QString &c, bool *ok);
+private:
+    static RS2::Unit m_currentDrawingUnits;
 };
-
-
 #endif

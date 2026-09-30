@@ -1,52 +1,117 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.0" language="ru">
+<TS version="2.1" language="ru">
 <context>
     <name>AsciiFile</name>
     <message>
         <location filename="../asciifile/asciifile.cpp" line="35"/>
-        <location filename="../asciifile/asciifile.cpp" line="41"/>
+        <source>Read ASCII points</source>
+        <translation>Чтение ASCII-точек</translation>
+    </message>
+    <message>
+        <location filename="../asciifile/asciifile.cpp" line="36"/>
+        <source>Read ASCII test tip...</source>
+        <translation>Чтение ASCII-точек...</translation>
+    </message>
+    <message>
+        <location filename="../asciifile/asciifile.cpp" line="42"/>
         <source>Read ascii points</source>
         <translation>Точки в формате ASCII</translation>
     </message>
 </context>
 <context>
-    <name>ImportShp</name>
+    <name>ExpTo_Csv</name>
     <message>
-        <source>shape file</source>
-        <translation type="obsolete">Shape-файл</translation>
+        <location filename="../pointstocsv/pointstocsv.cpp" line="34"/>
+        <source>Export points to csv</source>
+        <translation>Экспорт точек в CSV</translation>
     </message>
     <message>
-        <location filename="../importshp/importshp.cpp" line="40"/>
-        <source>Import ESRI Shapefile</source>
-        <translation>Импорт ESRI Shape-файла</translation>
+        <location filename="../pointstocsv/pointstocsv.cpp" line="41"/>
+        <source>Export to csv test tip...</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
     <name>LC_Align</name>
     <message>
-        <location filename="../align/align.cpp" line="20"/>
-        <location filename="../align/align.cpp" line="27"/>
+        <location filename="../align/align.cpp" line="24"/>
         <source>Align</source>
         <translation>Выровнять</translation>
     </message>
     <message>
-        <location filename="../align/align.cpp" line="40"/>
+        <location filename="../align/align.cpp" line="31"/>
+        <source>Align settings...</source>
+        <translation>Настройки выравнивания...</translation>
+    </message>
+    <message>
+        <location filename="../align/align.cpp" line="32"/>
+        <source>Align test tip...</source>
+        <translation>Выравнивание...</translation>
+    </message>
+    <message>
+        <location filename="../align/align.cpp" line="47"/>
+        <source>Keep original objects</source>
+        <translation>Сохранить исходные объекты</translation>
+    </message>
+    <message>
+        <location filename="../align/align.cpp" line="48"/>
+        <source>Specify base points first</source>
+        <translation>Сначала укажите базовые точки</translation>
+    </message>
+    <message>
+        <location filename="../align/align.cpp" line="52"/>
+        <source>Align Settings</source>
+        <translation>Настройки выравнивания</translation>
+    </message>
+    <message>
+        <location filename="../align/align.cpp" line="55"/>
+        <source>Click on options to set/unset,
+Ok to accept and start alignment.</source>
+        <translation>Нажмите на параметры, чтобы включить/отключить их, нажмите «ОК», чтобы принять и начать выравнивание.</translation>
+    </message>
+    <message>
+        <source>If &apos;Keep original objects&apos; is checked,
+Align will copy rather than move the selected objects.
+If &apos;Specify base points first&apos; is checked,
+Align will prompt for the alignment points in the order
+first base, second base, first target, second target.</source>
+        <translation type="vanished">Если установлена опция «Сохранять исходные объекты», функция «Выровнять» будет копировать, а не перемещать выбранные объекты.
+Если установлена опция «Сначала указать базовые точки», функция «Выровнять» будет запрашивать точки выравнивания в следующем порядке: сначала базовая точка, затем вторая базовая точка, затем первая целевая точка и, наконец, вторая целевая точка.</translation>
+    </message>
+    <message>
+        <location filename="../align/align.cpp" line="79"/>
         <source>first base point:</source>
         <translation>Первая базовая точка:</translation>
     </message>
     <message>
-        <location filename="../align/align.cpp" line="42"/>
+        <location filename="../align/align.cpp" line="84"/>
         <source>first target point:</source>
         <translation>Первая целевая точка:</translation>
     </message>
     <message>
-        <location filename="../align/align.cpp" line="44"/>
+        <location filename="../align/align.cpp" line="82"/>
+        <location filename="../align/align.cpp" line="87"/>
         <source>second base point:</source>
         <translation>Вторая базовая точка:</translation>
     </message>
     <message>
-        <location filename="../align/align.cpp" line="46"/>
+        <location filename="../align/align.cpp" line="58"/>
+        <source>If &apos;Keep original objects&apos; is checked,
+Align will copy rather than move the selected objects.
+
+If &apos;Specify base points first&apos; is checked,
+Align will prompt for the alignment points in the order
+first base, second base, first target, second target.</source>
+        <translation>Если проверяется "Keep original objects",
+Align будет копировать, а не перемещать выбранные объекты.
+
+Если "указать базовые точки в первую очередь" проверяется,
+Приведение в порядок выравнивания
+первая база, вторая база, первая цель, вторая цель.</translation>
+    </message>
+    <message>
+        <location filename="../align/align.cpp" line="89"/>
         <source>second target point:</source>
         <translation>Вторая целевая точка:</translation>
     </message>
@@ -56,304 +121,317 @@
     <message>
         <location filename="../gear/gear.cpp" line="33"/>
         <source>Gear creation plugin</source>
-        <translation type="unfinished"></translation>
+        <translation>Плагин для создания шестерен</translation>
     </message>
     <message>
-        <location filename="../gear/gear.cpp" line="40"/>
+        <location filename="../gear/gear.cpp" line="41"/>
         <source>Gear plugin</source>
-        <translation type="unfinished"></translation>
+        <translation>Плагин для работы с шестернями</translation>
+    </message>
+    <message>
+        <location filename="../gear/gear.cpp" line="42"/>
+        <source>Select point for center of gear and press left mouse button.
+Then fill in the fields and press &apos;Accept&apos; button.</source>
+        <translation>Выберите точку для центра шестерни и нажмите левую кнопку мыши. Затем заполните поля и нажмите кнопку «Принять».</translation>
     </message>
 </context>
 <context>
     <name>LC_List</name>
     <message>
-        <location filename="../list/list.cpp" line="23"/>
-        <location filename="../list/list.cpp" line="30"/>
+        <location filename="../list/list.cpp" line="22"/>
+        <location filename="../list/list.cpp" line="29"/>
         <source>List entities</source>
         <translation>Перечень элементов</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="46"/>
+        <location filename="../list/list.cpp" line="30"/>
+        <source>List test tip...</source>
+        <translation>Подсказка для списка...</translation>
+    </message>
+    <message>
+        <location filename="../list/list.cpp" line="44"/>
         <source>n</source>
         <translation>№</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="60"/>
+        <location filename="../list/list.cpp" line="58"/>
         <source>Empty Entity</source>
         <translation>Пусто</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="67"/>
+        <location filename="../list/list.cpp" line="65"/>
         <source>X</source>
         <translation>X</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="67"/>
+        <location filename="../list/list.cpp" line="65"/>
         <source>Y</source>
         <translation>Y</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="77"/>
+        <location filename="../list/list.cpp" line="75"/>
         <source>Layer</source>
         <translation>Слой</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="79"/>
+        <location filename="../list/list.cpp" line="77"/>
         <source>Color</source>
         <translation>Цвет</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="80"/>
+        <location filename="../list/list.cpp" line="78"/>
         <source>Line type</source>
         <translation>Тип линии</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="81"/>
+        <location filename="../list/list.cpp" line="79"/>
         <source>Line thickness</source>
         <translation>Толщина линии</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="82"/>
+        <location filename="../list/list.cpp" line="80"/>
         <source>ID</source>
         <translation>Идентификатор</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="88"/>
+        <location filename="../list/list.cpp" line="86"/>
         <source>POINT</source>
         <translation>ТОЧКА</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="89"/>
-        <location filename="../list/list.cpp" line="218"/>
+        <location filename="../list/list.cpp" line="87"/>
+        <location filename="../list/list.cpp" line="178"/>
+        <location filename="../list/list.cpp" line="220"/>
         <source>in point</source>
         <translation>в точке</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="94"/>
+        <location filename="../list/list.cpp" line="92"/>
         <source>LINE</source>
         <translation>ЛИНИЯ</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="99"/>
+        <location filename="../list/list.cpp" line="97"/>
         <source>from point</source>
         <translation>от точки</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="102"/>
+        <location filename="../list/list.cpp" line="100"/>
         <source>to point</source>
         <translation>до точки</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="107"/>
-        <location filename="../list/list.cpp" line="131"/>
+        <location filename="../list/list.cpp" line="105"/>
+        <location filename="../list/list.cpp" line="129"/>
         <source>length</source>
         <translation>длина</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="112"/>
+        <location filename="../list/list.cpp" line="110"/>
         <source>Angle in XY plane</source>
         <translation>угол в плоскости XY</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="113"/>
+        <location filename="../list/list.cpp" line="111"/>
         <source>Inc.</source>
         <translation>ув.</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="118"/>
+        <location filename="../list/list.cpp" line="116"/>
         <source>ARC</source>
         <translation>ДУГА</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="119"/>
-        <location filename="../list/list.cpp" line="135"/>
-        <location filename="../list/list.cpp" line="145"/>
+        <location filename="../list/list.cpp" line="117"/>
+        <location filename="../list/list.cpp" line="133"/>
+        <location filename="../list/list.cpp" line="143"/>
         <source>center point</source>
         <translation>центральная точка</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="125"/>
-        <location filename="../list/list.cpp" line="139"/>
-        <location filename="../list/list.cpp" line="222"/>
+        <location filename="../list/list.cpp" line="123"/>
+        <location filename="../list/list.cpp" line="137"/>
+        <location filename="../list/list.cpp" line="224"/>
         <source>radius</source>
         <translation>радиус</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="126"/>
+        <location filename="../list/list.cpp" line="124"/>
         <source>initial angle</source>
         <translation>начальный угол</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="127"/>
+        <location filename="../list/list.cpp" line="125"/>
         <source>final angle</source>
         <translation>конечный угол</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="134"/>
+        <location filename="../list/list.cpp" line="132"/>
         <source>CIRCLE</source>
         <translation>ОКРУЖНОСТЬ</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="140"/>
+        <location filename="../list/list.cpp" line="138"/>
         <source>circumference</source>
         <translation>периметр</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="141"/>
+        <location filename="../list/list.cpp" line="139"/>
         <source>area</source>
         <translation>площадь</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="144"/>
+        <location filename="../list/list.cpp" line="142"/>
         <source>ELLIPSE</source>
         <translation>ЭЛЛИПС</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="148"/>
+        <location filename="../list/list.cpp" line="146"/>
         <source>major axis</source>
         <translation>главные оси</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="166"/>
+        <location filename="../list/list.cpp" line="164"/>
         <source>CONSTRUCTIONLINE</source>
         <translation>ЛИНИЯПОСТРОЕНИЯ</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="169"/>
+        <location filename="../list/list.cpp" line="167"/>
         <source>OVERLAYBOX</source>
-        <translation type="unfinished"></translation>
+        <translation>ОКНО НАЛОЖЕНИЯ</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="172"/>
+        <location filename="../list/list.cpp" line="170"/>
         <source>SOLID</source>
         <translation>СПЛОШНАЯ</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="176"/>
+        <location filename="../list/list.cpp" line="174"/>
         <source>MTEXT</source>
         <translation>МТЕКСТ</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="179"/>
+        <location filename="../list/list.cpp" line="177"/>
         <source>TEXT</source>
         <translation>ТЕКСТ</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="182"/>
+        <location filename="../list/list.cpp" line="181"/>
+        <source>TEXTCONTENT</source>
+        <translation>СОДЕРЖИМОЕ ТЕКСТА</translation>
+    </message>
+    <message>
+        <location filename="../list/list.cpp" line="184"/>
         <source>INSERT</source>
         <translation>ВСТАВКА</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="185"/>
+        <location filename="../list/list.cpp" line="187"/>
         <source>Name</source>
         <translation>Имя</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="187"/>
+        <location filename="../list/list.cpp" line="189"/>
         <source>Insertion point</source>
         <translation>Точка вставки</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="190"/>
+        <location filename="../list/list.cpp" line="192"/>
         <source>Scale</source>
-        <translation type="unfinished"></translation>
+        <translation>Масштаб</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="193"/>
+        <location filename="../list/list.cpp" line="195"/>
         <source>Rotation</source>
-        <translation type="unfinished"></translation>
+        <translation>Поворот</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="199"/>
+        <location filename="../list/list.cpp" line="201"/>
         <source>Columns/Rows</source>
-        <translation type="unfinished"></translation>
+        <translation>Столбцы/Строки</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="203"/>
+        <location filename="../list/list.cpp" line="205"/>
         <source>Column/Row Spacing</source>
-        <translation type="unfinished"></translation>
+        <translation>Интервал между столбцами/строками</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="210"/>
+        <location filename="../list/list.cpp" line="212"/>
         <source>POLYLINE</source>
         <translation>ЛОМАНАЯ</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="211"/>
+        <location filename="../list/list.cpp" line="213"/>
         <source>Closed</source>
         <translation>Замкнута</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="212"/>
+        <location filename="../list/list.cpp" line="214"/>
         <source>No</source>
         <translation>Нет</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="212"/>
+        <location filename="../list/list.cpp" line="214"/>
         <source>Yes</source>
         <translation>Да</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="213"/>
+        <location filename="../list/list.cpp" line="215"/>
         <source>Vertices</source>
         <translation>Вершины</translation>
     </message>
     <message>
-        <source>curvature</source>
-        <translation type="obsolete">кривизна</translation>
-    </message>
-    <message>
-        <location filename="../list/list.cpp" line="227"/>
+        <location filename="../list/list.cpp" line="229"/>
         <source>IMAGE</source>
         <translation>ИЗОБРАЖЕНИЕ</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="230"/>
+        <location filename="../list/list.cpp" line="232"/>
         <source>SPLINE</source>
         <translation>СПЛАЙН</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="233"/>
+        <location filename="../list/list.cpp" line="235"/>
         <source>SPLINEPOINTS</source>
         <translation>ТОЧКИСПЛАЙНА</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="236"/>
+        <location filename="../list/list.cpp" line="238"/>
         <source>HATCH</source>
         <translation>ШТРИХОВКА</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="239"/>
+        <location filename="../list/list.cpp" line="241"/>
         <source>DIMLEADER</source>
         <translation>ВЫНОСКА</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="242"/>
+        <location filename="../list/list.cpp" line="244"/>
         <source>DIMALIGNED</source>
         <translation>ВЫРАВНЕННЫЙРАЗМЕР</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="245"/>
+        <location filename="../list/list.cpp" line="247"/>
         <source>DIMLINEAR</source>
         <translation>ЛИНЕЙНЫЙРАЗМЕР</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="248"/>
+        <location filename="../list/list.cpp" line="250"/>
         <source>DIMRADIAL</source>
         <translation>РАДИАЛЬНЫЙРАЗМЕР</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="251"/>
+        <location filename="../list/list.cpp" line="253"/>
         <source>DIMDIAMETRIC</source>
         <translation>ДИАМЕТРАЛЬНЫЙРАЗМЕР</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="254"/>
+        <location filename="../list/list.cpp" line="256"/>
         <source>DIMANGULAR</source>
         <translation>УГЛОВОЙРАЗМЕР</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="257"/>
+        <location filename="../list/list.cpp" line="259"/>
         <source>UNKNOWN</source>
         <translation>НЕИЗВЕСТНО</translation>
     </message>
@@ -367,12 +445,17 @@
         <translation>Одинаковые свойства</translation>
     </message>
     <message>
-        <location filename="../sameprop/sameprop.cpp" line="41"/>
+        <location filename="../sameprop/sameprop.cpp" line="29"/>
+        <source>Same properties test tip...</source>
+        <translation>Подсказка: проверка одинаковых свойств...</translation>
+    </message>
+    <message>
+        <location filename="../sameprop/sameprop.cpp" line="40"/>
         <source>select original entity:</source>
         <translation>Выберите исходный объект</translation>
     </message>
     <message>
-        <location filename="../sameprop/sameprop.cpp" line="43"/>
+        <location filename="../sameprop/sameprop.cpp" line="42"/>
         <source>select entities to change</source>
         <translation>Выберите объекты для изменения</translation>
     </message>
@@ -385,6 +468,11 @@
         <source>Sample plugin</source>
         <translation>Пример дополнения</translation>
     </message>
+    <message>
+        <location filename="../sample/sample.cpp" line="34"/>
+        <source>Sample test tip...</source>
+        <translation>Подсказка: пример проверки...</translation>
+    </message>
 </context>
 <context>
     <name>PicFile</name>
@@ -394,7 +482,12 @@
         <translation>PIC-файл</translation>
     </message>
     <message>
-        <location filename="../picfile/picfile.cpp" line="42"/>
+        <location filename="../picfile/picfile.cpp" line="37"/>
+        <source>PIC test tip...</source>
+        <translation>Подсказка: проверка изображения...</translation>
+    </message>
+    <message>
+        <location filename="../picfile/picfile.cpp" line="43"/>
         <source>import PIC file</source>
         <translation>Импорт PIC-файла</translation>
     </message>
@@ -402,404 +495,582 @@
 <context>
     <name>dibPunto</name>
     <message>
-        <location filename="../asciifile/asciifile.cpp" line="229"/>
+        <location filename="../asciifile/asciifile.cpp" line="220"/>
         <source>Read ascii points</source>
         <translation>Точки в формате ASCII</translation>
     </message>
     <message>
-        <location filename="../asciifile/asciifile.cpp" line="235"/>
+        <location filename="../asciifile/asciifile.cpp" line="226"/>
         <source>File...</source>
         <translation>Файл...</translation>
     </message>
     <message>
-        <location filename="../asciifile/asciifile.cpp" line="242"/>
+        <location filename="../asciifile/asciifile.cpp" line="233"/>
         <source>Format:</source>
         <translation>Формат:</translation>
     </message>
     <message>
-        <location filename="../asciifile/asciifile.cpp" line="244"/>
+        <location filename="../asciifile/asciifile.cpp" line="235"/>
         <source>Space Separator</source>
         <translation>Разделение пробелами</translation>
     </message>
     <message>
-        <location filename="../asciifile/asciifile.cpp" line="244"/>
+        <location filename="../asciifile/asciifile.cpp" line="235"/>
         <source>Tab Separator</source>
         <translation>Разделение табуляцией</translation>
     </message>
     <message>
-        <location filename="../asciifile/asciifile.cpp" line="244"/>
+        <location filename="../asciifile/asciifile.cpp" line="235"/>
         <source>Comma Separator</source>
         <translation>Разделение запятой</translation>
     </message>
     <message>
-        <location filename="../asciifile/asciifile.cpp" line="244"/>
+        <location filename="../asciifile/asciifile.cpp" line="235"/>
         <source>Space in Columns</source>
         <translation>Пробелы в столбцах</translation>
     </message>
     <message>
-        <location filename="../asciifile/asciifile.cpp" line="244"/>
+        <location filename="../asciifile/asciifile.cpp" line="235"/>
         <source>*.odb for Psion 2</source>
         <translation>*.odb для Psion 2</translation>
     </message>
     <message>
-        <location filename="../asciifile/asciifile.cpp" line="246"/>
+        <location filename="../asciifile/asciifile.cpp" line="237"/>
         <source>Connect points</source>
         <translation>Соединить точки</translation>
     </message>
     <message>
-        <location filename="../asciifile/asciifile.cpp" line="254"/>
+        <location filename="../asciifile/asciifile.cpp" line="245"/>
         <source>2D Point</source>
         <translation>2D точка</translation>
     </message>
     <message>
-        <location filename="../asciifile/asciifile.cpp" line="254"/>
+        <location filename="../asciifile/asciifile.cpp" line="245"/>
         <source>Draw 2D Point</source>
         <translation>Построить 2D точку</translation>
     </message>
     <message>
-        <location filename="../asciifile/asciifile.cpp" line="255"/>
+        <location filename="../asciifile/asciifile.cpp" line="246"/>
         <source>3D Point</source>
         <translation>3D точка</translation>
     </message>
     <message>
-        <location filename="../asciifile/asciifile.cpp" line="255"/>
+        <location filename="../asciifile/asciifile.cpp" line="246"/>
         <source>Draw 3D Point</source>
         <translation>Построить 3D точку</translation>
     </message>
     <message>
-        <location filename="../asciifile/asciifile.cpp" line="256"/>
+        <location filename="../asciifile/asciifile.cpp" line="247"/>
         <source>Point Number</source>
         <translation>Номер точки</translation>
     </message>
     <message>
-        <location filename="../asciifile/asciifile.cpp" line="256"/>
+        <location filename="../asciifile/asciifile.cpp" line="247"/>
         <source>Draw point number</source>
         <translation>Нумеровать точки</translation>
     </message>
     <message>
-        <location filename="../asciifile/asciifile.cpp" line="257"/>
+        <location filename="../asciifile/asciifile.cpp" line="248"/>
         <source>Point Elevation</source>
         <translation>Отметка высоты</translation>
     </message>
     <message>
-        <location filename="../asciifile/asciifile.cpp" line="257"/>
+        <location filename="../asciifile/asciifile.cpp" line="248"/>
         <source>Draw point elevation</source>
         <translation>Надписать высоту точки</translation>
     </message>
     <message>
-        <location filename="../asciifile/asciifile.cpp" line="258"/>
+        <location filename="../asciifile/asciifile.cpp" line="249"/>
         <source>Point Code</source>
         <translation>Код точки</translation>
     </message>
     <message>
-        <location filename="../asciifile/asciifile.cpp" line="258"/>
+        <location filename="../asciifile/asciifile.cpp" line="249"/>
         <source>Draw point code</source>
         <translation>Надписать код точки</translation>
     </message>
     <message>
-        <location filename="../asciifile/asciifile.cpp" line="272"/>
+        <location filename="../asciifile/asciifile.cpp" line="263"/>
         <source>Accept</source>
         <translation>Применить</translation>
     </message>
     <message>
-        <location filename="../asciifile/asciifile.cpp" line="277"/>
+        <location filename="../asciifile/asciifile.cpp" line="268"/>
         <source>Cancel</source>
         <translation>Отмена</translation>
     </message>
     <message>
-        <location filename="../asciifile/asciifile.cpp" line="307"/>
+        <location filename="../asciifile/asciifile.cpp" line="298"/>
         <source>Select file</source>
         <translation>Выберите файл</translation>
     </message>
     <message>
-        <location filename="../asciifile/asciifile.cpp" line="314"/>
+        <location filename="../asciifile/asciifile.cpp" line="304"/>
         <source>Point 2D layer is empty</source>
         <translation>Слой для 2D точек пуст</translation>
     </message>
     <message>
-        <location filename="../asciifile/asciifile.cpp" line="317"/>
+        <location filename="../asciifile/asciifile.cpp" line="307"/>
         <source>Point 3D layer is empty</source>
         <translation>Слой для 3D точек пуст</translation>
     </message>
     <message>
-        <location filename="../asciifile/asciifile.cpp" line="320"/>
+        <location filename="../asciifile/asciifile.cpp" line="310"/>
         <source>Point elevation layer is empty</source>
         <translation>Не указан слой для высоты точки</translation>
     </message>
     <message>
-        <location filename="../asciifile/asciifile.cpp" line="321"/>
+        <location filename="../asciifile/asciifile.cpp" line="311"/>
         <source>Point elevation height is empty</source>
         <translation>Не указана высота шрифта высоты точки</translation>
     </message>
     <message>
-        <location filename="../asciifile/asciifile.cpp" line="322"/>
+        <location filename="../asciifile/asciifile.cpp" line="312"/>
         <source>Point elevation separation is empty</source>
         <translation>Не указано разделение высоты точки</translation>
     </message>
     <message>
-        <location filename="../asciifile/asciifile.cpp" line="325"/>
+        <location filename="../asciifile/asciifile.cpp" line="315"/>
         <source>Point number layer is empty</source>
         <translation>Не указан слой нумерации точки</translation>
     </message>
     <message>
-        <location filename="../asciifile/asciifile.cpp" line="326"/>
+        <location filename="../asciifile/asciifile.cpp" line="316"/>
         <source>Point number height is empty</source>
         <translation>Не указана высота шрифта нумерации точки</translation>
     </message>
     <message>
-        <location filename="../asciifile/asciifile.cpp" line="327"/>
+        <location filename="../asciifile/asciifile.cpp" line="317"/>
         <source>Point number separation is empty</source>
         <translation>Не указано разделение нумерации точки</translation>
     </message>
     <message>
-        <location filename="../asciifile/asciifile.cpp" line="330"/>
+        <location filename="../asciifile/asciifile.cpp" line="320"/>
         <source>Point code layer is empty</source>
         <translation>Не указан слой кода точки</translation>
     </message>
     <message>
-        <location filename="../asciifile/asciifile.cpp" line="331"/>
+        <location filename="../asciifile/asciifile.cpp" line="321"/>
         <source>Point code height is empty</source>
         <translation>Не указана высота шрифта кода точки</translation>
     </message>
     <message>
-        <location filename="../asciifile/asciifile.cpp" line="332"/>
+        <location filename="../asciifile/asciifile.cpp" line="322"/>
         <source>Point code separation is empty</source>
         <translation>Не указано разделение кода точки</translation>
     </message>
     <message>
-        <location filename="../asciifile/asciifile.cpp" line="360"/>
+        <location filename="../asciifile/asciifile.cpp" line="358"/>
         <source>The file %1 not exist</source>
         <translation>Не существует файл %1</translation>
     </message>
     <message>
-        <location filename="../asciifile/asciifile.cpp" line="365"/>
+        <location filename="../asciifile/asciifile.cpp" line="363"/>
         <source>Can&apos;t open the file %1</source>
         <translation>Невозможно открыть файл %1</translation>
     </message>
 </context>
 <context>
-    <name>dibSHP</name>
+    <name>divide</name>
     <message>
-        <location filename="../importshp/importshp.cpp" line="59"/>
-        <source>File...</source>
-        <translation>Файл...</translation>
+        <location filename="../divide/divide.cpp" line="34"/>
+        <location filename="../divide/divide.cpp" line="41"/>
+        <source>Divide</source>
+        <translation>Разделить</translation>
     </message>
     <message>
-        <location filename="../importshp/importshp.cpp" line="67"/>
-        <source>File type:</source>
-        <translation>Тип файла:</translation>
+        <location filename="../divide/divide.cpp" line="42"/>
+        <source>Divide test tip...</source>
+        <translation>Подсказка: разделить...</translation>
     </message>
     <message>
-        <location filename="../importshp/importshp.cpp" line="75"/>
+        <location filename="../divide/divide.cpp" line="53"/>
+        <source>Select a line, circle or arc and press return</source>
+        <translation>Выберите линию, окружность или дугу и нажмите клавишу Return</translation>
+    </message>
+    <message>
+        <location filename="../divide/divide.cpp" line="64"/>
+        <source>Error</source>
+        <translation>Ошибка</translation>
+    </message>
+    <message>
+        <location filename="../divide/divide.cpp" line="101"/>
+        <source>n</source>
+        <translation>n</translation>
+    </message>
+    <message>
+        <location filename="../divide/divide.cpp" line="439"/>
+        <source>Empty Entity</source>
+        <translation>Пустая сущность</translation>
+    </message>
+    <message>
+        <location filename="../divide/divide.cpp" line="447"/>
+        <source>X</source>
+        <translation>X</translation>
+    </message>
+    <message>
+        <location filename="../divide/divide.cpp" line="447"/>
+        <source>Y</source>
+        <translation>Y</translation>
+    </message>
+    <message>
+        <location filename="../divide/divide.cpp" line="455"/>
         <source>Layer</source>
         <translation>Слой</translation>
     </message>
     <message>
-        <location filename="../importshp/importshp.cpp" line="56"/>
-        <source>Import ESRI Shapefile</source>
-        <translation>Импорт ESRI Shape-файла</translation>
-    </message>
-    <message>
-        <location filename="../importshp/importshp.cpp" line="68"/>
-        <location filename="../importshp/importshp.cpp" line="266"/>
-        <source>Unknown</source>
-        <translation>Неизвестно</translation>
-    </message>
-    <message>
-        <location filename="../importshp/importshp.cpp" line="76"/>
-        <location filename="../importshp/importshp.cpp" line="89"/>
-        <location filename="../importshp/importshp.cpp" line="102"/>
-        <location filename="../importshp/importshp.cpp" line="115"/>
-        <source>Current</source>
-        <translation>Текущий</translation>
-    </message>
-    <message>
-        <location filename="../importshp/importshp.cpp" line="77"/>
-        <location filename="../importshp/importshp.cpp" line="90"/>
-        <location filename="../importshp/importshp.cpp" line="103"/>
-        <location filename="../importshp/importshp.cpp" line="116"/>
-        <source>From data:</source>
-        <translation>Из данных:</translation>
-    </message>
-    <message>
-        <location filename="../importshp/importshp.cpp" line="88"/>
+        <location filename="../divide/divide.cpp" line="457"/>
         <source>Color</source>
         <translation>Цвет</translation>
     </message>
     <message>
-        <location filename="../importshp/importshp.cpp" line="101"/>
+        <location filename="../divide/divide.cpp" line="458"/>
         <source>Line type</source>
         <translation>Тип линии</translation>
     </message>
     <message>
-        <location filename="../importshp/importshp.cpp" line="114"/>
-        <source>Width</source>
-        <translation>Ширина</translation>
+        <location filename="../divide/divide.cpp" line="460"/>
+        <source>Line thickness</source>
+        <translation>Толщина линии</translation>
     </message>
     <message>
-        <location filename="../importshp/importshp.cpp" line="127"/>
-        <location filename="../importshp/importshp.cpp" line="213"/>
-        <source>Point</source>
-        <translation>Точка</translation>
+        <location filename="../divide/divide.cpp" line="462"/>
+        <source>ID</source>
+        <translation>Идентификатор</translation>
     </message>
     <message>
-        <location filename="../importshp/importshp.cpp" line="128"/>
-        <source>as Point</source>
-        <translation>Как точка</translation>
+        <location filename="../divide/divide.cpp" line="469"/>
+        <source>LINE</source>
+        <translation>ЛИНИЯ</translation>
     </message>
     <message>
-        <location filename="../importshp/importshp.cpp" line="129"/>
-        <source>as Label:</source>
-        <translation>Как метка:</translation>
+        <location filename="../divide/divide.cpp" line="474"/>
+        <source>from point</source>
+        <translation>от точки</translation>
     </message>
     <message>
-        <location filename="../importshp/importshp.cpp" line="141"/>
-        <source>Accept</source>
-        <translation>Принять</translation>
+        <location filename="../divide/divide.cpp" line="477"/>
+        <source>to point</source>
+        <translation>до точки</translation>
     </message>
     <message>
-        <location filename="../importshp/importshp.cpp" line="142"/>
+        <location filename="../divide/divide.cpp" line="482"/>
+        <location filename="../divide/divide.cpp" line="509"/>
+        <source>length</source>
+        <translation>длина</translation>
+    </message>
+    <message>
+        <location filename="../divide/divide.cpp" line="487"/>
+        <source>Angle in XY plane</source>
+        <translation>угол в плоскости XY</translation>
+    </message>
+    <message>
+        <location filename="../divide/divide.cpp" line="489"/>
+        <source>Inc.</source>
+        <translation>шаг</translation>
+    </message>
+    <message>
+        <location filename="../divide/divide.cpp" line="494"/>
+        <source>ARC</source>
+        <translation>ДУГА</translation>
+    </message>
+    <message>
+        <location filename="../divide/divide.cpp" line="495"/>
+        <location filename="../divide/divide.cpp" line="514"/>
+        <source>center point</source>
+        <translation>центр</translation>
+    </message>
+    <message>
+        <location filename="../divide/divide.cpp" line="501"/>
+        <location filename="../divide/divide.cpp" line="518"/>
+        <location filename="../divide/divide.cpp" line="540"/>
+        <source>radius</source>
+        <translation>радиус</translation>
+    </message>
+    <message>
+        <location filename="../divide/divide.cpp" line="502"/>
+        <source>initial angle</source>
+        <translation>начальный угол</translation>
+    </message>
+    <message>
+        <location filename="../divide/divide.cpp" line="504"/>
+        <source>final angle</source>
+        <translation>конечный угол</translation>
+    </message>
+    <message>
+        <location filename="../divide/divide.cpp" line="513"/>
+        <source>CIRCLE</source>
+        <translation>ОКРУЖНОСТЬ</translation>
+    </message>
+    <message>
+        <location filename="../divide/divide.cpp" line="519"/>
+        <source>circumference</source>
+        <translation>длина окружности</translation>
+    </message>
+    <message>
+        <location filename="../divide/divide.cpp" line="521"/>
+        <source>area</source>
+        <translation>область</translation>
+    </message>
+    <message>
+        <location filename="../divide/divide.cpp" line="525"/>
+        <source>POLYLINE</source>
+        <translation>ПОЛИЛИНИЯ</translation>
+    </message>
+    <message>
+        <location filename="../divide/divide.cpp" line="526"/>
+        <source>Closed</source>
+        <translation>Замкнутая</translation>
+    </message>
+    <message>
+        <location filename="../divide/divide.cpp" line="528"/>
+        <source>No</source>
+        <translation>Нет</translation>
+    </message>
+    <message>
+        <location filename="../divide/divide.cpp" line="528"/>
+        <source>Yes</source>
+        <translation>Да</translation>
+    </message>
+    <message>
+        <location filename="../divide/divide.cpp" line="529"/>
+        <source>Vertices</source>
+        <translation>Вершины</translation>
+    </message>
+    <message>
+        <location filename="../divide/divide.cpp" line="534"/>
+        <source>in point</source>
+        <translation>в точке</translation>
+    </message>
+    <message>
+        <location filename="../divide/divide.cpp" line="550"/>
+        <source>MUST be a line, circle or arc</source>
+        <translation>ДОЛЖНА быть линией, окружностью или дугой</translation>
+    </message>
+</context>
+<context>
+    <name>dividedlg</name>
+    <message>
+        <location filename="../divide/dividedlg.cpp" line="47"/>
+        <source>Divide - </source>
+        <translation>Разделить -</translation>
+    </message>
+    <message>
+        <location filename="../divide/dividedlg.cpp" line="68"/>
+        <source>Layers</source>
+        <translation>Слои</translation>
+    </message>
+    <message>
+        <location filename="../divide/dividedlg.cpp" line="74"/>
+        <source>OK</source>
+        <translation>OK</translation>
+    </message>
+    <message>
+        <location filename="../divide/dividedlg.cpp" line="75"/>
         <source>Cancel</source>
         <translation>Отмена</translation>
     </message>
     <message>
-        <location filename="../importshp/importshp.cpp" line="167"/>
-        <source>Select file</source>
-        <translation>Выберите файл</translation>
+        <location filename="../divide/dividedlg.cpp" line="84"/>
+        <source>Divide at</source>
+        <translation>Разделить по</translation>
     </message>
     <message>
-        <location filename="../importshp/importshp.cpp" line="217"/>
-        <source>Point+Measure</source>
-        <translation>Точка+измерение</translation>
+        <location filename="../divide/dividedlg.cpp" line="91"/>
+        <source>Size</source>
+        <translation>Размер</translation>
     </message>
     <message>
-        <location filename="../importshp/importshp.cpp" line="221"/>
-        <source>3D Point</source>
-        <translation>3D точка</translation>
+        <location filename="../divide/dividedlg.cpp" line="114"/>
+        <source>places</source>
+        <translation>элементов</translation>
     </message>
     <message>
-        <location filename="../importshp/importshp.cpp" line="225"/>
-        <source>Multi Point</source>
-        <translation>Мультиточка</translation>
+        <location filename="../divide/dividedlg.cpp" line="125"/>
+        <source>Ticks - Off</source>
+        <translation>Деления — Выкл.</translation>
     </message>
     <message>
-        <location filename="../importshp/importshp.cpp" line="229"/>
-        <source>Multi Point+Measure</source>
-        <translation>Мультиточка+измерение</translation>
+        <location filename="../divide/dividedlg.cpp" line="133"/>
+        <source>Breaks - Off</source>
+        <translation>Разрывы — Выкл.</translation>
     </message>
     <message>
-        <location filename="../importshp/importshp.cpp" line="233"/>
-        <source>3D Multi Point</source>
-        <translation>3D мультиточка</translation>
+        <location filename="../divide/dividedlg.cpp" line="178"/>
+        <source>&lt;i&gt;New&lt;/i&gt;</source>
+        <translation>&lt;i&gt;Новый&lt;/i&gt;</translation>
     </message>
     <message>
-        <location filename="../importshp/importshp.cpp" line="237"/>
-        <source>Arc</source>
-        <translation>Дуга</translation>
+        <location filename="../divide/dividedlg.cpp" line="209"/>
+        <source>Enter start
+angle, in
+decimal degrees
+0° at 3 o&apos;clock
+goes
+anti-clockwise.</source>
+        <translation>Введите начальный угол в десятичных градусах. 0° соответствует 3 часам по часовой стрелке.</translation>
     </message>
     <message>
-        <location filename="../importshp/importshp.cpp" line="241"/>
-        <source>Arc+Measure</source>
-        <translation>Дуга+измерение</translation>
+        <location filename="../divide/dividedlg.cpp" line="245"/>
+        <source>&lt;i&gt;&quot;New&quot;&lt;/i&gt;&lt;br&gt;Enter name&lt;br&gt;for a new layer&lt;br&gt;(if required?) to&lt;br&gt;draw ticks on.</source>
+        <translation>&lt;i&gt;«Новый»&lt;/i&gt;&lt;br&gt;Введите имя для нового слоя (при необходимости), на котором будут отображаться деления.</translation>
     </message>
     <message>
-        <location filename="../importshp/importshp.cpp" line="245"/>
-        <source>3D Arc</source>
-        <translation>3D дуга</translation>
+        <location filename="../divide/dividedlg.cpp" line="250"/>
+        <source>Ticks</source>
+        <translation>Отметки</translation>
     </message>
     <message>
-        <location filename="../importshp/importshp.cpp" line="249"/>
-        <source>Polygon</source>
-        <translation>Многоугольник</translation>
+        <location filename="../divide/dividedlg.cpp" line="256"/>
+        <source>Above</source>
+        <translation>Сверху</translation>
     </message>
     <message>
-        <location filename="../importshp/importshp.cpp" line="253"/>
-        <source>Polygon+Measure</source>
-        <translation>Многоугольник+измерение</translation>
+        <location filename="../divide/dividedlg.cpp" line="257"/>
+        <source>Below</source>
+        <translation>Снизу</translation>
     </message>
     <message>
-        <location filename="../importshp/importshp.cpp" line="257"/>
-        <source>3D Polygon</source>
-        <translation>3D многоугольник</translation>
+        <location filename="../divide/dividedlg.cpp" line="261"/>
+        <source>Outside</source>
+        <translation>Снаружи</translation>
     </message>
     <message>
-        <location filename="../importshp/importshp.cpp" line="261"/>
-        <source>Multipatch</source>
-        <translation>Мультивключение</translation>
+        <location filename="../divide/dividedlg.cpp" line="262"/>
+        <source>Inside</source>
+        <translation>Внутри</translation>
+    </message>
+</context>
+<context>
+    <name>lc_Exptocsvdlg</name>
+    <message>
+        <location filename="../pointstocsv/pointstocsv.cpp" line="120"/>
+        <source>Export to file</source>
+        <translation>Экспорт в файл</translation>
     </message>
     <message>
-        <location filename="../importshp/importshp.cpp" line="281"/>
-        <source>The file %1 not have extension .shp</source>
-        <translation>У файла %1 расширение не .shp</translation>
+        <location filename="../pointstocsv/pointstocsv.cpp" line="120"/>
+        <source>CSV (*.csv)</source>
+        <translation>CSV (*.csv)</translation>
     </message>
     <message>
-        <location filename="../importshp/importshp.cpp" line="286"/>
-        <source>The file %1 not exist</source>
-        <translation>Не существует файла %1</translation>
+        <location filename="../pointstocsv/pointstocsv.cpp" line="128"/>
+        <source>Unable to open file</source>
+        <translation>Не удалось открыть файл</translation>
     </message>
 </context>
 <context>
     <name>lc_Geardlg</name>
     <message>
-        <location filename="../gear/gear.cpp" line="66"/>
-        <source>Draw a gear</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../gear/gear.cpp" line="71"/>
+        <location filename="../gear/gear.cpp" line="113"/>
         <source>Number of teeth</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../gear/gear.cpp" line="79"/>
-        <source>Circular pitch</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../gear/gear.cpp" line="87"/>
-        <source>Pressure angle (deg)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../gear/gear.cpp" line="95"/>
-        <source>Addendum</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../gear/gear.cpp" line="103"/>
-        <source>Dedendum</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../gear/gear.cpp" line="111"/>
-        <source>Type</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../gear/gear.cpp" line="114"/>
-        <source>Spur</source>
-        <translation type="unfinished"></translation>
+        <translation>Количество зубьев</translation>
     </message>
     <message>
         <location filename="../gear/gear.cpp" line="115"/>
-        <source>Ring</source>
-        <translation type="unfinished"></translation>
+        <source>Pressure angle (deg)</source>
+        <translation>Угол зацепления (градусы)</translation>
+    </message>
+    <message>
+        <location filename="../gear/gear.cpp" line="112"/>
+        <source>Rotation angle</source>
+        <translation>Угол поворота</translation>
+    </message>
+    <message>
+        <location filename="../gear/gear.cpp" line="114"/>
+        <source>Modulus</source>
+        <translation>Модуль</translation>
+    </message>
+    <message>
+        <location filename="../gear/gear.cpp" line="116"/>
+        <source>Addendum (rel. to modulus)</source>
+        <translation>Высота зуба (относительно модуля)</translation>
+    </message>
+    <message>
+        <location filename="../gear/gear.cpp" line="117"/>
+        <source>Dedendum (rel. to modulus)</source>
+        <translation>Глубина зуба (относительно модуля)</translation>
+    </message>
+    <message>
+        <location filename="../gear/gear.cpp" line="118"/>
+        <source>Number of segments to draw (dedendum)</source>
+        <translation>Количество сегментов для отрисовки (глубина зуба)</translation>
     </message>
     <message>
         <location filename="../gear/gear.cpp" line="119"/>
-        <source>Accept</source>
-        <translation type="unfinished"></translation>
+        <source>Number of segments to draw (addendum)</source>
+        <translation>Количество сегментов для отрисовки (высота зуба)</translation>
+    </message>
+    <message>
+        <location filename="../gear/gear.cpp" line="120"/>
+        <source>Draw all teeth?</source>
+        <translation>Отображать все зубья?</translation>
+    </message>
+    <message>
+        <location filename="../gear/gear.cpp" line="121"/>
+        <source>Draw symmetric face?</source>
+        <translation>Отображать симметричную грань?</translation>
+    </message>
+    <message>
+        <location filename="../gear/gear.cpp" line="123"/>
+        <source>Use layers?</source>
+        <translation>Использовать слои?</translation>
     </message>
     <message>
         <location filename="../gear/gear.cpp" line="124"/>
+        <source>Draw addendum circle?</source>
+        <translation>Отображать окружность высоты зуба?</translation>
+    </message>
+    <message>
+        <location filename="../gear/gear.cpp" line="125"/>
+        <source>Draw pitch circle?</source>
+        <translation>Отображать окружность делительной линии?</translation>
+    </message>
+    <message>
+        <location filename="../gear/gear.cpp" line="126"/>
+        <source>Draw base circle?</source>
+        <translation>Отображать базовую окружность?</translation>
+    </message>
+    <message>
+        <location filename="../gear/gear.cpp" line="127"/>
+        <source>Draw root circle?</source>
+        <translation>Отображать окружность основания?</translation>
+    </message>
+    <message>
+        <location filename="../gear/gear.cpp" line="128"/>
+        <source>Draw pressure line?</source>
+        <translation>Отображать линию давления?</translation>
+    </message>
+    <message>
+        <location filename="../gear/gear.cpp" line="129"/>
+        <source>Draw pressure limits?</source>
+        <translation>Отображать пределы давления?</translation>
+    </message>
+    <message>
+        <location filename="../gear/gear.cpp" line="131"/>
+        <source>Calculate interference?</source>
+        <translation>Вычислять интерференцию?</translation>
+    </message>
+    <message>
+        <location filename="../gear/gear.cpp" line="132"/>
+        <source>Number of segments to draw (interference)</source>
+        <translation>Количество сегментов для отображения (интерференция)</translation>
+    </message>
+    <message>
+        <location filename="../gear/gear.cpp" line="134"/>
+        <source>Accept</source>
+        <translation>Принять</translation>
+    </message>
+    <message>
+        <location filename="../gear/gear.cpp" line="135"/>
         <source>Cancel</source>
-        <translation type="unfinished">Отмена</translation>
+        <translation>Отменить</translation>
     </message>
 </context>
 <context>
     <name>lc_Listdlg</name>
     <message>
-        <location filename="../list/list.cpp" line="274"/>
+        <location filename="../list/list.cpp" line="276"/>
         <source>List entities</source>
         <translation>Перечень элементов</translation>
     </message>
@@ -807,62 +1078,62 @@
 <context>
     <name>lc_Sampledlg</name>
     <message>
-        <location filename="../sample/sample.cpp" line="54"/>
+        <location filename="../sample/sample.cpp" line="53"/>
         <source>Draw line</source>
         <translation>Начертить линию</translation>
     </message>
     <message>
-        <location filename="../sample/sample.cpp" line="60"/>
+        <location filename="../sample/sample.cpp" line="59"/>
         <source>Start X:</source>
         <translation>Начало X:</translation>
     </message>
     <message>
-        <location filename="../sample/sample.cpp" line="66"/>
+        <location filename="../sample/sample.cpp" line="65"/>
         <source>Start Y:</source>
         <translation>Начало Y:</translation>
     </message>
     <message>
-        <location filename="../sample/sample.cpp" line="72"/>
+        <location filename="../sample/sample.cpp" line="71"/>
         <source>End X:</source>
         <translation>Конец X:</translation>
     </message>
     <message>
-        <location filename="../sample/sample.cpp" line="78"/>
+        <location filename="../sample/sample.cpp" line="77"/>
         <source>End Y:</source>
         <translation>Конец Y:</translation>
     </message>
     <message>
-        <location filename="../sample/sample.cpp" line="86"/>
+        <location filename="../sample/sample.cpp" line="85"/>
         <source>Accept</source>
         <translation>Принять</translation>
     </message>
     <message>
-        <location filename="../sample/sample.cpp" line="91"/>
+        <location filename="../sample/sample.cpp" line="90"/>
         <source>Cancel</source>
         <translation>Отмена</translation>
     </message>
     <message>
-        <location filename="../sample/sample.cpp" line="107"/>
+        <location filename="../sample/sample.cpp" line="105"/>
         <source>Start X is empty</source>
         <translation>Пустая начальная X-координата</translation>
     </message>
     <message>
-        <location filename="../sample/sample.cpp" line="108"/>
+        <location filename="../sample/sample.cpp" line="106"/>
         <source>Start Y is empty</source>
         <translation>Пустая начальная Y-координата</translation>
     </message>
     <message>
-        <location filename="../sample/sample.cpp" line="109"/>
+        <location filename="../sample/sample.cpp" line="107"/>
         <source>End X is empty</source>
         <translation>Пустая конечная X-координата</translation>
     </message>
     <message>
-        <location filename="../sample/sample.cpp" line="110"/>
+        <location filename="../sample/sample.cpp" line="108"/>
         <source>End Y is empty</source>
         <translation>Пустая конечная Y-координата</translation>
     </message>
     <message>
-        <location filename="../sample/sample.cpp" line="132"/>
+        <location filename="../sample/sample.cpp" line="128"/>
         <source>Sample plugin</source>
         <translation>Пример дополнения</translation>
     </message>
@@ -895,38 +1166,38 @@
         <translation>Выберите файл</translation>
     </message>
     <message>
-        <location filename="../picfile/picfile.cpp" line="119"/>
+        <location filename="../picfile/picfile.cpp" line="118"/>
         <source>Scale Factor is empty or invalid</source>
         <translation>Масштаб не указан или неверен</translation>
     </message>
     <message>
-        <location filename="../picfile/picfile.cpp" line="132"/>
+        <location filename="../picfile/picfile.cpp" line="131"/>
         <source>The file %1 not exist</source>
         <translation>Файл %1 не существует</translation>
     </message>
     <message>
-        <location filename="../picfile/picfile.cpp" line="137"/>
+        <location filename="../picfile/picfile.cpp" line="136"/>
         <source>Can&apos;t open the file %1</source>
         <translation>Невозможно открыть файл %1</translation>
     </message>
     <message>
-        <location filename="../picfile/picfile.cpp" line="144"/>
+        <location filename="../picfile/picfile.cpp" line="143"/>
         <source>%1 objects imported</source>
         <translation>%1 объектов импортировано</translation>
     </message>
     <message>
-        <location filename="../picfile/picfile.cpp" line="166"/>
+        <location filename="../picfile/picfile.cpp" line="164"/>
         <source>picPunto drawLine: first point is empty %1</source>
         <translation>picPunto drawLine: пустая первая точка %1</translation>
     </message>
     <message>
-        <location filename="../picfile/picfile.cpp" line="179"/>
+        <location filename="../picfile/picfile.cpp" line="177"/>
         <source>picPunto drawLine: next point is empty %1</source>
         <translation>picPunto drawLine: пустая следующая точка %1</translation>
     </message>
     <message>
-        <location filename="../picfile/picfile.cpp" line="258"/>
-        <location filename="../picfile/picfile.cpp" line="267"/>
+        <location filename="../picfile/picfile.cpp" line="260"/>
+        <location filename="../picfile/picfile.cpp" line="269"/>
         <source>format error in %1</source>
         <translation>ошибка формата в %1</translation>
     </message>
@@ -934,14 +1205,15 @@
 <context>
     <name>plot</name>
     <message>
-        <location filename="../plotequation/plot.cpp" line="21"/>
-        <location filename="../plotequation/plot.cpp" line="28"/>
+        <location filename="../plotequation/plot.cpp" line="30"/>
+        <location filename="../plotequation/plot.cpp" line="37"/>
         <source>Plot plugin</source>
         <translation>График (дополнение)</translation>
     </message>
     <message>
-        <source>Draw</source>
-        <translation type="obsolete">Построить</translation>
+        <location filename="../plotequation/plot.cpp" line="38"/>
+        <source>Plot test tip...</source>
+        <translation>Построить тестовую точку...</translation>
     </message>
 </context>
 <context>
@@ -1021,7 +1293,7 @@ Use t or x in your equation as a variable/parameter.
 <context>
     <name>pointBox</name>
     <message>
-        <location filename="../asciifile/asciifile.cpp" line="175"/>
+        <location filename="../asciifile/asciifile.cpp" line="176"/>
         <source>Layer:</source>
         <translation>Слой:</translation>
     </message>
@@ -1029,21 +1301,17 @@ Use t or x in your equation as a variable/parameter.
 <context>
     <name>textBox</name>
     <message>
-        <location filename="../asciifile/asciifile.cpp" line="207"/>
+        <location filename="../asciifile/asciifile.cpp" line="204"/>
         <source>Style:</source>
         <translation>Стиль:</translation>
     </message>
     <message>
-        <location filename="../asciifile/asciifile.cpp" line="208"/>
+        <location filename="../asciifile/asciifile.cpp" line="205"/>
         <source>Height:</source>
         <translation>Высота:</translation>
     </message>
     <message>
-        <source>Heigth:</source>
-        <translation type="obsolete">Высота:</translation>
-    </message>
-    <message>
-        <location filename="../asciifile/asciifile.cpp" line="209"/>
+        <location filename="../asciifile/asciifile.cpp" line="206"/>
         <source>Separation</source>
         <translation>Разделение:</translation>
     </message>

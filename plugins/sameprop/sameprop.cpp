@@ -25,21 +25,20 @@ PluginCapabilities LC_SameProp::getCapabilities() const
 {
     PluginCapabilities pluginCapabilities;
     pluginCapabilities.menuEntryPoints
-            << PluginMenuLocation("plugins_menu", tr("Same properties"));
+        << PluginMenuLocation("plugins_menu", tr("Same properties"),
+            tr("Same properties test tip..."));
     return pluginCapabilities;
 }
 
 void LC_SameProp::execComm(Document_Interface *doc,
-                             QWidget *parent, QString cmd)
+                             [[maybe_unused]] QWidget *parent, [[maybe_unused]] QString cmd)
 {
-    Q_UNUSED(parent);
-    Q_UNUSED(cmd);
     QHash<int, QVariant> data, moddata;
     QList<Plug_Entity *> obj;
     QVariant lay, col, ltype, lwidth;
     Plug_Entity *ent, *modent;
     ent =  doc->getEnt(tr("select original entity:"));
-    if (!ent) return;
+    if (ent == nullptr) return;
     bool yes  = doc->getSelect(&obj, tr("select entities to change"));
     if (!yes || obj.isEmpty()) {
         delete ent;

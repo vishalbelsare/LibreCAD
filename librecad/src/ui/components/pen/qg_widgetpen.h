@@ -1,0 +1,64 @@
+/****************************************************************************
+**
+** This file is part of the LibreCAD project, a 2D CAD program
+**
+** Copyright (C) 2010 R. van Twisk (librecad@rvt.dds.nl)
+** Copyright (C) 2001-2003 RibbonSoft. All rights reserved.
+**
+**
+** This file may be distributed and/or modified under the terms of the
+** GNU General Public License version 2 as published by the Free Software 
+** Foundation and appearing in the file gpl-2.0.txt included in the
+** packaging of this file.
+**
+** This program is distributed in the hope that it will be useful,
+** but WITHOUT ANY WARRANTY; without even the implied warranty of
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+** GNU General Public License for more details.
+** 
+** You should have received a copy of the GNU General Public License
+** along with this program; if not, write to the Free Software
+** Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+**
+** This copyright notice MUST APPEAR in all copies of the script!  
+**
+**********************************************************************/
+#ifndef QG_WIDGETPEN_H
+#define QG_WIDGETPEN_H
+
+#include "rs_pen.h"
+#include "ui_qg_widgetpen.h"
+
+class RS_Entity;
+class RS_Layer;
+
+class QG_WidgetPen : public QWidget, public Ui::QG_WidgetPen{
+    Q_OBJECT
+public:
+    explicit QG_WidgetPen(QWidget* parent = nullptr, Qt::WindowFlags fl = {});
+    ~QG_WidgetPen() override;
+    void disableVerticalSpacer() const;
+    bool isColorUnchanged() const;
+    bool isLineTypeUnchanged() const;
+    bool isWidthUnchanged() const;
+public slots:
+    void setPen(const RS_Pen& pen, bool showByLayer, bool showUnchanged, const QString & title );
+    void setPen(const RS_Pen& pen, const RS_Layer* layer, const QString &title);
+    void setPen(const RS_Pen& pen, const RS_Layer* layer, bool showUnchanged, const QString &title);
+    void setPen(const RS_Entity* entity, const RS_Layer* layer, const QString &title);
+    RS_Pen getPen() const;
+signals:
+    void penChanged();
+protected slots:
+    void languageChange();
+    void onColorChanged(const RS_Color& color);
+    void onWidthChanged(RS2::LineWidth);
+    void onLineTypeChanged(RS2::LineType);
+protected:
+    bool m_initialized = false;
+    void notifyPenChanged();
+    void focusInEvent(QFocusEvent *event) override;
+    void focusOutEvent(QFocusEvent *event) override;
+};
+
+#endif

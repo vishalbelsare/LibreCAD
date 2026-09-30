@@ -28,6 +28,7 @@
 #define RS_INFOAREA_H
 
 #include <vector>
+
 #include "rs_vector.h"
 
 class QPolygon;
@@ -38,33 +39,54 @@ class QPolygon;
  */
 class RS_InfoArea {
 public:
-	RS_InfoArea();
-
+    RS_InfoArea();
     void reset();
-    void push_back(const RS_Vector& p);
+    void push_back(const RS_Vector &p);
     //whether the point p is already in contour
-    bool duplicated(const RS_Vector& p);
+    bool duplicated(const RS_Vector &p) const;
     void pop_back();
-	double getArea() const;
-	double getCircumference();
-	int size();
-	const RS_Vector& at(int i) const;
+    double getArea() const;
+    double getCircumference();
+    int size();
+    RS_Vector& front() {
+        return m_points.front();
+    }
+    const RS_Vector& front() const {
+        return m_points.front();
+    }
+    RS_Vector& back();
+    const RS_Vector& back() const;
+    RS_Vector &at(int i);
+    const RS_Vector &at(int i) const;
     /**
      * @brief getArea of polygon
      * @param polygon
      * @return area
      */
-    static double getArea(const QPolygon& polygon);
+    static double getArea(const QPolygon &polygon);
 
 private:
     void calculate();
-    double calcSubArea(const RS_Vector& p1, const RS_Vector& p2);
+    double calcSubArea(const RS_Vector &p1, const RS_Vector &p2) const;
+    std::vector<RS_Vector> m_points;
+    double m_baseY = 0.;
+    double m_area = 0.;
+    double m_circumference = 0.;
+    bool m_calculationNeeded = false;
 
-	std::vector<RS_Vector> thePoints;
-    double baseY;
-    double area;
-    double circumference;
-    bool calculationNeeded;
+public:
+    auto begin() -> decltype(m_points.begin()) {
+        return m_points.begin();
+    }
+    auto cbegin() const -> decltype(m_points.cbegin()) {
+        return m_points.cbegin();
+    }
+    auto end() -> decltype(m_points.end()) {
+        return m_points.end();
+    }
+    auto cend() const -> decltype(m_points.cend()) {
+        return m_points.cend();
+    }
 };
 
 #endif

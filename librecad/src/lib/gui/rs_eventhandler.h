@@ -24,20 +24,21 @@
 **
 **********************************************************************/
 
-
 #ifndef RS_EVENTHANDLER_H
 #define RS_EVENTHANDLER_H
 
 #include <QObject>
 
-#include "rs_vector.h"
+#include "rs.h"
 
+class LC_CoordinatesParser;
 class RS_ActionInterface;
 class QAction;
 class QMouseEvent;
 class QKeyEvent;
 class RS_CommandEvent;
 class RS_Vector;
+class RS_GraphicView;
 
 struct RS_SnapMode;
 
@@ -46,15 +47,14 @@ struct RS_SnapMode;
  * active. All events going from the view to the actions come over
  * this class.
  */
-class RS_EventHandler : public QObject
-{
+class RS_EventHandler : public QObject {
     Q_OBJECT
-
 public:
-    RS_EventHandler(QObject* parent = 0);
-    ~RS_EventHandler();
-
-    void setQAction(QAction* action);
+    explicit RS_EventHandler(RS_GraphicView* parent = nullptr);
+    ~RS_EventHandler() override;
+    void uncheckQAction();
+    void setQAction(QAction* action, bool forceKillOtherActions);
+    QAction* getQAction() const;
 
     void back();
     void enter();
@@ -73,34 +73,32 @@ public:
     void disableCoordinateInput();
 
     void setDefaultAction(RS_ActionInterface* action);
-	RS_ActionInterface* getDefaultAction() const;
+    RS_ActionInterface* getDefaultAction() const;
 
-    void setCurrentAction(RS_ActionInterface* action);
-	RS_ActionInterface* getCurrentAction();
-	bool isValid(RS_ActionInterface* action) const;
+    bool setCurrentAction(std::shared_ptr<RS_ActionInterface> action);
+    RS_ActionInterface* getCurrentAction();
+    bool isValid(RS_ActionInterface* action) const;
 
     void killSelectActions();
     void killAllActions();
 
     bool hasAction();
     void cleanUp();
-	void debugActions() const;
+    void debugActions() const;
     void setSnapMode(RS_SnapMode sm);
     void setSnapRestriction(RS2::SnapRestriction sr);
-
     //! return true if the current action is for selecting
     bool inSelectionMode();
 
+    void notifyLastActionFinished();
 private:
-
-	QAction* q_action{nullptr};
-	RS_ActionInterface* defaultAction{nullptr};
-	QList<RS_ActionInterface*> currentActions;
-	bool coordinateInputEnabled{true};
-    RS_Vector relative_zero;
-
-public slots:
-    void setRelativeZero(const RS_Vector&);
+    std::unique_ptr<LC_CoordinatesParser> m_coordinatesParser;
+    RS_GraphicView* m_graphicView;
+    QAction* m_QAction{nullptr};
+    std::shared_ptr<RS_ActionInterface> m_defaultAction{nullptr};
+    QList<std::shared_ptr<RS_ActionInterface>> m_currentActions;
+    bool m_coordinateInputEnabled{true};
+    void checkLastActionCompletedAndUncheckQAction(const std::shared_ptr<RS_ActionInterface> &lastAction);
 };
 
 #endif

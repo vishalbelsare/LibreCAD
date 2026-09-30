@@ -1,0 +1,142 @@
+/*******************************************************************************
+ *
+ This file is part of the LibreCAD project, a 2D CAD program
+
+ Copyright (C) 2024 LibreCAD.org
+ Copyright (C) 2024 sand1024
+
+ This program is free software; you can redistribute it and/or
+ modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 2
+ of the License, or (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ ******************************************************************************/
+
+#include "lc_viewslist.h"
+
+#include <QtAlgorithms>
+
+LC_ViewList::LC_ViewList() {
+    setModified(false);
+}
+
+/**
+ * Frees the views, after telling the listeners that still listen (see
+ * LC_ViewListListener::viewsListDestroyed()): a dock attached to the list has a pointer to it, and
+ * rows for the views.
+ */
+LC_ViewList::~LC_ViewList() {
+    QList<LC_View*> removed;
+    removed.swap(m_namedViews);
+    m_viewListListeners.drain([](LC_ViewListListener* listener) {
+        listener->viewsListDestroyed();
+    });
+    qDeleteAll(removed);
+}
+
+void LC_ViewList::clear() {
+    qDeleteAll(m_namedViews);
+    m_namedViews.clear();
+    setModified(false);
+}
+
+void LC_ViewList::add(LC_View *view) {
+    if (view == nullptr) {
+        return;
+    }
+
+    // check if view already exists:
+    const LC_View *v = find(view->getName());
+    if (v == nullptr) {
+        m_namedViews.append(view);
+    }
+    else if (v != view) {
+        // the name is taken; we own view, so drop it
+        delete view;
+    }
+}
+
+void LC_ViewList::addNew(LC_View *view) {
+    if (view == nullptr) {
+        return;
+    }
+
+    // check if view already exists:
+    const LC_View *v = find(view->getName());
+    if (v == nullptr) {
+        m_namedViews.append(view);
+        setModified(true);
+    }
+    else if (v != view) {
+        // the name is taken; we own view, so drop it
+        delete view;
+    }
+}
+
+void LC_ViewList::remove(LC_View *view) {
+    m_namedViews.removeOne(view);
+    setModified(true);
+    delete view;
+}
+
+void LC_ViewList::remove(const QString &name) {
+    LC_View *v = find(name);
+    if (v !=nullptr) {
+        remove(v);
+    }
+}
+
+void LC_ViewList::rename(LC_View *view, const QString &newName) {
+    view->setName(newName);
+    setModified(true);
+}
+
+void LC_ViewList::edited([[maybe_unused]]LC_View *view) {
+    setModified(true);
+}
+
+LC_View *LC_ViewList::find(const QString &name) const{
+    // fixme - sand - merge - why we can't just store normalized name with view?? Why calculate it each time? Ans why not use common lambda for such searches?
+
+    // NFC-normalize both sides so an NFD-form named view still matches an
+    // NFC lookup. Mirrors RS_LayerList::find.
+    const QString k = name.normalized(QString::NormalizationForm_C);
+    for (auto v: m_namedViews){
+        if (v->getName().normalized(QString::NormalizationForm_C) == k){
+            return v;
+        }
+    }
+    return nullptr;
+}
+
+int LC_ViewList::getIndex(const QString &name) const{
+    // fixme - sand - merge - why we can't just store normalized name with view?? Why calculate it each time?
+    const QString k = name.normalized(QString::NormalizationForm_C);
+    int result = -1;
+
+    for (int i = 0; i < m_namedViews.size(); i++) {
+        LC_View *v = m_namedViews.at(i);
+        if (v->getName().normalized(QString::NormalizationForm_C) == k) {
+            result = i;
+            break;
+        }
+    }
+    return result;
+}
+
+int LC_ViewList::getIndex(LC_View *view) const{
+    return m_namedViews.indexOf(view);
+}
+
+void LC_ViewList::setModified(const bool m) {
+    m_modified = m;
+    fireModified(m);
+}

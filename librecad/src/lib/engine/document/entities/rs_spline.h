@@ -1,0 +1,465 @@
+/****************************************************************************
+**
+** This file is part of the LibreCAD project, a 2D CAD program
+**
+** Copyright (C) 2025 librecad.org
+** Copyright (C) 2025 Dongxu Li (github.com/dxli)
+** Copyright (C) 2010 R. van Twisk (librecad@rvt.dds.nl)
+** Copyright (C) 2001-2003 RibbonSoft. All rights reserved.
+**
+** This file may be distributed and/or modified under the terms of the
+** GNU General Public License version 2 as published by the Free Software
+** Foundation and appearing in the file gpl-2.0.txt included in the
+** packaging of this file.
+**
+** This program is distributed in the hope that it will be useful,
+** but WITHOUT ANY WARRANTY; without even the implied warranty of
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+** GNU General Public License for more details.
+**
+** You should have received a copy of the GNU General Public License
+** along with this program; if not, write to the Free Software
+** Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
+* USA
+**
+** This copyright notice MUST APPEAR in all copies of the script!
+**
+**********************************************************************/
+// File: rs_spline.h
+
+#ifndef RS_SPLINE_H
+#define RS_SPLINE_H
+
+#include <iosfwd>
+#include <cstdint>
+#include <vector>
+
+#include "lc_curvejet.h"
+#include "rs_entitycontainer.h"
+#include "rs_painter.h"
+#include "rs_vector.h"
+
+/**
+ * Holds the data that defines a spline.
+ */
+struct RS_SplineData {
+  /** Spline representation types */
+  enum class SplineType {
+    Standard,     /**< Open uniform (non-clamped) */
+    ClampedOpen,  /**< Open clamped (interpolates ends) */
+    WrappedClosed /**< Closed periodic (wrapped) */
+  };
+
+  /** Default constructor */
+  RS_SplineData() = default;
+
+  /** Constructor with initialization */
+  RS_SplineData(int degree, bool closed);
+
+  /** Check if closed (wrapped) */
+  bool isClosed() const { return type == SplineType::WrappedClosed; }
+  void setClosed(const bool closed) {
+    type = closed ? SplineType::WrappedClosed : SplineType::ClampedOpen;
+  }
+
+  /** Stream output operator */
+  friend std::ostream &operator<<(std::ostream &os, const RS_SplineData &ld);
+
+  /** Control points */
+  std::vector<RS_Vector> controlPoints;
+
+  /** Knot vector */
+  std::vector<double> knotslist;
+
+  /** Weights for rational splines */
+  std::vector<double> weights;
+
+  /** Fit points for interpolation */
+  std::vector<RS_Vector> fitPoints;
+
+  /** Degree (1-3) */
+  size_t degree = 3;
+
+  /** Spline type */
+  SplineType type = SplineType::ClampedOpen;
+
+  /** Saved open type for round-trip */
+  SplineType savedOpenType = SplineType::ClampedOpen;
+
+  /** Saved open knots for round-trip */
+  std::vector<double> savedOpenKnots;
+
+  /**
+   * The closed (DXF group 70 bit 0) and periodic (bit 1) flags of a spline read
+   * from a file but kept with open ends, as AutoCAD writes closed splines with a
+   * clamped knot vector and the last control point on the first. The export
+   * writes them back while the ends meet; a WrappedClosed spline is always
+   * written closed and periodic.
+   */
+  bool m_closedFlag = false;
+  bool m_periodicFlag = false;
+};
+
+/**
+ * Spline entity class. Supports B-splines and rational B-splines.
+ * Inherits from RS_EntityContainer.
+ */
+class RS_Spline : public RS_EntityContainer {
+public:
+  /** Constructor with parent and data */
+  RS_Spline(RS_EntityContainer *parent, const RS_SplineData &d);
+
+  /** Entity type */
+  RS2::EntityType rtti() const override { return RS2::EntitySpline; }
+
+  /** @return false */
+  bool isEdge() const override { return false; }
+
+  /** Clone the spline */
+  RS_Entity *clone() const override;
+
+  /** Get spline data reference */
+  RS_SplineData &getData();
+
+  /** Get const spline data reference */
+  const RS_SplineData &getData() const;
+
+  /** Get unwrapped size (control points without wrapping) */
+  size_t getUnwrappedSize() const;
+
+  /** Get unwrapped control points */
+  std::vector<RS_Vector> getUnwrappedControlPoints() const;
+
+  /** Get unwrapped weights */
+  std::vector<double> getUnwrappedWeights() const;
+
+  /** Get unwrapped knot vector */
+  std::vector<double> getUnwrappedKnotVector() const;
+
+  /** Remove wrapping from control points, weights, and knots */
+  void removeWrapping();
+
+  /** Add wrapping to control points and weights for closed splines */
+  void addWrapping();
+
+  /** Update wrapping for control points and weights */
+  void updateControlAndWeightWrapping();
+
+  /** Update knot vector wrapping for closed splines */
+  void updateKnotWrapping();
+
+  /** Calculate bounding box from control points */
+  void calculateBorders() override;
+
+  /** Set degree (1-3), throws if invalid */
+  void setDegree(int degree);
+
+  /** Get degree */
+  int getDegree() const;
+
+  /** Get number of control points (unwrapped) */
+  size_t getNumberOfControlPoints() const;
+
+  /** Get number of knots */
+  size_t getNumberOfKnots() const;
+
+  /** Check if closed */
+  bool isClosed() const;
+
+  /** Set closed flag and adjust wrapping/knots */
+  void setClosed(bool c);
+
+  /** Adjust knot vector to open clamped form */
+  std::vector<double> adjustToOpenClamped(const std::vector<double> &knots,
+                                          size_t numControl, size_t order,
+                                          bool isNatural) const;
+
+  /** Get reference points (unwrapped control points) */
+  RS_VectorSolutions getRefPoints() const override;
+
+  /** Update polyline approximation */
+  void update() override;
+
+  /** Fill points for spline approximation */
+  void fillStrokePoints(int splineSegments, std::vector<RS_Vector> &points) const;
+
+  /** Get start point: the curve at the start of its domain; invalid if closed */
+  RS_Vector getStartpoint() const override;
+
+  /** Get end point: the curve at the end of its domain; invalid if closed */
+  RS_Vector getEndpoint() const override;
+
+
+
+  /** Move by offset */
+  void move(const RS_Vector &offset) override;
+
+  /** Rotate by angle */
+  void rotate(const RS_Vector &center, double angle) override;
+
+  /** Rotate by angle vector */
+  void rotate(const RS_Vector &center, const RS_Vector &angleVector) override;
+
+  /** Scale by factor */
+  void scale(const RS_Vector &center, const RS_Vector &factor) override;
+
+  /** Shear by factor */
+  RS_Entity &shear(double k) override;
+
+  /** Mirror across axis */
+  void mirror(const RS_Vector &axisPoint1,
+              const RS_Vector &axisPoint2) override;
+
+  /** Move reference point (control point) */
+  void moveRef(const RS_Vector &ref, const RS_Vector &offset) override;
+
+  /** Revert direction by reversing points, weights, knots */
+  void revertDirection() override;
+  /** The offset through @p coord at |@p distance|, from the offset engine:
+   *  several cubic RS_Spline pieces, or nothing on failure. */
+  std::vector<RS_Entity *> createOffset(const RS_Vector &coord, const double &distance) const override;
+
+  /** Draw spline with painter */
+  void draw(RS_Painter *painter) override;
+
+  /** Get control points (unwrapped) */
+  std::vector<RS_Vector> getControlPoints() const;
+
+  /** Get weights (unwrapped) */
+  std::vector<double> getWeights() const;
+
+  /** Get weight at index */
+  double getWeight(size_t index) const;
+
+  /** Add control point with weight, handling wrapping */
+  void addControlPoint(const RS_Vector &v, double w = 1.0);
+
+  /** Add raw control point */
+  void addControlPointRaw(const RS_Vector &v, double w = 1.0);
+
+  /** Remove last control point, handling wrapping */
+  void removeLastControlPoint();
+
+  /** Set weight at index */
+  void setWeight(size_t index, double w);
+
+  /** Set all weights */
+  void setWeights(const std::vector<double> &weights);
+
+  /** Set control point at index */
+  void setControlPoint(size_t index, const RS_Vector &v);
+
+  /** Set knot at index */
+  void setKnot(size_t index, double k);
+
+  /** Insert control point, clear knots if present */
+  void insertControlPoint(size_t index, const RS_Vector &v, double w = 1.,
+                          bool preserveShape = false);
+
+  /** Remove control point, clear knots if present */
+  void removeControlPoint(size_t index);
+
+  /** Get knot vector (unwrapped) */
+  std::vector<double> getKnotVector() const;
+
+  /** Set knot vector, validate size and monotonicity */
+  void setKnotVector(const std::vector<double> &knots);
+
+  /** Generate open knot vector */
+  std::vector<double> knot(size_t num, size_t order) const;
+
+  /** Generate open uniform knot vector without multiple knots at ends */
+  std::vector<double> openUniformKnot(size_t num, size_t order) const;
+
+  /** Generate uniform knot vector for periodic splines */
+  std::vector<double> knotu(size_t num, size_t order) const;
+
+  /** Generate rational B-spline points (open) */
+  void rbspline(size_t npts, size_t k, size_t p1,
+                const std::vector<RS_Vector> &b, const std::vector<double> &h,
+                std::vector<RS_Vector> &p) const;
+
+  /** Generate rational B-spline points (periodic) */
+  void rbsplinu(size_t npts, size_t k, size_t p1,
+                const std::vector<RS_Vector> &b, const std::vector<double> &h,
+                std::vector<RS_Vector> &p) const;
+
+  /** Check if control points wrapped (for closed cubic splines) */
+  bool hasWrappedControlPoints() const;
+
+  /** Output operator */
+  friend std::ostream &operator<<(std::ostream &os, const RS_Spline &l);
+
+  /** Set fit points and generate spline via interpolation */
+  void setFitPoints(const std::vector<RS_Vector> &fitPoints,
+                    bool useCentripetal = true);
+
+  /** Change spline type (Standard, ClampedOpen, WrappedClosed) */
+  void changeType(RS_SplineData::SplineType newType);
+
+  /** Public method to evaluate spline at parameter t */
+  RS_Vector getPointAt(double t) const;
+
+  /** Find parameters where derivative is zero for x or y */
+  std::vector<double> findDerivativeZeros(bool isX) const;
+
+  /** Calculate tight bounding box using extrema and endpoints */
+  void calculateTightBorders();
+
+  /** Robust NURBS evaluation using de Boor */
+  static RS_Vector evaluateNURBS(const RS_SplineData &data, double t);
+
+  /** Validate the spline data integrity */
+  bool validate() const;
+
+  /**
+   * The parameter domain [t0, t1] the curve is defined on: the knots at indices
+   * degree and (number of control points, wrapping included).
+   * @return false if the degree, control points and knot vector do not form a
+   *         curve with a non-empty domain.
+   */
+  bool getParameterDomain(double &t0, double &t1) const;
+
+  /**
+   * The distinct knot values in the parameter domain, both ends included. The
+   * curve is one polynomial (rational) piece between consecutive values, so a
+   * derivative can jump only at an interior value. Empty if the spline has no
+   * valid domain.
+   */
+  std::vector<double> getBreakParameters() const;
+
+  /**
+   * Checked evaluation of the curve point and its first and second derivatives
+   * with respect to the knot parameter.
+   *
+   * At an interior break the caller chooses the one-sided limit; see
+   * LC_CurveEvaluationSide. Unlike getPointAt(), a failure is reported rather
+   * than returned as a zero vector: the result is false, and @p jet is left
+   * invalid, when the data do not describe a curve, @p t lies outside the
+   * domain, the requested limit does not exist, a weight or the rational
+   * denominator is not positive and finite, or any result is not finite.
+   */
+  bool tryEvaluateJet(double t, LC_CurveEvaluationSide side, LC_CurveJet &jet) const;
+
+  /**
+   * Conservative enclosures of the point and its first and second derivatives
+   * over the parameter box [a, b], which must lie inside one knot span (between
+   * consecutive break parameters). The span's homogeneous Bezier net over the
+   * box is formed exactly with outward-rounded arithmetic, so the result
+   * contains every value the curve takes there; it narrows as the box shrinks.
+   * With @p products, where the weights are equal, |C'|^2 and C' x C'' are
+   * also enclosed from the Bezier coefficients of the products
+   * (speedSquaredProduct, crossProduct), which stay tight where C' and C''
+   * are nearly parallel.
+   * @return false for a box outside the domain or across a knot, or invalid
+   *         weights or coordinates.
+   */
+  bool tryBoundJet(double a, double b, LC_CurveJetBounds &bounds, bool products = false) const;
+
+  /**
+   * The vertices of a polyline within @p tolerance of the curve, independent
+   * of the segments it is drawn with. Each chord lies in one knot span, and a
+   * chord over a parameter interval of length h strays at most h^2 / 8 times
+   * the largest |C''| there, which tryBoundJet() bounds.
+   * @return false, with @p vertices empty, if the curve cannot be bounded or
+   *         needs more than @p maxVertices vertices.
+   */
+  bool tryStroke(double tolerance, size_t maxVertices, std::vector<RS_Vector> &vertices) const;
+
+  friend class RS_FilterDXFRW;
+protected:
+    /** Nearest endpoint or control point */
+    RS_Vector doGetNearestEndpoint(const RS_Vector &coord, double *dist, RS_Entity** entity) const override;
+    /** Nearest reference point (overrides container method) */
+    RS_Vector doGetNearestRef(const RS_Vector &coord, double *dist = nullptr) const override;
+    /** Nearest center (invalid) */
+    RS_Vector doGetNearestCenter(const RS_Vector &coord, double *dist, RS_Entity** centerEntity) const override;
+    /** Nearest of the points dividing an open spline into equal lengths; invalid if closed */
+    RS_Vector doGetNearestMiddle(const RS_Vector &coord, double *dist, int middlePoints) const override;
+    /** Nearest selected reference (overrides container method) */
+    RS_Vector doGetNearestSelectedRef(const RS_Vector &coord, double *dist) const override;
+    /** The point at a distance along an open spline from its nearer end; invalid if closed */
+    RS_Vector doGetNearestDist(double distance, const RS_Vector& coord, double* dist) const override;
+public:
+  /**
+   * Arc length of the curve from the start of its domain, tabulated at the
+   * knots and at subdivisions of each knot span.
+   */
+  struct ArcLengthTable {
+    std::vector<double> t;
+    std::vector<double> length;
+  };
+
+private:
+  /**
+   * The table above for the spline's current data, tabulated on the first
+   * call and kept until the data change: it costs 40 evaluations of the
+   * curve per knot span, and every spline of a drawing is asked for a middle
+   * or distance snap on every mouse move. Empty t when the curve has none.
+   */
+  const ArcLengthTable &arcLengthTable() const;
+
+  mutable ArcLengthTable m_arcLength;
+  /** The data m_arcLength was tabulated for; getData() hands out a mutable reference. */
+  mutable std::uint64_t m_arcLengthFor{0};
+  mutable bool m_arcLengthBuilt{false};
+
+  /**
+   * The vertices update() draws the spline with: every knot span a share of
+   * 32 segments over the domain and at least one, more where its chords would
+   * stray from it by more than a thousandth of its control points' extent.
+   * Refinement stops at 4096 vertices, after which each remaining span still
+   * gets the one vertex the curve cannot be drawn without, and one more where
+   * a knot of full multiplicity breaks it. A spline with more knot spans than
+   * that budget is drawn with 4096 uniform samples instead, and one that
+   * cannot be bounded with 32.
+   */
+  void fillDisplayPoints(std::vector<RS_Vector> &points) const;
+
+  /** Internal spline data */
+  RS_SplineData m_data;
+
+  /**
+   * Container for position + exact analytical 1st + 2nd derivatives
+   * returned by evaluateWithDerivs().
+   */
+  struct SplineDerivs {
+    RS_Vector pos;  // curve point  C(t)
+    RS_Vector der1; // first derivative  C'(t)
+    RS_Vector der2; // second derivative C''(t)
+
+    SplineDerivs() : pos(0.0, 0.0), der1(0.0, 0.0), der2(0.0, 0.0) {}
+  };
+
+  static std::vector<double> rbasis(int c, double t, int npts,
+                                    const std::vector<double> &x,
+                                    const std::vector<double> &h);
+
+  /** Find knot span */
+  static size_t findSpan(size_t n, size_t p, double u,
+                         const std::vector<double> &U);
+
+  /** Compute basis functions non-recursively */
+  static std::vector<double> basisFunctions(size_t i, double u, size_t p,
+                                            const std::vector<double> &U);
+
+  /** Get non-rational B-spline basis functions */
+  std::vector<double> getBSplineBasis(double t,
+                                      const std::vector<double> &knots,
+                                      int degree, size_t numControls) const;
+
+  /** Approximate derivative at t */
+  double getDerivative(double t, bool isX) const;
+
+  /** Bisection for a zero of a derivative component bracketed by [a, b] */
+  double bisectDerivativeZero(double a, double b, double fa, double fb, bool isX) const;
+  void normalizeKnots();
+  double estimateParamAtIndex(size_t index) const;
+  void insertKnot(double u);
+  SplineDerivs evaluateWithDerivs(double t) const;
+  double getSecondDerivative(double t, bool isX) const;
+  double getCurvature(double t) const;
+  double getSignedCurvature(double t) const;
+};
+
+#endif

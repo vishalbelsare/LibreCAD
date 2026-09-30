@@ -28,10 +28,10 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
-#include <cstdio>
+#include <cstring>
 
-#include "dl_writer_ascii.h"
 #include "dl_exception.h"
+#include "dl_writer_ascii.h"
 
 
 /**
@@ -73,7 +73,8 @@ void DL_WriterA::dxfReal(int gc, double value) const {
             dot = true;
             end = i+2;
             continue;
-        } else if (dot && str[i]!='0') {
+        }
+        if (dot && str[i]!='0') {
             end = i+1;
         }
     }
@@ -121,7 +122,7 @@ void DL_WriterA::dxfHex(int gc, int value) const {
  * @param value String
  */
 void DL_WriterA::dxfString(int gc, const char* value) const {
-    if (value==NULL) {
+    if (value==nullptr) {
 #ifndef __GCC2x__
         //throw DL_NullStrExc();
 #endif

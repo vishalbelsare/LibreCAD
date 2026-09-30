@@ -26,127 +26,122 @@
 
 #include "qc_actiongetpoint.h"
 
-#include <QPointF>
+#include <QKeyEvent>
 #include <QMouseEvent>
-#include "rs_snapper.h"
-#include "rs_dialogfactory.h"
-#include "rs_graphicview.h"
-#include "rs_line.h"
-#include "rs_coordinateevent.h"
-#include "rs_preview.h"
-#include "rs_debug.h"
 
-struct QC_ActionGetPoint::Points {
-		RS_MoveData data;
-		RS_Vector referencePoint;
-		RS_Vector targetPoint;
-		QString message;
+#include "rs_coordinateevent.h"
+#include "rs_debug.h"
+#include "rs_document.h"
+#include "rs_line.h"
+#include "rs_modification.h"
+#include "rs_preview.h"
+
+struct QC_ActionGetPoint::ActionData {
+    RS_Vector referencePoint;
+    RS_Vector targetPoint;
+    QString message;
 };
 
-QC_ActionGetPoint::QC_ActionGetPoint(RS_EntityContainer& container,
-        RS_GraphicView& graphicView)
-        :RS_PreviewActionInterface("Get Point",
-						   container, graphicView)
-        , canceled(false)
-		, completed{false}
-		, setTargetPoint{false}
-		, pPoints(new Points{})
-{
-    pPoints->targetPoint = RS_Vector(0,0);
+// fixme - sand actiontype is not set???
+QC_ActionGetPoint::QC_ActionGetPoint(LC_ActionContext* actionContext)
+    : RS_PreviewActionInterface("Get Point", actionContext), m_canceled(false), m_completed{false}, m_setTargetPoint{false},
+      m_actionData(std::make_unique<ActionData>()) {
+    m_actionData->targetPoint = RS_Vector(0, 0);
 }
 
 QC_ActionGetPoint::~QC_ActionGetPoint() = default;
 
-
 void QC_ActionGetPoint::trigger() {
-
     RS_DEBUG->print("QC_ActionGetPoint::trigger()");
-    completed = true;
-    updateMouseButtonHints();
+    m_completed = true;
+    updateActionPrompt();
 }
-
 
 void QC_ActionGetPoint::mouseMoveEvent(QMouseEvent* e) {
+    deletePreview();
     RS_DEBUG->print("QC_ActionGetPoint::mouseMoveEvent begin");
 
-        RS_Vector mouse = snapPoint(e);
-        if(setTargetPoint){
-			if (pPoints->referencePoint.valid) {
-				pPoints->targetPoint = mouse;
-                deletePreview();
-				RS_Line *line =new RS_Line{preview.get(),
-						pPoints->referencePoint, mouse};
-                line->setPen(RS_Pen(RS_Color(0,0,0), RS2::Width00, RS2::DotLine ));
-                preview->addEntity(line);
-                RS_DEBUG->print("QC_ActionGetPoint::mouseMoveEvent: draw preview");
-                drawPreview();
-                preview->addSelectionFrom(*container);
-            }
-        } else {
-			pPoints->targetPoint = mouse;
+    const RS_Vector mouse = snapPoint(e);
+    if (m_setTargetPoint) {
+        if (m_actionData->referencePoint.valid) {
+            m_actionData->targetPoint = mouse;
+            const auto* line = new RS_Line{m_preview.get(), m_actionData->referencePoint, mouse};
+            line->setPen(RS_Pen(RS_Color(0, 0, 0), RS2::Width00, RS2::DotLine));
+            m_preview->addEntity(line);
+            RS_DEBUG->print("QC_ActionGetPoint::mouseMoveEvent: draw preview");
+            QList<RS_Entity*> selection;
+            m_document->collectSelected(selection);
+            m_preview->addClonesFromList(selection);
         }
+    }
+    else {
+        m_actionData->targetPoint = mouse;
+    }
 
     RS_DEBUG->print("QC_ActionGetPoint::mouseMoveEvent end");
+    drawPreview();
 }
 
-
-
 void QC_ActionGetPoint::mouseReleaseEvent(QMouseEvent* e) {
-    if (e->button()==Qt::LeftButton) {
+    if (e->button() == Qt::LeftButton) {
         RS_CoordinateEvent ce(snapPoint(e));
         coordinateEvent(&ce);
-    } else if (e->button()==Qt::RightButton) {
-        canceled = true;
-        completed = true;
+    }
+    else if (e->button() == Qt::RightButton) {
+        m_canceled = true;
+        m_completed = true;
         finish();
     }
 }
 
-void QC_ActionGetPoint::coordinateEvent(RS_CoordinateEvent* e) {
-
-	if (e==nullptr) return;
-
-    RS_Vector pos = e->getCoordinate();
-
-		pPoints->targetPoint = pos;
-		graphicView->moveRelativeZero(pPoints->targetPoint);
-        trigger();
-}
-
-
-void QC_ActionGetPoint::updateMouseButtonHints() {
-    if (!completed)
-		RS_DIALOGFACTORY->updateMouseWidget(pPoints->message, tr("Cancel"));
-    else
-        RS_DIALOGFACTORY->updateMouseWidget();
-}
-
-
-void QC_ActionGetPoint::updateMouseCursor() {
-    graphicView->setMouseCursor(RS2::CadCursor);
-}
-
-
-void QC_ActionGetPoint::setBasepoint(QPointF* basepoint){
-	pPoints->referencePoint.x = basepoint->x();
-	pPoints->referencePoint.y = basepoint->y();
-    setTargetPoint = true;
-}
-
-
-void QC_ActionGetPoint::setMessage(QString msg){
-	pPoints->message = msg;
-}
-
-
-void QC_ActionGetPoint::getPoint(QPointF *point)
-{
-    if (pPoints)
-    {
-        point->setX(pPoints->targetPoint.x);
-        point->setY(pPoints->targetPoint.y);
+// Escape cancels, as it does in the selection the plugin API offers; without
+// this the only way out of a plugin's point request is a right-click.
+void QC_ActionGetPoint::keyPressEvent(QKeyEvent* e) {
+    if (e->key() == Qt::Key_Escape) {
+        m_canceled = true;
+        updatePrompt();
+        finish();
+        m_completed = true;
     }
-
+    else {
+        // The base handles Tab, and ignores what it does not use so the key
+        // carries on past this action.
+        RS_PreviewActionInterface::keyPressEvent(e);
+    }
 }
 
-// EOF
+void QC_ActionGetPoint::onCoordinateEvent([[maybe_unused]] int status, [[maybe_unused]] bool isZero, const RS_Vector& pos) {
+    m_actionData->targetPoint = pos;
+    moveRelativeZero(m_actionData->targetPoint);
+    trigger();
+}
+
+void QC_ActionGetPoint::updateActionPrompt() {
+    if (!m_completed) {
+        updatePrompt(m_actionData->message, tr("Cancel"));
+    }
+    else {
+        updatePrompt();
+    }
+}
+
+RS2::CursorType QC_ActionGetPoint::doGetMouseCursor([[maybe_unused]] int status) {
+    return RS2::CadCursor;
+}
+
+void QC_ActionGetPoint::setBasepoint(const QPointF* basepoint) {
+    m_actionData->referencePoint.x = basepoint->x();
+    m_actionData->referencePoint.y = basepoint->y();
+    m_setTargetPoint = true;
+}
+
+void QC_ActionGetPoint::setMessage(const QString& msg) const {
+    m_actionData->message = msg;
+}
+
+void QC_ActionGetPoint::getPoint(QPointF* point) const {
+    if (m_actionData) {
+        point->setX(m_actionData->targetPoint.x);
+        point->setY(m_actionData->targetPoint.y);
+    }
+}

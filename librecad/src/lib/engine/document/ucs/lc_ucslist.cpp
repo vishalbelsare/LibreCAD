@@ -1,0 +1,220 @@
+/*******************************************************************************
+ *
+ This file is part of the LibreCAD project, a 2D CAD program
+
+ Copyright (C) 2025 LibreCAD.org
+ Copyright (C) 2025 sand1024
+
+ This program is free software; you can redistribute it and/or
+ modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 2
+ of the License, or (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ ******************************************************************************/
+
+#include "lc_ucslist.h"
+
+LC_UCSList::LC_UCSList() {
+    m_ucsList.append(m_wcs.get());
+    setModified(false);
+}
+
+/**
+ * Frees the UCSs, after telling the listeners that still listen (see
+ * LC_UCSListListener::ucsListDestroyed()): a dock attached to the list has a pointer to it, and rows
+ * for the UCSs. m_wcs is listed too, but its unique_ptr owns it.
+ */
+LC_UCSList::~LC_UCSList() {
+    QList<LC_UCS*> removed;
+    removed.swap(m_ucsList);
+    m_activeUCS = nullptr;
+    m_ucsListListeners.drain([](LC_UCSListListener* listener) {
+        listener->ucsListDestroyed();
+    });
+    for (const auto ucs : std::as_const(removed)) {
+        if (ucs != m_wcs.get()) {
+            delete ucs;
+        }
+    }
+}
+
+// m_wcs is listed too, but its unique_ptr owns it
+void LC_UCSList::deleteOwnedEntries() {
+    for (const auto ucs : std::as_const(m_ucsList)) {
+        if (ucs != m_wcs.get()) {
+            delete ucs;
+        }
+    }
+    m_ucsList.clear();
+    if (m_activeUCS != m_wcs.get()) {
+        m_activeUCS = nullptr;
+    }
+}
+
+void LC_UCSList::clear() {
+    deleteOwnedEntries();
+    m_ucsList.append(m_wcs.get());
+    setModified(true);
+}
+
+void LC_UCSList::add(LC_UCS *ucs) {
+    if (ucs == nullptr) {
+        return;
+    }
+
+    // check if layer already exists:
+    const LC_UCS *v = find(ucs->getName());
+    if (v == nullptr) {
+        m_ucsList.append(ucs);
+    }
+    else if (v != ucs) {
+        // the name is taken; we own ucs, so drop it
+        delete ucs;
+    }
+}
+
+void LC_UCSList::addNew(LC_UCS *ucs) {
+    if (ucs == nullptr) {
+        return;
+    }
+
+    // check if layer already exists:
+    const LC_UCS *v = find(ucs->getName());
+    if (v == nullptr) {
+        m_ucsList.append(ucs);
+        setModified(true);
+    }
+    else if (v != ucs) {
+        // the name is taken; we own ucs, so drop it
+        delete ucs;
+    }
+}
+
+// note - if this method is called, list should be marked as modified externally!
+void LC_UCSList::remove(LC_UCS *ucs) {
+    if (ucs->isUCS()) {
+        m_ucsList.removeOne(ucs);
+        // setModified(true);
+        if (m_activeUCS == ucs) {
+            m_activeUCS = nullptr;
+        }
+        delete ucs;
+    }
+}
+
+void LC_UCSList::remove(const QString &name) {
+    LC_UCS *v = find(name);
+    if (v !=nullptr) {
+        remove(v);
+    }
+}
+
+void LC_UCSList::rename(LC_UCS *ucs, const QString &newName) {
+    if (ucs->isUCS()) {
+        ucs->setName(newName);
+        ucs->setTemporary(false);
+        setModified(true);
+    }
+}
+
+void LC_UCSList::edited([[maybe_unused]]LC_UCS *ucs) {
+    setModified(true);
+}
+
+LC_UCS *LC_UCSList::find(const QString &name) const {
+    for (const auto v: m_ucsList){
+        if (v->getName() == name){
+            return v;
+        }
+    }
+    return nullptr;
+}
+
+int LC_UCSList::getIndex(const QString &name) const
+{
+    int result = -1;
+
+    for (int i = 0; i < m_ucsList.size(); i++) {
+        const LC_UCS *v = m_ucsList.at(i);
+        if (v->getName() == name) {
+            result = i;
+            break;
+        }
+    }
+    return result;
+}
+
+int LC_UCSList::getIndex(LC_UCS *ucs) const {
+    return m_ucsList.indexOf(ucs);
+}
+
+void LC_UCSList::setModified(const bool m) {
+    m_modified = m;
+    fireModified(m);
+}
+
+LC_UCS *LC_UCSList::tryAddUCS(LC_UCS *candidate) {
+    if (candidate == nullptr) {
+        return nullptr;
+    }
+    LC_UCS *existingUCS = findExisting(candidate);
+
+    LC_UCS* result = nullptr;
+    if (existingUCS == nullptr){
+        m_ucsList.append(candidate);
+        setModified(true);
+        result = candidate;
+    }
+    else{
+        if (existingUCS != candidate) {
+            // an equivalent UCS is already listed; we own candidate, so drop it
+            delete candidate;
+        }
+        result = existingUCS;
+    }
+    return result;
+}
+
+LC_UCS *LC_UCSList::findExisting(const LC_UCS *candidate) {// check if layer already exists:
+    LC_UCS *existingUCS = nullptr;
+    for (const auto v : std::as_const(m_ucsList)) {
+        if (v == candidate){
+            existingUCS = v;
+            break;
+        }
+    }
+    if (existingUCS == nullptr){
+        for (const auto v : std::as_const(m_ucsList)) {
+            if (v->isSameTo(candidate)) {
+                existingUCS = v;
+                break;
+            }
+        }
+    }
+    return existingUCS;
+}
+
+LC_UCS *LC_UCSList::getWCS() const{
+    return m_wcs.get();
+}
+
+void LC_UCSList::tryToSetActive(const LC_UCS *ucs) {
+    const LC_UCS* oldActive = m_activeUCS;
+    m_activeUCS = findExisting(ucs);
+    if (oldActive != m_activeUCS) {
+        if (oldActive == nullptr) {
+            setModified(true);
+        }
+        else if (!oldActive->isSameTo(m_activeUCS)){
+            setModified(true);
+        }
+    }
+}

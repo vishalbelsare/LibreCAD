@@ -1,50 +1,119 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.0" language="ta">
+<TS version="2.1" language="ta">
 <context>
     <name>AsciiFile</name>
     <message>
         <location filename="../asciifile/asciifile.cpp" line="35"/>
-        <location filename="../asciifile/asciifile.cpp" line="41"/>
+        <source>Read ASCII points</source>
+        <translation>ஆஸ்கி புள்ளிகளைப் படிக்கவும்</translation>
+    </message>
+    <message>
+        <location filename="../asciifile/asciifile.cpp" line="36"/>
+        <source>Read ASCII test tip...</source>
+        <translation>ஆஸ்கி சோதனை உதவிக்குறிப்பைப் படிக்கவும்...</translation>
+    </message>
+    <message>
+        <location filename="../asciifile/asciifile.cpp" line="42"/>
         <source>Read ascii points</source>
-        <translation type="unfinished"></translation>
+        <translation>ஆஸ்கி புள்ளிகளைப் படிக்கவும்</translation>
     </message>
 </context>
 <context>
-    <name>ImportShp</name>
+    <name>ExpTo_Csv</name>
     <message>
-        <location filename="../importshp/importshp.cpp" line="40"/>
-        <source>Import ESRI Shapefile</source>
-        <translation type="unfinished"></translation>
+        <location filename="../pointstocsv/pointstocsv.cpp" line="34"/>
+        <source>Export points to csv</source>
+        <translation>புள்ளிகளை சி.எஸ்.வி.க்கு ஏற்றுமதி செய்க</translation>
+    </message>
+    <message>
+        <location filename="../pointstocsv/pointstocsv.cpp" line="41"/>
+        <source>Export to csv test tip...</source>
+        <translation>சி.எஸ்.வி.க்கு ஏற்றுமதி செய்வதற்கான சோதனை உதவிக்குறிப்பு...</translation>
     </message>
 </context>
 <context>
     <name>LC_Align</name>
     <message>
-        <location filename="../align/align.cpp" line="20"/>
-        <location filename="../align/align.cpp" line="27"/>
+        <location filename="../align/align.cpp" line="24"/>
         <source>Align</source>
-        <translation type="unfinished"></translation>
+        <translation>சீரமை</translation>
     </message>
     <message>
-        <location filename="../align/align.cpp" line="40"/>
+        <location filename="../align/align.cpp" line="31"/>
+        <source>Align settings...</source>
+        <translation>சீரமைப்பு அமைப்புகள்...</translation>
+    </message>
+    <message>
+        <location filename="../align/align.cpp" line="32"/>
+        <source>Align test tip...</source>
+        <translation>சீரமைப்பு சோதனை உதவிக்குறிப்பு...</translation>
+    </message>
+    <message>
+        <location filename="../align/align.cpp" line="47"/>
+        <source>Keep original objects</source>
+        <translation>அசல் பொருட்களை அப்படியே வைக்கவும்</translation>
+    </message>
+    <message>
+        <location filename="../align/align.cpp" line="48"/>
+        <source>Specify base points first</source>
+        <translation>முதலில் அடிப்படை புள்ளிகளைக் குறிப்பிடவும்</translation>
+    </message>
+    <message>
+        <location filename="../align/align.cpp" line="52"/>
+        <source>Align Settings</source>
+        <translation>சீரமைவு அமைப்புகள்</translation>
+    </message>
+    <message>
+        <location filename="../align/align.cpp" line="55"/>
+        <source>Click on options to set/unset,
+Ok to accept and start alignment.</source>
+        <translation>அமைப்புகளை அமைக்க/நீக்க விருப்பங்களில் கிளிக் செய்யவும், மேலும் சீரமைப்பை ஏற்கவும் தொடங்கவும் &apos;சரி&apos; என்பதைக் கிளிக் செய்யவும்.</translation>
+    </message>
+    <message>
+        <source>If &apos;Keep original objects&apos; is checked,
+Align will copy rather than move the selected objects.
+If &apos;Specify base points first&apos; is checked,
+Align will prompt for the alignment points in the order
+first base, second base, first target, second target.</source>
+        <translation type="vanished">&apos;அசல் பொருட்களை அப்படியே வைத்திரு&apos; என்பதை நீங்கள் சரிபார்த்தால், சீரமைப்பு தேர்ந்தெடுக்கப்பட்ட பொருட்களை நகர்த்துவதற்கு பதிலாக நகலெடுக்கும்.
+&apos;முதலில் அடிப்படை புள்ளிகளைக் குறிப்பிடவும்&apos; என்பதை நீங்கள் சரிபார்த்தால், சீரமைப்பு சீரமைப்பு புள்ளிகளை பின்வரும் வரிசையில் கேட்கும்: முதலில் அடிப்படை, இரண்டாவது அடிப்படை, முதல் இலக்கு, இரண்டாவது இலக்கு.</translation>
+    </message>
+    <message>
+        <location filename="../align/align.cpp" line="79"/>
         <source>first base point:</source>
-        <translation type="unfinished"></translation>
+        <translation>முதல் அடிப்படை புள்ளி:</translation>
     </message>
     <message>
-        <location filename="../align/align.cpp" line="42"/>
+        <location filename="../align/align.cpp" line="84"/>
         <source>first target point:</source>
-        <translation type="unfinished"></translation>
+        <translation>முதல் இலக்கு புள்ளி:</translation>
     </message>
     <message>
-        <location filename="../align/align.cpp" line="44"/>
+        <location filename="../align/align.cpp" line="82"/>
+        <location filename="../align/align.cpp" line="87"/>
         <source>second base point:</source>
-        <translation type="unfinished"></translation>
+        <translation>இரண்டாவது அடிப்படை புள்ளி:</translation>
     </message>
     <message>
-        <location filename="../align/align.cpp" line="46"/>
+        <location filename="../align/align.cpp" line="58"/>
+        <source>If &apos;Keep original objects&apos; is checked,
+Align will copy rather than move the selected objects.
+
+If &apos;Specify base points first&apos; is checked,
+Align will prompt for the alignment points in the order
+first base, second base, first target, second target.</source>
+        <translation>&apos;அசல் பொருள்களை வைத்திருங்கள்&apos; சரிபார்க்கப்பட்டால்,
+ தேர்ந்தெடுக்கப்பட்ட பொருள்களை நகர்த்துவதை விட சீரமைப்பு நகலெடுக்கும்.
+
+ &apos;முதலில் அடிப்படை புள்ளிகளைக் குறிப்பிடினால்&apos; சரிபார்க்கப்பட்டால்,
+ வரிசையில் சீரமைப்பு புள்ளிகளுக்கு சீரமைத் தூண்டும்
+ முதல் அடிப்படை, இரண்டாவது அடிப்படை, முதல் இலக்கு, இரண்டாவது இலக்கு.</translation>
+    </message>
+    <message>
+        <location filename="../align/align.cpp" line="89"/>
         <source>second target point:</source>
-        <translation type="unfinished"></translation>
+        <translation>இரண்டாவது இலக்கு புள்ளி:</translation>
     </message>
 </context>
 <context>
@@ -52,302 +121,319 @@
     <message>
         <location filename="../gear/gear.cpp" line="33"/>
         <source>Gear creation plugin</source>
-        <translation type="unfinished"></translation>
+        <translation>கியர் உருவாக்கும் செருகு நிரல்</translation>
     </message>
     <message>
-        <location filename="../gear/gear.cpp" line="40"/>
+        <location filename="../gear/gear.cpp" line="41"/>
         <source>Gear plugin</source>
-        <translation type="unfinished"></translation>
+        <translation>கியர் செருகு நிரல்</translation>
+    </message>
+    <message>
+        <location filename="../gear/gear.cpp" line="42"/>
+        <source>Select point for center of gear and press left mouse button.
+Then fill in the fields and press &apos;Accept&apos; button.</source>
+        <translation>கியரின் மையத்திற்கான புள்ளியைத் தேர்ந்தெடுத்து இடது சுட்டி பொத்தானை அழுத்தவும். பின்னர் புலங்களை நிரப்பி &apos;ஏற்றுக்கொள்&apos; பொத்தானை அழுத்தவும்.</translation>
     </message>
 </context>
 <context>
     <name>LC_List</name>
     <message>
-        <location filename="../list/list.cpp" line="23"/>
-        <location filename="../list/list.cpp" line="30"/>
+        <location filename="../list/list.cpp" line="22"/>
+        <location filename="../list/list.cpp" line="29"/>
         <source>List entities</source>
-        <translation type="unfinished"></translation>
+        <translation>உருப்படிகளைப் பட்டியலிடு</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="46"/>
+        <location filename="../list/list.cpp" line="30"/>
+        <source>List test tip...</source>
+        <translation>சோதனை உதவிக்குறிப்பு...</translation>
+    </message>
+    <message>
+        <location filename="../list/list.cpp" line="44"/>
         <source>n</source>
-        <translation type="unfinished"></translation>
+        <translation>n</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="60"/>
+        <location filename="../list/list.cpp" line="58"/>
         <source>Empty Entity</source>
-        <translation type="unfinished"></translation>
+        <translation>வெற்று உருப்படி</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="67"/>
+        <location filename="../list/list.cpp" line="65"/>
         <source>X</source>
-        <translation type="unfinished"></translation>
+        <translation>X</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="67"/>
+        <location filename="../list/list.cpp" line="65"/>
         <source>Y</source>
-        <translation type="unfinished"></translation>
+        <translation>Y</translation>
+    </message>
+    <message>
+        <location filename="../list/list.cpp" line="75"/>
+        <source>Layer</source>
+        <translation>அடுக்கு</translation>
     </message>
     <message>
         <location filename="../list/list.cpp" line="77"/>
-        <source>Layer</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../list/list.cpp" line="79"/>
         <source>Color</source>
         <translation>நிறம்</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="80"/>
+        <location filename="../list/list.cpp" line="78"/>
         <source>Line type</source>
-        <translation type="unfinished"></translation>
+        <translation>கோட்டு வகை</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="81"/>
+        <location filename="../list/list.cpp" line="79"/>
         <source>Line thickness</source>
-        <translation type="unfinished"></translation>
+        <translation>கோட்டின் தடிமன்</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="82"/>
+        <location filename="../list/list.cpp" line="80"/>
         <source>ID</source>
-        <translation type="unfinished"></translation>
+        <translation>ஐடி</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="88"/>
+        <location filename="../list/list.cpp" line="86"/>
         <source>POINT</source>
         <translation>புள்ளி</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="89"/>
-        <location filename="../list/list.cpp" line="218"/>
+        <location filename="../list/list.cpp" line="87"/>
+        <location filename="../list/list.cpp" line="178"/>
+        <location filename="../list/list.cpp" line="220"/>
         <source>in point</source>
-        <translation type="unfinished"></translation>
+        <translation>புள்ளியில்</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="94"/>
+        <location filename="../list/list.cpp" line="92"/>
         <source>LINE</source>
-        <translation type="unfinished"></translation>
+        <translation>கோடு</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="99"/>
+        <location filename="../list/list.cpp" line="97"/>
         <source>from point</source>
-        <translation type="unfinished"></translation>
+        <translation>புள்ளியிலிருந்து</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="102"/>
+        <location filename="../list/list.cpp" line="100"/>
         <source>to point</source>
-        <translation type="unfinished"></translation>
+        <translation>புள்ளி வரை</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="107"/>
-        <location filename="../list/list.cpp" line="131"/>
+        <location filename="../list/list.cpp" line="105"/>
+        <location filename="../list/list.cpp" line="129"/>
         <source>length</source>
         <translation>நீளம்</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="112"/>
+        <location filename="../list/list.cpp" line="110"/>
         <source>Angle in XY plane</source>
-        <translation type="unfinished"></translation>
+        <translation>XY தளத்தில் கோணம்</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="113"/>
+        <location filename="../list/list.cpp" line="111"/>
         <source>Inc.</source>
-        <translation type="unfinished"></translation>
+        <translation>கூடுதல்</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="118"/>
+        <location filename="../list/list.cpp" line="116"/>
         <source>ARC</source>
-        <translation type="unfinished"></translation>
+        <translation>வளைவு</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="119"/>
-        <location filename="../list/list.cpp" line="135"/>
-        <location filename="../list/list.cpp" line="145"/>
+        <location filename="../list/list.cpp" line="117"/>
+        <location filename="../list/list.cpp" line="133"/>
+        <location filename="../list/list.cpp" line="143"/>
         <source>center point</source>
-        <translation type="unfinished"></translation>
+        <translation>மையப் புள்ளி</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="125"/>
-        <location filename="../list/list.cpp" line="139"/>
-        <location filename="../list/list.cpp" line="222"/>
+        <location filename="../list/list.cpp" line="123"/>
+        <location filename="../list/list.cpp" line="137"/>
+        <location filename="../list/list.cpp" line="224"/>
         <source>radius</source>
         <translation>ஆரம்</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="126"/>
+        <location filename="../list/list.cpp" line="124"/>
         <source>initial angle</source>
         <translation>ஆரம்ப கோணம்</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="127"/>
+        <location filename="../list/list.cpp" line="125"/>
         <source>final angle</source>
         <translation>இறுதி கோணம்</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="134"/>
+        <location filename="../list/list.cpp" line="132"/>
         <source>CIRCLE</source>
-        <translation type="unfinished"></translation>
+        <translation>வட்டம்</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="140"/>
+        <location filename="../list/list.cpp" line="138"/>
         <source>circumference</source>
         <translation>சுற்றளவு</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="141"/>
+        <location filename="../list/list.cpp" line="139"/>
         <source>area</source>
-        <translation type="unfinished"></translation>
+        <translation>பரப்பளவு</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="144"/>
+        <location filename="../list/list.cpp" line="142"/>
         <source>ELLIPSE</source>
-        <translation type="unfinished"></translation>
+        <translation>நீள்வட்டம்</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="148"/>
+        <location filename="../list/list.cpp" line="146"/>
         <source>major axis</source>
-        <translation type="unfinished"></translation>
+        <translation>முக்கிய அச்சு</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="166"/>
+        <location filename="../list/list.cpp" line="164"/>
         <source>CONSTRUCTIONLINE</source>
-        <translation type="unfinished"></translation>
+        <translation>கட்டுமானக் கோடு</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="169"/>
+        <location filename="../list/list.cpp" line="167"/>
         <source>OVERLAYBOX</source>
-        <translation type="unfinished"></translation>
+        <translation>மேலடு பெட்டி</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="172"/>
+        <location filename="../list/list.cpp" line="170"/>
         <source>SOLID</source>
-        <translation type="unfinished"></translation>
+        <translation>திடமானது</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="176"/>
+        <location filename="../list/list.cpp" line="174"/>
         <source>MTEXT</source>
-        <translation type="unfinished"></translation>
+        <translation>பல உரை</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="179"/>
+        <location filename="../list/list.cpp" line="177"/>
         <source>TEXT</source>
-        <translation type="unfinished"></translation>
+        <translation>உரை</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="182"/>
+        <location filename="../list/list.cpp" line="181"/>
+        <source>TEXTCONTENT</source>
+        <translation>உரை உள்ளடக்கம்</translation>
+    </message>
+    <message>
+        <location filename="../list/list.cpp" line="184"/>
         <source>INSERT</source>
-        <translation type="unfinished"></translation>
+        <translation>செருகு</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="185"/>
+        <location filename="../list/list.cpp" line="187"/>
         <source>Name</source>
         <translation>பெயர்</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="187"/>
+        <location filename="../list/list.cpp" line="189"/>
         <source>Insertion point</source>
-        <translation type="unfinished"></translation>
+        <translation>செருகும் புள்ளி</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="190"/>
+        <location filename="../list/list.cpp" line="192"/>
         <source>Scale</source>
-        <translation type="unfinished"></translation>
+        <translation>அளவு</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="193"/>
+        <location filename="../list/list.cpp" line="195"/>
         <source>Rotation</source>
-        <translation type="unfinished"></translation>
+        <translation>சுழற்சி</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="199"/>
+        <location filename="../list/list.cpp" line="201"/>
         <source>Columns/Rows</source>
-        <translation type="unfinished"></translation>
+        <translation>நிரல்கள்/வரிசைகள்</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="203"/>
+        <location filename="../list/list.cpp" line="205"/>
         <source>Column/Row Spacing</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../list/list.cpp" line="210"/>
-        <source>POLYLINE</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../list/list.cpp" line="211"/>
-        <source>Closed</source>
-        <translation type="unfinished"></translation>
+        <translation>நிரல்/வரிசை இடைவெளி</translation>
     </message>
     <message>
         <location filename="../list/list.cpp" line="212"/>
+        <source>POLYLINE</source>
+        <translation>பாலிலைன்</translation>
+    </message>
+    <message>
+        <location filename="../list/list.cpp" line="213"/>
+        <source>Closed</source>
+        <translation>மூடப்பட்டது</translation>
+    </message>
+    <message>
+        <location filename="../list/list.cpp" line="214"/>
         <source>No</source>
         <translation>இல்லை</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="212"/>
+        <location filename="../list/list.cpp" line="214"/>
         <source>Yes</source>
         <translation>ஆம்</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="213"/>
+        <location filename="../list/list.cpp" line="215"/>
         <source>Vertices</source>
         <translation>கோண உச்சிகள்</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="227"/>
+        <location filename="../list/list.cpp" line="229"/>
         <source>IMAGE</source>
         <translation>படம்</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="230"/>
+        <location filename="../list/list.cpp" line="232"/>
         <source>SPLINE</source>
-        <translation type="unfinished"></translation>
+        <translation>ஸ்ப்லைன்</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="233"/>
+        <location filename="../list/list.cpp" line="235"/>
         <source>SPLINEPOINTS</source>
-        <translation type="unfinished"></translation>
+        <translation>ஸ்ப்லைன் புள்ளிகள்</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="236"/>
+        <location filename="../list/list.cpp" line="238"/>
         <source>HATCH</source>
-        <translation type="unfinished"></translation>
+        <translation>ஹாட்ச்</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="239"/>
+        <location filename="../list/list.cpp" line="241"/>
         <source>DIMLEADER</source>
-        <translation type="unfinished"></translation>
+        <translation>டிம்லீடர்</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="242"/>
+        <location filename="../list/list.cpp" line="244"/>
         <source>DIMALIGNED</source>
-        <translation type="unfinished"></translation>
+        <translation>DIMALIGNED</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="245"/>
+        <location filename="../list/list.cpp" line="247"/>
         <source>DIMLINEAR</source>
-        <translation type="unfinished"></translation>
+        <translation>DIMLINEAR</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="248"/>
+        <location filename="../list/list.cpp" line="250"/>
         <source>DIMRADIAL</source>
-        <translation type="unfinished"></translation>
+        <translation>DIMRADIAL</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="251"/>
+        <location filename="../list/list.cpp" line="253"/>
         <source>DIMDIAMETRIC</source>
-        <translation type="unfinished"></translation>
+        <translation>DIMDIAMETRIC</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="254"/>
+        <location filename="../list/list.cpp" line="256"/>
         <source>DIMANGULAR</source>
-        <translation type="unfinished"></translation>
+        <translation>DIMANGULAR</translation>
     </message>
     <message>
-        <location filename="../list/list.cpp" line="257"/>
+        <location filename="../list/list.cpp" line="259"/>
         <source>UNKNOWN</source>
-        <translation type="unfinished"></translation>
+        <translation>தெரியவில்லை</translation>
     </message>
 </context>
 <context>
@@ -356,17 +442,22 @@
         <location filename="../sameprop/sameprop.cpp" line="21"/>
         <location filename="../sameprop/sameprop.cpp" line="28"/>
         <source>Same properties</source>
-        <translation type="unfinished"></translation>
+        <translation>ஒரே பண்புகள்</translation>
     </message>
     <message>
-        <location filename="../sameprop/sameprop.cpp" line="41"/>
+        <location filename="../sameprop/sameprop.cpp" line="29"/>
+        <source>Same properties test tip...</source>
+        <translation>ஒரே பண்புகள் சோதனை உதவிக்குறிப்பு...</translation>
+    </message>
+    <message>
+        <location filename="../sameprop/sameprop.cpp" line="40"/>
         <source>select original entity:</source>
-        <translation type="unfinished"></translation>
+        <translation>மூல உருப்படியைத் தேர்ந்தெடுக்கவும்:</translation>
     </message>
     <message>
-        <location filename="../sameprop/sameprop.cpp" line="43"/>
+        <location filename="../sameprop/sameprop.cpp" line="42"/>
         <source>select entities to change</source>
-        <translation type="unfinished"></translation>
+        <translation>மாற்ற வேண்டிய உருப்படிகளைத் தேர்ந்தெடுக்கவும்</translation>
     </message>
 </context>
 <context>
@@ -375,7 +466,12 @@
         <location filename="../sample/sample.cpp" line="26"/>
         <location filename="../sample/sample.cpp" line="33"/>
         <source>Sample plugin</source>
-        <translation type="unfinished"></translation>
+        <translation>மாதிரி செருகுநிரல்</translation>
+    </message>
+    <message>
+        <location filename="../sample/sample.cpp" line="34"/>
+        <source>Sample test tip...</source>
+        <translation>மாதிரி சோதனை உதவிக்குறிப்பு...</translation>
     </message>
 </context>
 <context>
@@ -383,480 +479,663 @@
     <message>
         <location filename="../picfile/picfile.cpp" line="36"/>
         <source>Read PIC file</source>
-        <translation type="unfinished"></translation>
+        <translation>PIC கோப்பைப் படிக்கவும்</translation>
     </message>
     <message>
-        <location filename="../picfile/picfile.cpp" line="42"/>
+        <location filename="../picfile/picfile.cpp" line="37"/>
+        <source>PIC test tip...</source>
+        <translation>PIC சோதனை உதவிக்குறிப்பு...</translation>
+    </message>
+    <message>
+        <location filename="../picfile/picfile.cpp" line="43"/>
         <source>import PIC file</source>
-        <translation type="unfinished"></translation>
+        <translation>PIC கோப்பை இறக்குமதி செய்க</translation>
     </message>
 </context>
 <context>
     <name>dibPunto</name>
     <message>
-        <location filename="../asciifile/asciifile.cpp" line="229"/>
+        <location filename="../asciifile/asciifile.cpp" line="220"/>
         <source>Read ascii points</source>
-        <translation type="unfinished"></translation>
+        <translation>ஆஸ்கி புள்ளிகளைப் படிக்கவும்</translation>
+    </message>
+    <message>
+        <location filename="../asciifile/asciifile.cpp" line="226"/>
+        <source>File...</source>
+        <translation>கோப்பு...</translation>
+    </message>
+    <message>
+        <location filename="../asciifile/asciifile.cpp" line="233"/>
+        <source>Format:</source>
+        <translation>வடிவம்:</translation>
     </message>
     <message>
         <location filename="../asciifile/asciifile.cpp" line="235"/>
-        <source>File...</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../asciifile/asciifile.cpp" line="242"/>
-        <source>Format:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../asciifile/asciifile.cpp" line="244"/>
         <source>Space Separator</source>
-        <translation type="unfinished"></translation>
+        <translation>இடைவெளி பிரிப்பான்</translation>
     </message>
     <message>
-        <location filename="../asciifile/asciifile.cpp" line="244"/>
+        <location filename="../asciifile/asciifile.cpp" line="235"/>
         <source>Tab Separator</source>
-        <translation type="unfinished"></translation>
+        <translation>டேப் பிரிப்பான்</translation>
     </message>
     <message>
-        <location filename="../asciifile/asciifile.cpp" line="244"/>
+        <location filename="../asciifile/asciifile.cpp" line="235"/>
         <source>Comma Separator</source>
-        <translation type="unfinished"></translation>
+        <translation>கமா பிரிப்பான்</translation>
     </message>
     <message>
-        <location filename="../asciifile/asciifile.cpp" line="244"/>
+        <location filename="../asciifile/asciifile.cpp" line="235"/>
         <source>Space in Columns</source>
-        <translation type="unfinished"></translation>
+        <translation>நிரல்களில் இடைவெளி</translation>
     </message>
     <message>
-        <location filename="../asciifile/asciifile.cpp" line="244"/>
+        <location filename="../asciifile/asciifile.cpp" line="235"/>
         <source>*.odb for Psion 2</source>
-        <translation type="unfinished"></translation>
+        <translation>*.odb (சியோன் 2)</translation>
+    </message>
+    <message>
+        <location filename="../asciifile/asciifile.cpp" line="237"/>
+        <source>Connect points</source>
+        <translation>புள்ளிகளை இணைக்கவும்</translation>
+    </message>
+    <message>
+        <location filename="../asciifile/asciifile.cpp" line="245"/>
+        <source>2D Point</source>
+        <translation>2D புள்ளி</translation>
+    </message>
+    <message>
+        <location filename="../asciifile/asciifile.cpp" line="245"/>
+        <source>Draw 2D Point</source>
+        <translation>2D புள்ளியை வரையவும்</translation>
     </message>
     <message>
         <location filename="../asciifile/asciifile.cpp" line="246"/>
-        <source>Connect points</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../asciifile/asciifile.cpp" line="254"/>
-        <source>2D Point</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../asciifile/asciifile.cpp" line="254"/>
-        <source>Draw 2D Point</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../asciifile/asciifile.cpp" line="255"/>
         <source>3D Point</source>
-        <translation type="unfinished"></translation>
+        <translation>3D புள்ளி</translation>
     </message>
     <message>
-        <location filename="../asciifile/asciifile.cpp" line="255"/>
+        <location filename="../asciifile/asciifile.cpp" line="246"/>
         <source>Draw 3D Point</source>
-        <translation type="unfinished"></translation>
+        <translation>3D புள்ளியை வரையவும்</translation>
     </message>
     <message>
-        <location filename="../asciifile/asciifile.cpp" line="256"/>
+        <location filename="../asciifile/asciifile.cpp" line="247"/>
         <source>Point Number</source>
-        <translation type="unfinished"></translation>
+        <translation>புள்ளி எண்</translation>
     </message>
     <message>
-        <location filename="../asciifile/asciifile.cpp" line="256"/>
+        <location filename="../asciifile/asciifile.cpp" line="247"/>
         <source>Draw point number</source>
-        <translation type="unfinished"></translation>
+        <translation>புள்ளி எண்ணை வரையவும்</translation>
     </message>
     <message>
-        <location filename="../asciifile/asciifile.cpp" line="257"/>
+        <location filename="../asciifile/asciifile.cpp" line="248"/>
         <source>Point Elevation</source>
-        <translation type="unfinished"></translation>
+        <translation>புள்ளி உயரம்</translation>
     </message>
     <message>
-        <location filename="../asciifile/asciifile.cpp" line="257"/>
+        <location filename="../asciifile/asciifile.cpp" line="248"/>
         <source>Draw point elevation</source>
-        <translation type="unfinished"></translation>
+        <translation>புள்ளி உயரத்தை வரையவும்</translation>
     </message>
     <message>
-        <location filename="../asciifile/asciifile.cpp" line="258"/>
+        <location filename="../asciifile/asciifile.cpp" line="249"/>
         <source>Point Code</source>
-        <translation type="unfinished"></translation>
+        <translation>புள்ளி குறியீடு</translation>
     </message>
     <message>
-        <location filename="../asciifile/asciifile.cpp" line="258"/>
+        <location filename="../asciifile/asciifile.cpp" line="249"/>
         <source>Draw point code</source>
-        <translation type="unfinished"></translation>
+        <translation>புள்ளி குறியீட்டை வரையவும்</translation>
     </message>
     <message>
-        <location filename="../asciifile/asciifile.cpp" line="272"/>
+        <location filename="../asciifile/asciifile.cpp" line="263"/>
         <source>Accept</source>
         <translation>ஏற்கவும்</translation>
     </message>
     <message>
-        <location filename="../asciifile/asciifile.cpp" line="277"/>
+        <location filename="../asciifile/asciifile.cpp" line="268"/>
         <source>Cancel</source>
         <translation>ரத்து</translation>
     </message>
     <message>
-        <location filename="../asciifile/asciifile.cpp" line="307"/>
+        <location filename="../asciifile/asciifile.cpp" line="298"/>
         <source>Select file</source>
         <translation>கோப்பைத் தேர்ந்தெடு</translation>
     </message>
     <message>
-        <location filename="../asciifile/asciifile.cpp" line="314"/>
+        <location filename="../asciifile/asciifile.cpp" line="304"/>
         <source>Point 2D layer is empty</source>
-        <translation type="unfinished"></translation>
+        <translation>புள்ளி 2D அடுக்கு காலியாக உள்ளது</translation>
+    </message>
+    <message>
+        <location filename="../asciifile/asciifile.cpp" line="307"/>
+        <source>Point 3D layer is empty</source>
+        <translation>புள்ளி 3D அடுக்கு காலியாக உள்ளது</translation>
+    </message>
+    <message>
+        <location filename="../asciifile/asciifile.cpp" line="310"/>
+        <source>Point elevation layer is empty</source>
+        <translation>புள்ளி உயர அடுக்கு காலியாக உள்ளது</translation>
+    </message>
+    <message>
+        <location filename="../asciifile/asciifile.cpp" line="311"/>
+        <source>Point elevation height is empty</source>
+        <translation>புள்ளி உயரத்தின் உயரம் காலியாக உள்ளது</translation>
+    </message>
+    <message>
+        <location filename="../asciifile/asciifile.cpp" line="312"/>
+        <source>Point elevation separation is empty</source>
+        <translation>புள்ளி உயரத்தின் இடைவெளி காலியாக உள்ளது</translation>
+    </message>
+    <message>
+        <location filename="../asciifile/asciifile.cpp" line="315"/>
+        <source>Point number layer is empty</source>
+        <translation>புள்ளி எண் அடுக்கு காலியாக உள்ளது</translation>
+    </message>
+    <message>
+        <location filename="../asciifile/asciifile.cpp" line="316"/>
+        <source>Point number height is empty</source>
+        <translation>புள்ளி எண் உயரம் காலியாக உள்ளது</translation>
     </message>
     <message>
         <location filename="../asciifile/asciifile.cpp" line="317"/>
-        <source>Point 3D layer is empty</source>
-        <translation type="unfinished"></translation>
+        <source>Point number separation is empty</source>
+        <translation>புள்ளி எண் இடைவெளி காலியாக உள்ளது</translation>
     </message>
     <message>
         <location filename="../asciifile/asciifile.cpp" line="320"/>
-        <source>Point elevation layer is empty</source>
-        <translation type="unfinished"></translation>
+        <source>Point code layer is empty</source>
+        <translation>புள்ளி குறியீடு அடுக்கு காலியாக உள்ளது</translation>
     </message>
     <message>
         <location filename="../asciifile/asciifile.cpp" line="321"/>
-        <source>Point elevation height is empty</source>
-        <translation type="unfinished"></translation>
+        <source>Point code height is empty</source>
+        <translation>புள்ளி குறியீடு உயரம் காலியாக உள்ளது</translation>
     </message>
     <message>
         <location filename="../asciifile/asciifile.cpp" line="322"/>
-        <source>Point elevation separation is empty</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../asciifile/asciifile.cpp" line="325"/>
-        <source>Point number layer is empty</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../asciifile/asciifile.cpp" line="326"/>
-        <source>Point number height is empty</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../asciifile/asciifile.cpp" line="327"/>
-        <source>Point number separation is empty</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../asciifile/asciifile.cpp" line="330"/>
-        <source>Point code layer is empty</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../asciifile/asciifile.cpp" line="331"/>
-        <source>Point code height is empty</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../asciifile/asciifile.cpp" line="332"/>
         <source>Point code separation is empty</source>
-        <translation type="unfinished"></translation>
+        <translation>புள்ளி குறியீடு இடைவெளி காலியாக உள்ளது</translation>
     </message>
     <message>
-        <location filename="../asciifile/asciifile.cpp" line="360"/>
+        <location filename="../asciifile/asciifile.cpp" line="358"/>
         <source>The file %1 not exist</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 என்ற கோப்பு இல்லை</translation>
     </message>
     <message>
-        <location filename="../asciifile/asciifile.cpp" line="365"/>
+        <location filename="../asciifile/asciifile.cpp" line="363"/>
         <source>Can&apos;t open the file %1</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 என்ற கோப்பை திறக்க முடியவில்லை</translation>
     </message>
 </context>
 <context>
-    <name>dibSHP</name>
+    <name>divide</name>
     <message>
-        <location filename="../importshp/importshp.cpp" line="59"/>
-        <source>File...</source>
-        <translation type="unfinished"></translation>
+        <location filename="../divide/divide.cpp" line="34"/>
+        <location filename="../divide/divide.cpp" line="41"/>
+        <source>Divide</source>
+        <translation>பிரி</translation>
     </message>
     <message>
-        <location filename="../importshp/importshp.cpp" line="67"/>
-        <source>File type:</source>
-        <translation type="unfinished"></translation>
+        <location filename="../divide/divide.cpp" line="42"/>
+        <source>Divide test tip...</source>
+        <translation>பிரி சோதனை உதவிக்குறிப்பு...</translation>
     </message>
     <message>
-        <location filename="../importshp/importshp.cpp" line="75"/>
+        <location filename="../divide/divide.cpp" line="53"/>
+        <source>Select a line, circle or arc and press return</source>
+        <translation>ஒரு கோடு, வட்டம் அல்லது வில் பகுதியைத் தேர்ந்தெடுத்து, எண்டர் விசையை அழுத்தவும்</translation>
+    </message>
+    <message>
+        <location filename="../divide/divide.cpp" line="64"/>
+        <source>Error</source>
+        <translation>பிழை</translation>
+    </message>
+    <message>
+        <location filename="../divide/divide.cpp" line="101"/>
+        <source>n</source>
+        <translation>n</translation>
+    </message>
+    <message>
+        <location filename="../divide/divide.cpp" line="439"/>
+        <source>Empty Entity</source>
+        <translation>வெற்று நிறுவனம்</translation>
+    </message>
+    <message>
+        <location filename="../divide/divide.cpp" line="447"/>
+        <source>X</source>
+        <translation>X</translation>
+    </message>
+    <message>
+        <location filename="../divide/divide.cpp" line="447"/>
+        <source>Y</source>
+        <translation>Y</translation>
+    </message>
+    <message>
+        <location filename="../divide/divide.cpp" line="455"/>
         <source>Layer</source>
-        <translation type="unfinished"></translation>
+        <translation>அடுக்கு</translation>
     </message>
     <message>
-        <location filename="../importshp/importshp.cpp" line="56"/>
-        <source>Import ESRI Shapefile</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../importshp/importshp.cpp" line="68"/>
-        <location filename="../importshp/importshp.cpp" line="266"/>
-        <source>Unknown</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../importshp/importshp.cpp" line="76"/>
-        <location filename="../importshp/importshp.cpp" line="89"/>
-        <location filename="../importshp/importshp.cpp" line="102"/>
-        <location filename="../importshp/importshp.cpp" line="115"/>
-        <source>Current</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../importshp/importshp.cpp" line="77"/>
-        <location filename="../importshp/importshp.cpp" line="90"/>
-        <location filename="../importshp/importshp.cpp" line="103"/>
-        <location filename="../importshp/importshp.cpp" line="116"/>
-        <source>From data:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../importshp/importshp.cpp" line="88"/>
+        <location filename="../divide/divide.cpp" line="457"/>
         <source>Color</source>
         <translation>நிறம்</translation>
     </message>
     <message>
-        <location filename="../importshp/importshp.cpp" line="101"/>
+        <location filename="../divide/divide.cpp" line="458"/>
         <source>Line type</source>
-        <translation type="unfinished"></translation>
+        <translation>கோட்டின் வகை</translation>
     </message>
     <message>
-        <location filename="../importshp/importshp.cpp" line="114"/>
-        <source>Width</source>
-        <translation>அகலம்</translation>
+        <location filename="../divide/divide.cpp" line="460"/>
+        <source>Line thickness</source>
+        <translation>கோட்டின் தடிமன்</translation>
     </message>
     <message>
-        <location filename="../importshp/importshp.cpp" line="127"/>
-        <location filename="../importshp/importshp.cpp" line="213"/>
-        <source>Point</source>
-        <translation>புள்ளி</translation>
+        <location filename="../divide/divide.cpp" line="462"/>
+        <source>ID</source>
+        <translation>ID</translation>
     </message>
     <message>
-        <location filename="../importshp/importshp.cpp" line="128"/>
-        <source>as Point</source>
-        <translation type="unfinished"></translation>
+        <location filename="../divide/divide.cpp" line="469"/>
+        <source>LINE</source>
+        <translation>வரி</translation>
     </message>
     <message>
-        <location filename="../importshp/importshp.cpp" line="129"/>
-        <source>as Label:</source>
-        <translation type="unfinished"></translation>
+        <location filename="../divide/divide.cpp" line="474"/>
+        <source>from point</source>
+        <translation>புள்ளியிலிருந்து</translation>
     </message>
     <message>
-        <location filename="../importshp/importshp.cpp" line="141"/>
-        <source>Accept</source>
-        <translation>ஏற்கவும்</translation>
+        <location filename="../divide/divide.cpp" line="477"/>
+        <source>to point</source>
+        <translation>புள்ளிக்கு</translation>
     </message>
     <message>
-        <location filename="../importshp/importshp.cpp" line="142"/>
+        <location filename="../divide/divide.cpp" line="482"/>
+        <location filename="../divide/divide.cpp" line="509"/>
+        <source>length</source>
+        <translation>நீளம்</translation>
+    </message>
+    <message>
+        <location filename="../divide/divide.cpp" line="487"/>
+        <source>Angle in XY plane</source>
+        <translation>XY தளத்தில் கோணம்</translation>
+    </message>
+    <message>
+        <location filename="../divide/divide.cpp" line="489"/>
+        <source>Inc.</source>
+        <translation>கூடுதல்</translation>
+    </message>
+    <message>
+        <location filename="../divide/divide.cpp" line="494"/>
+        <source>ARC</source>
+        <translation>வளைவு</translation>
+    </message>
+    <message>
+        <location filename="../divide/divide.cpp" line="495"/>
+        <location filename="../divide/divide.cpp" line="514"/>
+        <source>center point</source>
+        <translation>மையப் புள்ளி</translation>
+    </message>
+    <message>
+        <location filename="../divide/divide.cpp" line="501"/>
+        <location filename="../divide/divide.cpp" line="518"/>
+        <location filename="../divide/divide.cpp" line="540"/>
+        <source>radius</source>
+        <translation>ஆரம்</translation>
+    </message>
+    <message>
+        <location filename="../divide/divide.cpp" line="502"/>
+        <source>initial angle</source>
+        <translation>ஆரம்ப கோணம்</translation>
+    </message>
+    <message>
+        <location filename="../divide/divide.cpp" line="504"/>
+        <source>final angle</source>
+        <translation>இறுதி கோணம்</translation>
+    </message>
+    <message>
+        <location filename="../divide/divide.cpp" line="513"/>
+        <source>CIRCLE</source>
+        <translation>வட்டம்</translation>
+    </message>
+    <message>
+        <location filename="../divide/divide.cpp" line="519"/>
+        <source>circumference</source>
+        <translation>சுற்றளவு</translation>
+    </message>
+    <message>
+        <location filename="../divide/divide.cpp" line="521"/>
+        <source>area</source>
+        <translation>பரப்பளவு</translation>
+    </message>
+    <message>
+        <location filename="../divide/divide.cpp" line="525"/>
+        <source>POLYLINE</source>
+        <translation>பல கோடு</translation>
+    </message>
+    <message>
+        <location filename="../divide/divide.cpp" line="526"/>
+        <source>Closed</source>
+        <translation>மூடப்பட்டது</translation>
+    </message>
+    <message>
+        <location filename="../divide/divide.cpp" line="528"/>
+        <source>No</source>
+        <translation>இல்லை</translation>
+    </message>
+    <message>
+        <location filename="../divide/divide.cpp" line="528"/>
+        <source>Yes</source>
+        <translation>ஆம்</translation>
+    </message>
+    <message>
+        <location filename="../divide/divide.cpp" line="529"/>
+        <source>Vertices</source>
+        <translation>உச்சிகள்</translation>
+    </message>
+    <message>
+        <location filename="../divide/divide.cpp" line="534"/>
+        <source>in point</source>
+        <translation>புள்ளியில்</translation>
+    </message>
+    <message>
+        <location filename="../divide/divide.cpp" line="550"/>
+        <source>MUST be a line, circle or arc</source>
+        <translation>இது ஒரு கோடு, வட்டம் அல்லது வளைவாக இருக்க வேண்டும்</translation>
+    </message>
+</context>
+<context>
+    <name>dividedlg</name>
+    <message>
+        <location filename="../divide/dividedlg.cpp" line="47"/>
+        <source>Divide - </source>
+        <translation>பிரி</translation>
+    </message>
+    <message>
+        <location filename="../divide/dividedlg.cpp" line="68"/>
+        <source>Layers</source>
+        <translation>அடுக்குகள்</translation>
+    </message>
+    <message>
+        <location filename="../divide/dividedlg.cpp" line="74"/>
+        <source>OK</source>
+        <translation>சரி</translation>
+    </message>
+    <message>
+        <location filename="../divide/dividedlg.cpp" line="75"/>
         <source>Cancel</source>
-        <translation>ரத்து</translation>
+        <translation>ரத்து செய்</translation>
     </message>
     <message>
-        <location filename="../importshp/importshp.cpp" line="167"/>
-        <source>Select file</source>
-        <translation>கோப்பைத் தேர்ந்தெடு</translation>
+        <location filename="../divide/dividedlg.cpp" line="84"/>
+        <source>Divide at</source>
+        <translation>எங்கே பிரிக்க வேண்டும்</translation>
     </message>
     <message>
-        <location filename="../importshp/importshp.cpp" line="217"/>
-        <source>Point+Measure</source>
-        <translation type="unfinished"></translation>
+        <location filename="../divide/dividedlg.cpp" line="91"/>
+        <source>Size</source>
+        <translation>அளவு</translation>
     </message>
     <message>
-        <location filename="../importshp/importshp.cpp" line="221"/>
-        <source>3D Point</source>
-        <translation type="unfinished"></translation>
+        <location filename="../divide/dividedlg.cpp" line="114"/>
+        <source>places</source>
+        <translation>இடங்கள்</translation>
     </message>
     <message>
-        <location filename="../importshp/importshp.cpp" line="225"/>
-        <source>Multi Point</source>
-        <translation type="unfinished"></translation>
+        <location filename="../divide/dividedlg.cpp" line="125"/>
+        <source>Ticks - Off</source>
+        <translation>குறிகள் - அணைக்கப்பட்டது</translation>
     </message>
     <message>
-        <location filename="../importshp/importshp.cpp" line="229"/>
-        <source>Multi Point+Measure</source>
-        <translation type="unfinished"></translation>
+        <location filename="../divide/dividedlg.cpp" line="133"/>
+        <source>Breaks - Off</source>
+        <translation>இடைவெளிகள் - அணைக்கப்பட்டது</translation>
     </message>
     <message>
-        <location filename="../importshp/importshp.cpp" line="233"/>
-        <source>3D Multi Point</source>
-        <translation type="unfinished"></translation>
+        <location filename="../divide/dividedlg.cpp" line="178"/>
+        <source>&lt;i&gt;New&lt;/i&gt;</source>
+        <translation>புதியது</translation>
     </message>
     <message>
-        <location filename="../importshp/importshp.cpp" line="237"/>
-        <source>Arc</source>
-        <translation type="unfinished"></translation>
+        <location filename="../divide/dividedlg.cpp" line="209"/>
+        <source>Enter start
+angle, in
+decimal degrees
+0° at 3 o&apos;clock
+goes
+anti-clockwise.</source>
+        <translation>ஆரம்ப கோணத்தை உள்ளிடவும், தசம டிகிரியில், 0° என்பது 3 மணி நேரத்தில் தொடங்கி, கடிகார திசைக்கு எதிர்திசையில் செல்லும்.</translation>
     </message>
     <message>
-        <location filename="../importshp/importshp.cpp" line="241"/>
-        <source>Arc+Measure</source>
-        <translation type="unfinished"></translation>
+        <location filename="../divide/dividedlg.cpp" line="245"/>
+        <source>&lt;i&gt;&quot;New&quot;&lt;/i&gt;&lt;br&gt;Enter name&lt;br&gt;for a new layer&lt;br&gt;(if required?) to&lt;br&gt;draw ticks on.</source>
+        <translation>புதியது&lt;br&gt;புதிய அடுக்கிற்கு பெயரை உள்ளிடவும் (தேவைப்பட்டால்), அதில் டிக் குறிகளை வரையலாம்.</translation>
     </message>
     <message>
-        <location filename="../importshp/importshp.cpp" line="245"/>
-        <source>3D Arc</source>
-        <translation type="unfinished"></translation>
+        <location filename="../divide/dividedlg.cpp" line="250"/>
+        <source>Ticks</source>
+        <translation>டிக் குறிகள்</translation>
     </message>
     <message>
-        <location filename="../importshp/importshp.cpp" line="249"/>
-        <source>Polygon</source>
-        <translation>பலகோணம்</translation>
+        <location filename="../divide/dividedlg.cpp" line="256"/>
+        <source>Above</source>
+        <translation>மேலே</translation>
     </message>
     <message>
-        <location filename="../importshp/importshp.cpp" line="253"/>
-        <source>Polygon+Measure</source>
-        <translation type="unfinished"></translation>
+        <location filename="../divide/dividedlg.cpp" line="257"/>
+        <source>Below</source>
+        <translation>கீழே</translation>
     </message>
     <message>
-        <location filename="../importshp/importshp.cpp" line="257"/>
-        <source>3D Polygon</source>
-        <translation type="unfinished"></translation>
+        <location filename="../divide/dividedlg.cpp" line="261"/>
+        <source>Outside</source>
+        <translation>வெளியே</translation>
     </message>
     <message>
-        <location filename="../importshp/importshp.cpp" line="261"/>
-        <source>Multipatch</source>
-        <translation type="unfinished"></translation>
+        <location filename="../divide/dividedlg.cpp" line="262"/>
+        <source>Inside</source>
+        <translation>உள்ளே</translation>
+    </message>
+</context>
+<context>
+    <name>lc_Exptocsvdlg</name>
+    <message>
+        <location filename="../pointstocsv/pointstocsv.cpp" line="120"/>
+        <source>Export to file</source>
+        <translation>கோப்பில் ஏற்றுமதி செய்க</translation>
     </message>
     <message>
-        <location filename="../importshp/importshp.cpp" line="281"/>
-        <source>The file %1 not have extension .shp</source>
-        <translation type="unfinished"></translation>
+        <location filename="../pointstocsv/pointstocsv.cpp" line="120"/>
+        <source>CSV (*.csv)</source>
+        <translation>CSV (*.csv)</translation>
     </message>
     <message>
-        <location filename="../importshp/importshp.cpp" line="286"/>
-        <source>The file %1 not exist</source>
-        <translation type="unfinished"></translation>
+        <location filename="../pointstocsv/pointstocsv.cpp" line="128"/>
+        <source>Unable to open file</source>
+        <translation>கோப்பை திறக்க முடியவில்லை</translation>
     </message>
 </context>
 <context>
     <name>lc_Geardlg</name>
     <message>
-        <location filename="../gear/gear.cpp" line="66"/>
-        <source>Draw a gear</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../gear/gear.cpp" line="71"/>
+        <location filename="../gear/gear.cpp" line="113"/>
         <source>Number of teeth</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../gear/gear.cpp" line="79"/>
-        <source>Circular pitch</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../gear/gear.cpp" line="87"/>
-        <source>Pressure angle (deg)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../gear/gear.cpp" line="95"/>
-        <source>Addendum</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../gear/gear.cpp" line="103"/>
-        <source>Dedendum</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../gear/gear.cpp" line="111"/>
-        <source>Type</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../gear/gear.cpp" line="114"/>
-        <source>Spur</source>
-        <translation type="unfinished"></translation>
+        <translation>பற்களின் எண்ணிக்கை</translation>
     </message>
     <message>
         <location filename="../gear/gear.cpp" line="115"/>
-        <source>Ring</source>
-        <translation type="unfinished"></translation>
+        <source>Pressure angle (deg)</source>
+        <translation>அழுத்தக் கோணம் (டிகிரி)</translation>
+    </message>
+    <message>
+        <location filename="../gear/gear.cpp" line="112"/>
+        <source>Rotation angle</source>
+        <translation>சுழற்சி கோணம்</translation>
+    </message>
+    <message>
+        <location filename="../gear/gear.cpp" line="114"/>
+        <source>Modulus</source>
+        <translation>மாடுலஸ்</translation>
+    </message>
+    <message>
+        <location filename="../gear/gear.cpp" line="116"/>
+        <source>Addendum (rel. to modulus)</source>
+        <translation>கூடுதல் (மாடுலஸுடன் தொடர்புடையது)</translation>
+    </message>
+    <message>
+        <location filename="../gear/gear.cpp" line="117"/>
+        <source>Dedendum (rel. to modulus)</source>
+        <translation>குறைவு (மாடுலஸுடன் தொடர்புடையது)</translation>
+    </message>
+    <message>
+        <location filename="../gear/gear.cpp" line="118"/>
+        <source>Number of segments to draw (dedendum)</source>
+        <translation>வரைய வேண்டிய பிரிவுகளின் எண்ணிக்கை (குறைவு)</translation>
     </message>
     <message>
         <location filename="../gear/gear.cpp" line="119"/>
-        <source>Accept</source>
-        <translation type="unfinished">ஏற்கவும்</translation>
+        <source>Number of segments to draw (addendum)</source>
+        <translation>வரைய வேண்டிய பிரிவுகளின் எண்ணிக்கை (கூடுதல்)</translation>
+    </message>
+    <message>
+        <location filename="../gear/gear.cpp" line="120"/>
+        <source>Draw all teeth?</source>
+        <translation>எல்லா பற்களையும் வரையவா?</translation>
+    </message>
+    <message>
+        <location filename="../gear/gear.cpp" line="121"/>
+        <source>Draw symmetric face?</source>
+        <translation>சமச்சீர் முகத்தை வரையவா?</translation>
+    </message>
+    <message>
+        <location filename="../gear/gear.cpp" line="123"/>
+        <source>Use layers?</source>
+        <translation>அடுக்குகளைப் பயன்படுத்தவா?</translation>
     </message>
     <message>
         <location filename="../gear/gear.cpp" line="124"/>
+        <source>Draw addendum circle?</source>
+        <translation>கூடுதல் வட்டத்தை வரையவா?</translation>
+    </message>
+    <message>
+        <location filename="../gear/gear.cpp" line="125"/>
+        <source>Draw pitch circle?</source>
+        <translation>பிட்ச் வட்டத்தை வரையவா?</translation>
+    </message>
+    <message>
+        <location filename="../gear/gear.cpp" line="126"/>
+        <source>Draw base circle?</source>
+        <translation>அடிப்படை வட்டத்தை வரையவா?</translation>
+    </message>
+    <message>
+        <location filename="../gear/gear.cpp" line="127"/>
+        <source>Draw root circle?</source>
+        <translation>ரூட் வட்டத்தை வரையவா?</translation>
+    </message>
+    <message>
+        <location filename="../gear/gear.cpp" line="128"/>
+        <source>Draw pressure line?</source>
+        <translation>அழுத்தக் கோட்டை வரையவா?</translation>
+    </message>
+    <message>
+        <location filename="../gear/gear.cpp" line="129"/>
+        <source>Draw pressure limits?</source>
+        <translation>அழுத்த வரம்புகளை வரையவா?</translation>
+    </message>
+    <message>
+        <location filename="../gear/gear.cpp" line="131"/>
+        <source>Calculate interference?</source>
+        <translation>தலையீட்டைக் கணக்கிடவா?</translation>
+    </message>
+    <message>
+        <location filename="../gear/gear.cpp" line="132"/>
+        <source>Number of segments to draw (interference)</source>
+        <translation>வரைய வேண்டிய பிரிவுகளின் எண்ணிக்கை (தலையீடு)</translation>
+    </message>
+    <message>
+        <location filename="../gear/gear.cpp" line="134"/>
+        <source>Accept</source>
+        <translation>ஏற்றுக்கொள்</translation>
+    </message>
+    <message>
+        <location filename="../gear/gear.cpp" line="135"/>
         <source>Cancel</source>
-        <translation type="unfinished">ரத்து</translation>
+        <translation>ரத்து செய்</translation>
     </message>
 </context>
 <context>
     <name>lc_Listdlg</name>
     <message>
-        <location filename="../list/list.cpp" line="274"/>
+        <location filename="../list/list.cpp" line="276"/>
         <source>List entities</source>
-        <translation type="unfinished"></translation>
+        <translation>உருப்படிகளைப் பட்டியலிடு</translation>
     </message>
 </context>
 <context>
     <name>lc_Sampledlg</name>
     <message>
-        <location filename="../sample/sample.cpp" line="54"/>
+        <location filename="../sample/sample.cpp" line="53"/>
         <source>Draw line</source>
-        <translation type="unfinished"></translation>
+        <translation>கோடு வரையவும்</translation>
     </message>
     <message>
-        <location filename="../sample/sample.cpp" line="60"/>
+        <location filename="../sample/sample.cpp" line="59"/>
         <source>Start X:</source>
-        <translation type="unfinished"></translation>
+        <translation>ஆரம்ப X:</translation>
     </message>
     <message>
-        <location filename="../sample/sample.cpp" line="66"/>
+        <location filename="../sample/sample.cpp" line="65"/>
         <source>Start Y:</source>
-        <translation type="unfinished"></translation>
+        <translation>ஆரம்ப Y:</translation>
     </message>
     <message>
-        <location filename="../sample/sample.cpp" line="72"/>
+        <location filename="../sample/sample.cpp" line="71"/>
         <source>End X:</source>
-        <translation type="unfinished"></translation>
+        <translation>முடிவு X:</translation>
     </message>
     <message>
-        <location filename="../sample/sample.cpp" line="78"/>
+        <location filename="../sample/sample.cpp" line="77"/>
         <source>End Y:</source>
-        <translation type="unfinished"></translation>
+        <translation>முடிவு Y:</translation>
     </message>
     <message>
-        <location filename="../sample/sample.cpp" line="86"/>
+        <location filename="../sample/sample.cpp" line="85"/>
         <source>Accept</source>
-        <translation type="unfinished">ஏற்கவும்</translation>
+        <translation>ஏற்றுக்கொள்</translation>
     </message>
     <message>
-        <location filename="../sample/sample.cpp" line="91"/>
+        <location filename="../sample/sample.cpp" line="90"/>
         <source>Cancel</source>
-        <translation type="unfinished">ரத்து</translation>
+        <translation>ரத்து செய்</translation>
+    </message>
+    <message>
+        <location filename="../sample/sample.cpp" line="105"/>
+        <source>Start X is empty</source>
+        <translation>ஆரம்ப X காலியாக உள்ளது</translation>
+    </message>
+    <message>
+        <location filename="../sample/sample.cpp" line="106"/>
+        <source>Start Y is empty</source>
+        <translation>ஆரம்ப Y காலியாக உள்ளது</translation>
     </message>
     <message>
         <location filename="../sample/sample.cpp" line="107"/>
-        <source>Start X is empty</source>
-        <translation type="unfinished"></translation>
+        <source>End X is empty</source>
+        <translation>முடிவு X காலியாக உள்ளது</translation>
     </message>
     <message>
         <location filename="../sample/sample.cpp" line="108"/>
-        <source>Start Y is empty</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../sample/sample.cpp" line="109"/>
-        <source>End X is empty</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../sample/sample.cpp" line="110"/>
         <source>End Y is empty</source>
-        <translation type="unfinished"></translation>
+        <translation>முடிவு Y காலியாக உள்ளது</translation>
     </message>
     <message>
-        <location filename="../sample/sample.cpp" line="132"/>
+        <location filename="../sample/sample.cpp" line="128"/>
         <source>Sample plugin</source>
-        <translation type="unfinished"></translation>
+        <translation>மாதிரி செருகுநிரல்</translation>
     </message>
 </context>
 <context>
@@ -864,72 +1143,77 @@
     <message>
         <location filename="../picfile/picfile.cpp" line="65"/>
         <source>File...</source>
-        <translation type="unfinished"></translation>
+        <translation>கோப்பு...</translation>
     </message>
     <message>
         <location filename="../picfile/picfile.cpp" line="75"/>
         <source>Scale:</source>
-        <translation type="unfinished"></translation>
+        <translation>அளவு:</translation>
     </message>
     <message>
         <location filename="../picfile/picfile.cpp" line="79"/>
         <source>Accept</source>
-        <translation type="unfinished">ஏற்கவும்</translation>
+        <translation>ஏற்றுக்கொள்</translation>
     </message>
     <message>
         <location filename="../picfile/picfile.cpp" line="83"/>
         <source>Cancel</source>
-        <translation type="unfinished">ரத்து</translation>
+        <translation>ரத்து செய்</translation>
     </message>
     <message>
         <location filename="../picfile/picfile.cpp" line="111"/>
         <source>Select file</source>
-        <translation type="unfinished">கோப்பைத் தேர்ந்தெடு</translation>
+        <translation>கோப்பைத் தேர்ந்தெடுக்கவும்</translation>
     </message>
     <message>
-        <location filename="../picfile/picfile.cpp" line="119"/>
+        <location filename="../picfile/picfile.cpp" line="118"/>
         <source>Scale Factor is empty or invalid</source>
-        <translation type="unfinished"></translation>
+        <translation>அளவுகோல் காரணி காலியாக உள்ளது அல்லது தவறானது</translation>
     </message>
     <message>
-        <location filename="../picfile/picfile.cpp" line="132"/>
+        <location filename="../picfile/picfile.cpp" line="131"/>
         <source>The file %1 not exist</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 என்ற கோப்பு இல்லை</translation>
     </message>
     <message>
-        <location filename="../picfile/picfile.cpp" line="137"/>
+        <location filename="../picfile/picfile.cpp" line="136"/>
         <source>Can&apos;t open the file %1</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 கோப்பை திறக்க முடியவில்லை</translation>
     </message>
     <message>
-        <location filename="../picfile/picfile.cpp" line="144"/>
+        <location filename="../picfile/picfile.cpp" line="143"/>
         <source>%1 objects imported</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 பொருள்கள் இறக்குமதி செய்யப்பட்டன</translation>
     </message>
     <message>
-        <location filename="../picfile/picfile.cpp" line="166"/>
+        <location filename="../picfile/picfile.cpp" line="164"/>
         <source>picPunto drawLine: first point is empty %1</source>
-        <translation type="unfinished"></translation>
+        <translation>picPunto drawLine: முதல் புள்ளி காலியாக உள்ளது %1</translation>
     </message>
     <message>
-        <location filename="../picfile/picfile.cpp" line="179"/>
+        <location filename="../picfile/picfile.cpp" line="177"/>
         <source>picPunto drawLine: next point is empty %1</source>
-        <translation type="unfinished"></translation>
+        <translation>picPunto drawLine: அடுத்த புள்ளி காலியாக உள்ளது %1</translation>
     </message>
     <message>
-        <location filename="../picfile/picfile.cpp" line="258"/>
-        <location filename="../picfile/picfile.cpp" line="267"/>
+        <location filename="../picfile/picfile.cpp" line="260"/>
+        <location filename="../picfile/picfile.cpp" line="269"/>
         <source>format error in %1</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 இல் வடிவமைப்பு பிழை</translation>
     </message>
 </context>
 <context>
     <name>plot</name>
     <message>
-        <location filename="../plotequation/plot.cpp" line="21"/>
-        <location filename="../plotequation/plot.cpp" line="28"/>
+        <location filename="../plotequation/plot.cpp" line="30"/>
+        <location filename="../plotequation/plot.cpp" line="37"/>
         <source>Plot plugin</source>
-        <translation type="unfinished"></translation>
+        <translation>வரைபட செருகு நிரல்</translation>
+    </message>
+    <message>
+        <location filename="../plotequation/plot.cpp" line="38"/>
+        <source>Plot test tip...</source>
+        <translation>வரைபட சோதனை உதவிக்குறிப்பு...</translation>
     </message>
 </context>
 <context>
@@ -937,7 +1221,7 @@
     <message>
         <location filename="../plotequation/plotdialog.cpp" line="15"/>
         <source>Plot equation</source>
-        <translation type="unfinished"></translation>
+        <translation>வரைபட சமன்பாடு</translation>
     </message>
     <message>
         <location filename="../plotequation/plotdialog.cpp" line="18"/>
@@ -946,86 +1230,89 @@ If you don&apos;t want to use the parametric form, just leave out &quot;Equation
 You can use pi when you need the value of pi (i.e. (3*pi)).
 Use t or x in your equation as a variable/parameter.
 </source>
-        <translation type="unfinished"></translation>
+        <translation>இந்த செருகு நிரல் கணித சமன்பாடுகளை வரைபடமாக்க உதவுகிறது.
+நீங்கள் அளவுரு வடிவத்தைப் பயன்படுத்த விரும்பவில்லை என்றால், &quot;சமன்பாடு 2&quot; என்பதைத் தவிர்க்கவும்.
+உங்களுக்கு பை (pi) தேவைப்படும்போது, அதை சமன்பாட்டில் பயன்படுத்தலாம் (எ.கா: (3*pi)).
+உங்கள் சமன்பாட்டில் மாறி/அளவுருவாக t அல்லது x ஐப் பயன்படுத்தவும்.</translation>
     </message>
     <message>
         <location filename="../plotequation/plotdialog.cpp" line="22"/>
         <source>Equation 1:</source>
-        <translation type="unfinished"></translation>
+        <translation>சமன்பாடு 1:</translation>
     </message>
     <message>
         <location filename="../plotequation/plotdialog.cpp" line="23"/>
         <source>Equation 2:</source>
-        <translation type="unfinished"></translation>
+        <translation>சமன்பாடு 2:</translation>
     </message>
     <message>
         <location filename="../plotequation/plotdialog.cpp" line="26"/>
         <source>start value:</source>
-        <translation type="unfinished"></translation>
+        <translation>ஆரம்ப மதிப்பு:</translation>
     </message>
     <message>
         <location filename="../plotequation/plotdialog.cpp" line="27"/>
         <source>end value:</source>
-        <translation type="unfinished"></translation>
+        <translation>முடிவு மதிப்பு:</translation>
     </message>
     <message>
         <location filename="../plotequation/plotdialog.cpp" line="28"/>
         <source>step size:</source>
-        <translation type="unfinished"></translation>
+        <translation>படி அளவு:</translation>
     </message>
     <message>
         <location filename="../plotequation/plotdialog.cpp" line="32"/>
         <source>Draw</source>
-        <translation type="unfinished"></translation>
+        <translation>வரை</translation>
     </message>
     <message>
         <location filename="../plotequation/plotdialog.cpp" line="33"/>
         <source>Cancel</source>
-        <translation type="unfinished">ரத்து</translation>
+        <translation>ரத்து செய்</translation>
     </message>
     <message>
         <location filename="../plotequation/plotdialog.cpp" line="59"/>
         <source>Line Segments</source>
         <comment>Plot Equation to generate RS_Line segments</comment>
-        <translation type="unfinished"></translation>
+        <translation>கோட்டுப் பகுதிகள்</translation>
     </message>
     <message>
         <location filename="../plotequation/plotdialog.cpp" line="60"/>
         <source>Polyline</source>
         <comment>Plot Equation to generate RS_Polyline</comment>
-        <translation type="unfinished"></translation>
+        <translation>பல கோடுகள்</translation>
     </message>
     <message>
         <location filename="../plotequation/plotdialog.cpp" line="61"/>
         <source>SplinePoints</source>
         <comment>Plot Equation to generate 2nd spline by LC_SplinePoints</comment>
-        <translation type="unfinished"></translation>
+        <translation>ஸ்ப்லைன் புள்ளிகள்</translation>
     </message>
 </context>
 <context>
     <name>pointBox</name>
     <message>
-        <location filename="../asciifile/asciifile.cpp" line="175"/>
+        <location filename="../asciifile/asciifile.cpp" line="176"/>
         <source>Layer:</source>
-        <translation type="unfinished"></translation>
+        <translation>அடுக்கு:</translation>
     </message>
 </context>
 <context>
     <name>textBox</name>
     <message>
-        <location filename="../asciifile/asciifile.cpp" line="207"/>
+        <location filename="../asciifile/asciifile.cpp" line="204"/>
         <source>Style:</source>
-        <translation type="unfinished"></translation>
+        <translation>பாணி:</translation>
     </message>
     <message>
-        <location filename="../asciifile/asciifile.cpp" line="208"/>
+        <location filename="../asciifile/asciifile.cpp" line="205"/>
         <source>Height:</source>
-        <translation type="unfinished"></translation>
+        <translation>உயரம்:</translation>
     </message>
     <message>
-        <location filename="../asciifile/asciifile.cpp" line="209"/>
+        <location filename="../asciifile/asciifile.cpp" line="206"/>
         <source>Separation</source>
-        <translation type="unfinished"></translation>
+        <translation>இடைவெளி</translation>
     </message>
 </context>
 </TS>

@@ -26,36 +26,40 @@
 **********************************************************************/
 
 
-#include <iostream>
-#include <cmath>
 #include "rs_color.h"
 
+#include <algorithm>
+#include <cmath>
+#include <iostream>
+
 //This method is used for plugins
-int RS_Color::toIntColor(void) const {
-    if (isByLayer())
+int RS_Color::toIntColor() const {
+    if (isByLayer()) {
         return -1;
-    if (isByBlock())
+    }
+    if (isByBlock()) {
         return -2;
+    }
 //    int tmp1 = red() << 16;
 //    int tmp2 = green() << 8;
 //    int tmp3 = tmp1+tmp2+blue();
-    int cd = (red() << 16) + (green() << 8) + blue();
-        return cd;
-
+    const int cd = (red() << 16) + (green() << 8) + blue();
+    return cd;
 }
 
 //This method is used for plugins
-void RS_Color::fromIntColor(int co) {
-    if (co == -1)
+void RS_Color::fromIntColor(const int co) {
+    if (co == -1) {
         setFlags(RS2::FlagByLayer);
-    else if (co == -2)
+    }
+    else if (co == -2) {
         setFlags(RS2::FlagByBlock);
+    }
     else {
         setRed((co >> 16) & 0xFF);
         setGreen((co >> 8) & 0xFF);
         setBlue(co & 0xFF);
     }
-
 }
 
 /**
@@ -74,16 +78,29 @@ void RS_Color::fromIntColor(int co) {
  *         to 100 (maximum difference)
  */
 int RS_Color::colorDistance(const RS_Color& c) const {
-
-    int myRed {red()};
-    int otherRed {c.red()};
-    int redMean {(myRed + otherRed) / 2};
+    const int myRed {red()};
+    const int otherRed {c.red()};
+    const int redMean {(myRed + otherRed) / 2};
 
     // Convert difference value to percentage using maximum color difference (764.834 / 100)
     return std::lround( std::sqrt( std::pow(otherRed - myRed, 2) * (512 + redMean) / 256
                                    + std::pow(c.green() - green(), 2) * 4
                                    + std::pow(c.blue() - blue(), 2) * (767 - redMean) / 256)
                         / 7.64834);
+}
+
+double RS_Color::relativeLuminance(const QColor& color) {
+    auto channel = [](const double c) {
+        return c <= 0.04045 ? c / 12.92 : std::pow((c + 0.055) / 1.055, 2.4);
+    };
+    const QColor rgb = color.toRgb();
+    return 0.2126 * channel(rgb.redF()) + 0.7152 * channel(rgb.greenF()) + 0.0722 * channel(rgb.blueF());
+}
+
+double RS_Color::contrastRatio(const QColor& a, const QColor& b) {
+    const double la = relativeLuminance(a);
+    const double lb = relativeLuminance(b);
+    return (std::max(la, lb) + 0.05) / (std::min(la, lb) + 0.05);
 }
 
 std::ostream& operator << (std::ostream& os, const RS_Color& c) {

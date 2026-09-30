@@ -7,9 +7,9 @@
 
 ;--------------------------------
 ;Include version information
-  !include /NONFATAL "generated_scmrev.nsh"
+;  !include /NONFATAL "generated_scmrev.nsh"
 !ifndef SCMREVISION
-    !define SCMREVISION "2.0.x"
+    !define SCMREVISION "2.2.2.x"
 !endif
 
 ;--------------------------------
@@ -18,9 +18,8 @@
   !include "MUI2.nsh"
   !include "WinVer.nsh"
 
-  !define APPNAME "LibreCAD"
-  !define MUI_ICON "..\..\librecad\res\main\librecad.ico"
-  !define MUI_UNICON "..\..\librecad\res\main\uninstall.ico"
+  !define MUI_ICON "..\..\librecad\res\images\librecad.ico"
+  !define MUI_UNICON "..\..\desktop\res_old\main\uninstall.ico"
 
   !define UNINSTKEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}"
 
@@ -33,13 +32,13 @@
 
   ;Name and file
   Name "${APPNAME}"
-  OutFile "../../generated/LibreCAD-Installer.exe"
+  OutFile "../../${InstallerName}.exe"
 
   ;Default installation folder
-  InstallDir "$PROGRAMFILES\LibreCAD"
+  InstallDir "${ProgramsFolder}\LibreCAD"
 
   ;Get installation folder from registry if available
-  InstallDirRegKey HKCU "Software\LibreCAD" ""
+  InstallDirRegKey HKCU "Software\${AppKeyName}" ""
 
   ;Request application privileges for Windows Vista
   RequestExecutionLevel admin
@@ -98,32 +97,51 @@ ${EndIf}
 FunctionEnd
 
 ;--- define Qt folders if not already defined in custom-5.3.nsi
-!ifndef Qt_Dir
-    !define Qt_Dir 	"C:\Qt\Qt5.4.0"
+!ifndef Qt6_Dir
+    !define Qt6_Dir 	"d:\a\LibreCAD\Qt"
 !endif
 !ifndef Qt_Version
-    !define Qt_Version 	"5.4"
+    !define Qt_Version 	"6.9.0"
 !endif
 !ifndef Mingw_Ver
-    !define Mingw_Ver 	"mingw491_32"
+    !ifdef ARM64
+        !define Mingw_Ver 	"msvc2022_arm64"
+    !else
+        !define Mingw_Ver 	"mingw_64"
+    !endif
 !endif
-;--- folder contains mingw32-make.exe
-!define MINGW_DIR 	"${Qt_Dir}\Tools\${Mingw_Ver}\bin"
-!define QTCREATOR_DIR 	"${Qt_Dir}\Tools\QtCreator\bin"
-!define QTMINGW_DIR 	"${Qt_Dir}\${Qt_Version}\${Mingw_Ver}"
+;--- folder contains mingw64-make.exe
+!define MINGW_DIR 	"C:\mingw64\bin"
+!define QTCREATOR_DIR 	"${Qt6_Dir}\Tools\QtCreator\bin"
+!define QTMINGW_DIR 	"${Qt6_Dir}\${Qt_Version}\${Mingw_Ver}"
 ;--- folder contains qmake.exe
 !define QMAKE_DIR 	"${QTMINGW_DIR}\bin"
 !define PLUGINS_DIR 	"${QTMINGW_DIR}\plugins"
 !define TRANSLATIONS_DIR	"${QTMINGW_DIR}\translations"
+;--- architecture-specific CMake output directory
+!ifdef ARM64
+    !define RELEASE_DIR "..\..\generated\ARM64\Release"
+!else
+    !define RELEASE_DIR "..\..\generated\Release"
+!endif
 
 ;--------------------------------
 ;Installer Sections
 
 Section "Install Section" SecInstall
   SetOutPath "$INSTDIR"
-  File /r "..\..\windows\*.*"
+  ; Exclude translations subdir — copied explicitly to resources\qm below
+  File /r /x "translations" "${RELEASE_DIR}\*.*"
+  SetOutPath "$INSTDIR\resources"
+  File /r "..\..\librecad\support\*.*"
+  File /r "..\..\generated\plugins"
   SetOutPath "$INSTDIR\resources\qm"
-  File /NONFATAL "${TRANSLATIONS_DIR}\qt*.qm"
+  ; Qt system translations deployed by windeployqt6 into the exe directory
+  File /NONFATAL "${RELEASE_DIR}\translations\*.qm"
+  ; LibreCAD translations compiled by CMake qt_add_translations (lands in binary dir root)
+  File /NONFATAL "..\..\generated\librecad_*.qm"
+  ; Plugin translations compiled by CMake qt_add_translations
+  File /NONFATAL "..\..\generated\plugins\plugins_*.qm"
   SetOutPath "$INSTDIR"
 
   ;Store installation folder
@@ -145,18 +163,19 @@ Section "Install Section" SecInstall
   WriteRegStr HKLM "${UNINSTKEY}" "DisplayIcon" "$INSTDIR\LibreCAD.exe"
   WriteRegStr HKLM "${UNINSTKEY}" "DisplayVersion" "${SCMREVISION}"
   WriteRegStr HKLM "${UNINSTKEY}" "Publisher" "LibreCAD Team"
-  WriteRegStr HKLM "${UNINSTKEY}" "Version" "2.0"
+  WriteRegStr HKLM "${UNINSTKEY}" "Version" "2.2.2_alpha1"
   WriteRegStr HKLM "${UNINSTKEY}" "HelpLink" "https://librecad.org/"
   WriteRegStr HKLM "${UNINSTKEY}" "InstallLocation" "$INSTDIR"
   WriteRegStr HKLM "${UNINSTKEY}" "URLInfoAbout" "http://librecad.org/"
   WriteRegStr HKLM "${UNINSTKEY}" "Comments" "LibreCAD - Open Source 2D-CAD"
   WriteRegStr HKLM "${UNINSTKEY}" "UninstallString" "$INSTDIR\Uninstall.exe"
-  WriteRegDWORD HKLM "${UNINSTKEY}" "VersionMinor" "0"
+  WriteRegDWORD HKLM "${UNINSTKEY}" "VersionMinor" "2"
   WriteRegDWORD HKLM "${UNINSTKEY}" "VersionMajor" "2"
   WriteRegDWORD HKLM "${UNINSTKEY}" "NoModify" "1"
   WriteRegDWORD HKLM "${UNINSTKEY}" "NoRepair" "1"
 
   ; Open Donate URL
+  IfSilent +2
   Exec "rundll32 url.dll,FileProtocolHandler http://librecad.org/donate.html"
 
 SectionEnd
@@ -181,7 +200,7 @@ Section "Uninstall"
 
   RMDir "$INSTDIR"
 
-  DeleteRegKey /ifempty HKCU "Software\LibreCAD"
+  DeleteRegKey /ifempty HKCU "Software\${AppKeyName}"
   DeleteRegKey HKLM "${UNINSTKEY}"
 
 SectionEnd

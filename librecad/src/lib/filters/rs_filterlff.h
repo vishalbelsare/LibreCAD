@@ -24,11 +24,10 @@
 **
 **********************************************************************/
 
-
 #ifndef RS_FILTERLFF_H
 #define RS_FILTERLFF_H
 
-#include <fstream>
+#include <iosfwd>
 
 #include "rs_filterinterface.h"
 
@@ -40,32 +39,31 @@
 class RS_FilterLFF : public RS_FilterInterface {
 public:
     RS_FilterLFF();
-    ~RS_FilterLFF() {}
-	
-/**
+
+    /**
 * @return RS2::FormatLFF.
 */
-RS2::FormatType rtti() const{
+    RS2::FormatType rtti() const {
         return RS2::FormatLFF;
-}
-	
-    virtual bool canImport(const QString& /*fileName*/, RS2::FormatType t) const {
-        return (t==RS2::FormatLFF);
-    }
-	
-    virtual bool canExport(const QString& /*fileName*/, RS2::FormatType t) const {
-        return (t==RS2::FormatLFF);
     }
 
-    virtual bool fileImport(RS_Graphic& g, const QString& file, RS2::FormatType /*type*/);
+    bool canImport(const QString& /*fileName*/, const RS2::FormatType t) const override {
+        return t == RS2::FormatLFF;
+    }
 
-    virtual bool fileExport(RS_Graphic& g, const QString& file, RS2::FormatType /*type*/);
+    bool canExport(const QString& /*fileName*/, const RS2::FormatType t) const override {
+        return t == RS2::FormatLFF;
+    }
+
+    bool fileImport(RS_Graphic& g, const QString& file, RS2::FormatType /*type*/) override;
+
+    bool fileExport(RS_Graphic& g, const QString& file, RS2::FormatType /*type*/) override;
 
     void stream(std::ofstream& fs, double value);
 
-    static RS_FilterInterface *createFilter() {return new RS_FilterLFF();}
+    static RS_FilterInterface* createFilter() {
+        return new RS_FilterLFF();
+    }
 };
-
-
 
 #endif
